@@ -6,7 +6,7 @@
 <title>Jumpmaster TAK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#E6E9E0; --panel:#F5F6F0; --panel2:#E9ECE2; --ink:#1A211C; --mute:#59624F; --line:#C1C8B8;
@@ -18,15 +18,15 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1E2520; --panel:#262E28; --panel2:#2F3931; --ink:#ECE7D6; --mute:#9CA592; --line:#3B473D;
+    --bg:#141414; --panel:#1C1C1C; --panel2:#2B2B2B; --ink:#F2F2F2; --mute:#A9A9A9; --line:#3A3A3A;
     --amber:#F2B53E; --self:#4CC6DE; --pi:#F25C93; --go:#5FCC72; --stop:#F05747; --x:#FF3B3B;
-    --grid:rgba(236,231,214,.30); --mapbg:#222A24; color-scheme:dark;
+    --grid:rgba(255,255,255,.28); --mapbg:#1A1A1A; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1E2520; --panel:#262E28; --panel2:#2F3931; --ink:#ECE7D6; --mute:#9CA592; --line:#3B473D;
+  --bg:#141414; --panel:#1C1C1C; --panel2:#2B2B2B; --ink:#F2F2F2; --mute:#A9A9A9; --line:#3A3A3A;
   --amber:#F2B53E; --self:#4CC6DE; --pi:#F25C93; --go:#5FCC72; --stop:#F05747; --x:#FF3B3B;
-  --grid:rgba(236,231,214,.30); --mapbg:#222A24; color-scheme:dark;
+  --grid:rgba(255,255,255,.28); --mapbg:#1A1A1A; color-scheme:dark;
 }
 :root[data-night="1"]{
   --bg:#110404; --panel:#1A0606; --panel2:#250A09; --ink:#FF4B3E; --mute:#B4382D; --line:#4B1611;
@@ -40,24 +40,32 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
-#top,#tool,#mapwrap{min-width:0}
+#app{height:100%;display:grid;grid-template-rows:minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
+#tool,#mapwrap{min-width:0;min-height:0}
+@media (orientation:landscape) and (min-width:640px){
+  #app{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) auto}
+  #tool{width:min(46vw,520px);border-top:none;border-left:1px solid var(--line)}
+  .tbody,#tool.tall .tbody{max-height:none;flex:1}
+  #tool.min .tbody{display:block}#toolMin{display:none}
+}
 
-/* ---------- top: quick menu + status ---------- */
-#top{background:var(--panel);border-bottom:1px solid var(--line)}
-#quick{display:grid;grid-template-columns:repeat(5,1fr) 52px;border-bottom:1px solid var(--line)}
-.qb{background:none;border:none;border-bottom:3px solid transparent;padding:7px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:var(--ink);min-width:0}
-.qb svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.qb span{font:600 13px/1 var(--cond);letter-spacing:.02em;white-space:nowrap}
-.qb[aria-pressed="true"]{border-bottom-color:var(--ink);background:var(--panel2)}
-.qb.redx svg{stroke:var(--x);stroke-width:3.2}
-#menuBtn{border-left:1px solid var(--line)}
-#status{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:5px 10px 6px}
-#status::-webkit-scrollbar{display:none}
-.pos{font:700 19px/1.1 var(--cond);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
-.st{font:600 15px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
-.st i{font:500 11px var(--body);color:var(--mute);font-style:normal;margin-right:3px}
-#btnSensors{margin-left:auto;flex:none;padding:5px 10px}
+/* ---------- quick menu (over map, top right) + GPS box ---------- */
+#quick{position:absolute;top:8px;right:8px;z-index:1200;display:flex;background:rgba(16,16,16,.82);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:3px;gap:2px;backdrop-filter:blur(6px)}
+.qb{background:none;border:none;border-radius:8px;width:50px;height:50px;display:grid;place-items:center;cursor:pointer;color:#F4F4F4;padding:0}
+.qb svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.qb span{display:none}
+.qb[aria-pressed="true"]{background:#F4F4F4;color:#141414}
+.qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
+.qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
+#status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
+#status .cs{color:#8CFFC4;font-size:13px;opacity:.9}
+#status #bPos{font-size:17px;letter-spacing:.02em;white-space:nowrap}
+#status .srow{display:flex;gap:12px}
+#status .srow span:empty::before{content:'–'}
+#status .phase{display:block;margin-top:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#F2F2F2;font:400 13px/1.2 var(--cond);padding:3px 8px;cursor:pointer}
+#status .phase[data-auto="1"]::after{content:' · auto';color:#BDBDBD}
+#status .btn{margin-top:6px;font:400 14px var(--body);padding:5px 10px;background:#F4F4F4;color:#141414;border-color:#F4F4F4}
+@media (max-width:380px){.qb{width:44px;height:44px}.qb svg{width:26px;height:26px}}
 
 /* ---------- map ---------- */
 #mapwrap{position:relative;min-height:0}
@@ -88,50 +96,85 @@ button,input,select{font:inherit;color:inherit}
 .leaflet-control-attribution{font-size:10px;padding:0 5px;background:color-mix(in srgb,var(--panel) 75%,transparent);color:var(--mute)}
 .leaflet-control-attribution a{color:var(--mute)}
 .leaflet-control-scale{margin:0 0 8px 8px}
-.leaflet-control-scale-line{border:2px solid var(--ink);border-top:none;padding:0 5px;font:600 12px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);white-space:nowrap;box-sizing:content-box}
+.leaflet-control-scale-line{border:2px solid var(--ink);border-top:none;padding:0 5px;font:400 12px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);white-space:nowrap;box-sizing:content-box}
 .drawing .leaflet-container{cursor:crosshair}
 .pin{background:none;border:none}
-.lbl{font:700 13px/1.15 var(--cond);color:var(--ink);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)}
-.glbl{font:600 11px/1 var(--cond);color:var(--ink);opacity:.75;text-shadow:0 0 3px var(--mapbg),0 0 2px var(--mapbg)}
-.tag{display:inline-block;transform:translate(-50%,-50%);font:700 13px/1.15 var(--cond);white-space:nowrap;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
-.xlbl{font:700 14px/1.15 var(--cond);color:var(--x);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);font-variant-numeric:tabular-nums}
+.lbl{font:500 13px/1.15 var(--cond);color:var(--ink);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)}
+
+.klbl{position:absolute;left:8px;top:-18px;font:400 14px/1 var(--cond);color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
+.wlbl{position:absolute;left:-14px;top:-18px;white-space:nowrap;font:400 12px/1 var(--cond);color:#FF8C1A;text-shadow:0 0 3px #000,0 0 2px #000}
+.clbl{display:inline-block;transform:translate(-50%,-50%);font:400 12px/1 var(--cond);text-shadow:0 0 3px #000,0 0 2px #000}
+.tlbl{display:inline-block;transform:translate(-50%,-50%);font:400 16px/1.2 var(--cond);white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;padding:2px 4px}
+.glbl{font:400 11px/1 var(--cond);color:var(--ink);opacity:.75;text-shadow:0 0 3px var(--mapbg),0 0 2px var(--mapbg)}
+.tag{display:inline-block;transform:translate(-50%,-50%);font:500 13px/1.15 var(--cond);white-space:nowrap;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
+.xlbl{font:500 14px/1.15 var(--cond);color:var(--x);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);font-variant-numeric:tabular-nums}
 
 #follow{position:absolute;right:10px;bottom:14px;z-index:900;width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
 #follow svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 #follow[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
-#tip{position:absolute;left:10px;right:68px;bottom:14px;z-index:900;background:var(--ink);color:var(--panel);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-weight:500;font-size:15px}
+#tip{position:absolute;left:10px;right:68px;bottom:14px;z-index:1150;background:var(--ink);color:var(--panel);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-weight:500;font-size:15px}
 #tip span{flex:1}
 #tip button{background:none;border:1px solid currentColor;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
 
 /* ---------- bloodhound ---------- */
-#hud{position:absolute;top:8px;left:8px;right:8px;z-index:900;background:var(--panel);border:1px solid var(--line);border-left:8px solid var(--go);border-radius:12px;padding:8px 10px 8px 8px;display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;max-width:520px}
+#hud{position:absolute;z-index:1100;background:rgba(16,16,16,.88);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
+#hud[data-dock="bottom"]{left:0;right:0;bottom:0;height:50%;border-radius:12px 12px 0 0}
+#hud[data-dock="top"]{left:0;right:0;top:0;height:50%;border-radius:0 0 12px 12px;padding-top:62px}
+#hud[data-dock="left"]{left:0;top:0;bottom:0;width:50%;border-radius:0 12px 12px 0}
+#hud[data-dock="right"]{right:0;top:0;bottom:0;width:50%;border-radius:12px 0 0 12px;padding-top:62px}
 #hud.st-outer{border-left-color:var(--amber)}
 #hud.st-inner{border-left-color:var(--stop)}
-#dial{width:80px;height:80px}
-#dial .ring{fill:none;stroke:var(--line);stroke-width:3}
-#dial .tick{stroke:var(--mute);stroke-width:2}
-#dial .nmark{font:700 13px var(--cond);fill:var(--mute);text-anchor:middle}
+.hhead{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;border-bottom:1px solid rgba(255,255,255,.12)}
+.hname{flex:1;font:400 16px/1.2 var(--cond);color:#CFCFCF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.docks{display:flex;gap:2px}.docks button{background:none;border:1px solid rgba(255,255,255,.18);color:#ddd;border-radius:6px;width:30px;height:30px;font-size:15px;cursor:pointer}
+.docks button[aria-pressed="true"]{background:#F2F2F2;color:#141414}
+#hud .iconbtn{background:none;color:#eee;border-color:rgba(255,255,255,.18)}
+.hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
+#hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+#dial{width:min(26vmin,120px);height:min(26vmin,120px);justify-self:center}
+#dial .ring{fill:none;stroke:rgba(255,255,255,.25);stroke-width:3}
+#dial .tick{stroke:#bbb;stroke-width:2}
+#dial .nmark{font:400 13px var(--cond);fill:#bbb;text-anchor:middle}
 #dialArrow path{fill:var(--go)}
 #hud.st-outer #dialArrow path{fill:var(--amber)}
 #hud.st-inner #dialArrow path{fill:var(--stop)}
-.hname{font:600 14px/1.2 var(--body);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hrange{font:700 38px/1 var(--cond);font-variant-numeric:tabular-nums}
-.hsub{display:flex;flex-wrap:wrap;gap:2px 14px;font:600 16px/1.25 var(--cond);font-variant-numeric:tabular-nums}
-.hsub .m{color:var(--mute);font-weight:500}
-.iconbtn{align-self:start;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:16px;flex:none}
+.tiles{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:6px;height:100%;min-height:0}
+.tile{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:left;color:inherit;min-width:0;overflow:hidden}
+.tile small{font:400 12px/1.2 var(--body);color:#BDBDBD;white-space:nowrap}
+.tile b{font:400 clamp(20px,6vmin,38px)/1.05 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hfoot{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 8px;border-top:1px solid rgba(255,255,255,.12)}
+.hfoot .btn{background:rgba(255,255,255,.08);color:#eee;border-color:rgba(255,255,255,.18);padding:6px 10px;font-weight:400}
+.hfoot .note{margin:0;font-size:12px;color:#BDBDBD}
 @keyframes blink{50%{opacity:.25}}
 .hound-inner{animation:blink .8s steps(2) infinite}
 @media (prefers-reduced-motion:reduce){.hound-inner{animation:none}}
+#cloudBar{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;z-index:950;display:flex;align-items:center;gap:8px;background:rgba(16,16,16,.85);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 10px;color:#F2F2F2;width:min(92%,460px)}
+#cloudBar input{flex:1;accent-color:#F2F2F2}
+#cloudBar button{background:none;border:1px solid rgba(255,255,255,.3);color:#F2F2F2;border-radius:7px;width:32px;height:32px;cursor:pointer}
+#cloudLbl{font:400 14px/1.1 var(--cond);white-space:nowrap;min-width:110px;text-align:right}
+#eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 12px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
+#radial{position:absolute;z-index:1150;width:0;height:0}
+#radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.92);border:1px solid rgba(255,255,255,.35);color:#F2F2F2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
+#radial .rb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#radial .rb span{font:400 9px/1 var(--cond);white-space:nowrap}
+#radial .rb:active{background:#F2F2F2;color:#141414}
+#radial .ring{position:absolute;left:-92px;top:-92px;width:184px;height:184px;border-radius:50%;border:1px dashed rgba(255,255,255,.3);pointer-events:none}
+#zoom{position:absolute;left:8px;top:38%;transform:translateY(-50%);z-index:900;display:flex;flex-direction:column;gap:6px}
+#zoom button{width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:300 30px/1 var(--cond);cursor:pointer;backdrop-filter:blur(3px);position:relative;padding:0}
+#northBtn svg{width:34px;height:34px;display:block;margin:0 auto;transition:transform .2s}
+#northLbl{position:absolute;right:3px;bottom:1px;font:400 10px/1 var(--cond);color:#ddd}
+#mapwrap.tilt #map{transform:perspective(900px) rotateX(48deg) scale(1.35);transform-origin:50% 60%}
+#mapwrap.tilt::after{content:'3D view · tap the north pointer to exit';position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:1150;background:rgba(16,16,16,.8);color:#ddd;font:400 13px var(--cond);padding:3px 8px;border-radius:6px;pointer-events:none}
 
 /* ---------- tool sheet ---------- */
 #tool{background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer}
-.thead b{flex:1;font:700 19px/1.1 var(--cond)}
+.thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--panel2)}
+.thead b{flex:1;font:500 19px/1.1 var(--cond)}
 .tbody{max-height:42vh;overflow:auto;overscroll-behavior:contain}
-#tool.tall .tbody{max-height:58vh}
+#tool.tall .tbody{max-height:50vh}
 #tool.min .tbody{display:none}
-.panel{padding:12px 14px 18px;max-width:720px;margin:0 auto}
-.panel h3{font:700 18px/1.2 var(--cond);margin:16px 0 8px}
+.panel{padding:12px 12px 18px;max-width:720px;margin:0 auto}
+.panel h3{font:500 18px/1.2 var(--cond);margin:16px 0 8px}
 .panel h3:first-child{margin-top:0}
 .note{font-size:14px;color:var(--mute);margin:6px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -139,39 +182,48 @@ button,input,select{font:inherit;color:inherit}
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .fld{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--mute)}
 .fld em{font-style:normal;font-size:12px}
-input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 9px;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:0}
+input[type=text],input[type=number],select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 9px;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:0}
 input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .chk{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink);cursor:pointer;padding:4px 0}
-.btn{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:8px 12px;font-weight:600;cursor:pointer;color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:8px 12px;font-weight:400;cursor:pointer;color:var(--ink)}
 .btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .btn.danger{color:var(--stop)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;max-width:100%;flex-wrap:wrap}
-.seg button{border:none;background:var(--panel2);padding:8px 10px;font-weight:600;cursor:pointer;flex:1;white-space:nowrap;min-width:0}
+.seg button{border:none;background:var(--panel2);padding:8px 10px;font-weight:400;cursor:pointer;flex:1;white-space:nowrap;min-width:0}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:700 22px var(--cond);cursor:pointer}
-.stepper output{min-width:110px;text-align:center;font:700 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
+.stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
+.stepper output{min-width:110px;text-align:center;font:500 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
 .swatches{display:flex;gap:8px}
 .swatch{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer}
 .swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
-.big-out{font:700 30px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:4px 0}
-.pi-grid{font:700 22px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:2px 0 8px}
-.res{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:8px 0 10px;font-variant-numeric:tabular-nums}
-.res dt{color:var(--mute);font-size:14px;align-self:center}
-.res dd{margin:0;font:600 18px/1.25 var(--cond)}
-.res dd.big{font-size:22px}
+.big-out{font:500 30px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:4px 0}
+.mhead{display:flex;align-items:center;gap:8px;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--ink);font:400 17px/1.2 var(--cond);text-align:left}
+.mhead b{font-weight:500;flex:1}.mhead .chev{font-size:22px;line-height:1}
+.sum{display:flex;flex-direction:column;gap:3px;margin:10px 0 6px;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;font:400 15px/1.5 var(--cond)}
+.sum div{display:flex;flex-wrap:wrap;gap:0 6px}.sum span{color:var(--mute)}.sum b{font-weight:500;margin-right:10px}
+.sec{border:1px solid var(--line);border-radius:12px;padding:4px 12px 12px;margin-top:10px;background:color-mix(in srgb,var(--panel2) 40%,transparent)}
+.sec h3{margin:8px 0 8px}
+.sec h4{font:500 16px/1.2 var(--cond);margin:12px 0 6px}
+.pi-grid{font:500 22px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:2px 0 8px}
+.res{display:flex;flex-direction:column;gap:5px;margin:8px 0 10px;font-variant-numeric:tabular-nums}
+.res dt{display:none}
+.res dd{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font:400 17px/1.25 var(--cond)}
+.res dd::before{content:attr(data-l) ': ';color:var(--mute);font-weight:500}
+.res dd.big{font-size:19px}
 .warn{border-left:3px solid var(--amber);padding:6px 10px;background:var(--panel2);border-radius:0 8px 8px 0;font-size:14px;margin:10px 0}
 details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:0 10px}
-summary{font:700 18px/1.2 var(--cond);padding:10px 0;cursor:pointer}
+summary{font:500 18px/1.2 var(--cond);padding:10px 0;cursor:pointer}
 table.winds{width:100%;border-collapse:collapse}
 table.winds th{font:500 13px var(--body);color:var(--mute);text-align:left;padding:0 4px 4px}
 table.winds td{padding:3px 4px}
 table.winds td:last-child{width:40px}
+table.winds td small{font-size:11px}
 .list{display:flex;flex-direction:column;gap:6px}
 .item{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;width:100%}
-.item b{display:block;font-weight:600}
+.item b{display:block;font-weight:500}
 .item small{color:var(--mute);font-variant-numeric:tabular-nums}
 .sw{width:18px;height:18px;border-radius:4px}
 
@@ -179,26 +231,30 @@ table.winds td:last-child{width:40px}
 #drawer{position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.35);display:flex;justify-content:flex-end}
 #drawer .dbox{background:var(--panel);width:min(92vw,400px);height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
 .dhead{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}
-.dhead b{flex:1;font:700 21px/1.1 var(--cond)}
+.dhead b{flex:1;font:500 21px/1.1 var(--cond)}
 .dbody{overflow:auto;flex:1}
 .mlist button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:14px 16px;cursor:pointer}
-.mlist b{display:block;font:700 18px/1.2 var(--cond)}
+.mlist b{display:block;font:500 18px/1.2 var(--cond)}
 .mlist small{color:var(--mute);font-size:14px}
 
 /* ---------- action sheet + toast ---------- */
 #act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center}
 #act .box{background:var(--panel);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
-#act h4{margin:0;font:700 22px/1.2 var(--cond)}
+#act h4{margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
-#act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
 #actInput{margin-bottom:10px}
-#toast{position:fixed;left:50%;top:calc(120px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4000;background:var(--ink);color:var(--panel);padding:10px 14px;border-radius:10px;max-width:min(92vw,440px);font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4000;background:var(--ink);color:var(--panel);padding:10px 14px;border-radius:10px;max-width:min(92vw,440px);font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.show{opacity:1}
+@media (orientation:landscape) and (min-width:640px){#tool .tbody,#tool.tall .tbody{max-height:none;flex:1;min-height:0}#tool.min .tbody{display:block}}
 </style>
 </head>
 <body>
 <div id="app">
-  <header id="top">
+  
+
+  <div id="mapwrap">
+    <div id="map" aria-label="Map"></div>
     <nav id="quick" aria-label="Quick menu">
       <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Red X</span></button>
       <button class="qb" data-tool="draw" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/><path d="M14 7l3 3"/></svg><span>Draw</span></button>
@@ -208,32 +264,35 @@ table.winds td:last-child{width:40px}
       <button class="qb" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </nav>
     <div id="status">
-      <div class="pos" id="bPos">No fix</div>
-      <div class="st"><i>Acc</i><span id="bAcc">–</span></div>
-      <div class="st"><i>Alt</i><span id="bAlt">–</span></div>
-      <div class="st"><i>Spd</i><span id="bSpd">–</span></div>
-      <div class="st"><i>Hdg</i><span id="bHdg">–</span></div>
+      <div class="cs"><span id="bCall">GPS</span> <span id="bSrc"></span></div>
+      <div id="bPos">No fix</div>
+      <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span></div>
+      <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span></div>
+      <button id="bPhase" class="phase">Phase: Ground</button>
       <button id="btnSensors" class="btn primary">Start sensors</button>
     </div>
-  </header>
-
-  <div id="mapwrap">
-    <div id="map" aria-label="Map"></div>
     <div id="hud" hidden>
-      <svg id="dial" viewBox="-50 -50 100 100" aria-hidden="true">
-        <circle r="44" class="ring"/>
-        <g id="dialN"><line class="tick" x1="0" y1="-44" x2="0" y2="-36"/><text class="nmark" y="-24">N</text></g>
-        <g id="dialArrow"><path d="M0,-36 L13,14 L0,5 L-13,14Z"/></g>
-      </svg>
-      <div>
-        <div class="hname" id="hName">Target</div>
-        <div class="hrange" id="hRange">–</div>
-        <div class="hsub"><span id="hBrg">–</span><span id="hEta" class="m">–</span></div>
+      <div class="hhead">
+        <div class="hname" id="hName">Bloodhound</div>
+        <div class="docks"><button data-dock="left" title="Dock left">◧</button><button data-dock="top" title="Dock top">⬒</button><button data-dock="bottom" title="Dock bottom">⬓</button><button data-dock="right" title="Dock right">◨</button></div>
+        <button id="hStop" class="iconbtn" aria-label="Stop bloodhound">✕</button>
       </div>
-      <button id="hStop" class="iconbtn" aria-label="Stop bloodhound">✕</button>
+      <div class="hbody">
+        <svg id="dial" viewBox="-50 -50 100 100" aria-hidden="true">
+          <circle r="44" class="ring"/>
+          <g id="dialN"><line class="tick" x1="0" y1="-44" x2="0" y2="-36"/><text class="nmark" y="-24">N</text></g>
+          <g id="dialArrow"><path d="M0,-36 L13,14 L0,5 L-13,14Z"/></g>
+        </svg>
+        <div class="tiles" id="tiles"></div>
+      </div>
+      <div class="hfoot"><button class="btn" data-preset="ac">Aircraft → HARP</button><button class="btn" data-preset="canopy">Canopy → DIP</button><span class="note" id="hNote"></span></div>
     </div>
+    <div id="radial" hidden></div>
+    <div id="eyeAlt">Eye alt –</div>
+    <div id="cloudBar" hidden><button id="cloudPlay" aria-label="Play">▶</button><input type="range" id="cloudHour" min="0" max="12" step="1" value="0"><span id="cloudLbl">Now</span><button id="cloudX" aria-label="Hide cloud forecast">✕</button></div>
+    <div id="zoom"><button id="northBtn" aria-label="Map view: north up" title="North up · heading up · 3D"><svg id="northSvg" viewBox="-20 -20 40 40"><path d="M0-16 7 8 0 4-7 8Z" fill="#FF2A2A"/><path d="M0 4 7 8 0 16-7 8Z" fill="#F2F2F2"/></svg><span id="northLbl">N</span></button><button id="zIn" aria-label="Zoom in">+</button><button id="zOut" aria-label="Zoom out">−</button></div>
     <div id="tip" hidden><span id="tipText"></span><button id="tipBtn">Done</button></div>
-    <button id="follow" aria-pressed="false" aria-label="Centre on me" title="Centre on me"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+    <button id="follow" aria-pressed="false" aria-label="Lock map on my position" title="Lock on my position"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
   </div>
 
   <section id="tool" hidden>
@@ -242,7 +301,7 @@ table.winds td:last-child{width:40px}
 
       <!-- RED X -->
       <div class="panel" data-tool-panel="redx">
-        <p class="note" style="margin-top:0">Tap the map to plot a red X. Each one shows its grid and ground altitude in feet.</p>
+        <p class="note" style="margin-top:0">Tap the map to plot a red X. Tap an X to name it, see its grid and ground altitude, or bloodhound to it.</p>
         <div class="row"><button class="btn" id="xMe">Plot at my position</button><button class="btn danger" id="xClear">Clear all</button></div>
         <h3>Plotted</h3>
         <div class="list" id="xList"></div>
@@ -250,7 +309,7 @@ table.winds td:last-child{width:40px}
 
       <!-- DRAW -->
       <div class="panel" data-tool-panel="draw">
-        <div class="seg full" id="drawSeg"><button data-dm="line" aria-pressed="true">Lines</button><button data-dm="free" aria-pressed="false">Freehand</button></div>
+        <div class="seg full" id="drawSeg"><button data-dm="line" aria-pressed="true">Lines</button><button data-dm="free" aria-pressed="false">Freehand</button><button data-dm="text" aria-pressed="false">Text</button></div>
         <p class="note" id="drawNote"></p>
         <div class="swatches" id="swatches"></div>
         <div class="row mt"><button class="btn primary" id="drawFinish">Finish line</button><button class="btn" id="drawUndo">Undo last</button><button class="btn danger" id="drawClear">Clear all</button></div>
@@ -272,40 +331,132 @@ table.winds td:last-child{width:40px}
       <!-- OVERLAYS -->
       <div class="panel" data-tool-panel="layers">
         <h3>Base map</h3>
-        <div class="seg full" id="baseSeg"><button data-b="osm">Street</button><button data-b="sat">Imagery</button><button data-b="topo">Topo</button><button data-b="none">Grid only</button></div>
+        <div class="seg full" id="baseSeg"><button data-b="sat">Imagery</button><button data-b="hyb">Imagery + labels</button><button data-b="osm">Street</button><button data-b="topo">Topo</button><button data-b="none">Grid only</button></div>
         <h3>Overlays</h3>
         <div id="ovList"></div>
+        <section class="sec">
+          <h3>Cloud forecast</h3>
+          <div class="seg full" id="cloudSeg"><button data-cl="total">Total</button><button data-cl="low">Low &lt;3 km</button><button data-cl="mid">Mid 3–8 km</button><button data-cl="high">High &gt;8 km</button></div>
+          <div class="row mt"><button class="btn primary" id="cloudLoad">Load forecast</button><span class="note" id="cloudStamp" style="margin:0"></span></div>
+          <p class="note" id="cloudDip"></p>
+          <p class="note">Open-Meteo hourly model forecast for a 90 km square around the DIP (or the map centre), next 12 hours. Cloud base is estimated from the surface temperature and dew point spread (× 400 ft). Use the met brief for decisions.</p>
+        </section>
       </div>
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button><button data-jm="summary" aria-pressed="false">Summary</button></div>
 
         <div data-jm-panel="plan">
-          <h3 class="mt">Point of impact</h3>
-          <div class="pi-grid" id="piGrid">Not set</div>
-          <div class="row"><button class="btn" id="piTap">Tap on map</button><button class="btn" id="piMe">Use my position</button></div>
-          <div class="row mt"><input type="text" id="piInput" placeholder="Grid (30U WB 12345 67890) or lat, long" style="flex:1;min-width:200px"><button class="btn" id="piSet">Set PI</button></div>
-          <h3>Jump profile</h3>
-          <div class="seg" id="modeSeg"><button data-mode="HALO">HALO</button><button data-mode="HAHO">HAHO</button></div>
-          <p class="note">Switching profile sets a typical opening altitude. Every value stays editable.</p>
-          <div class="fields" id="jumpFields"></div>
-          <h3>Aircraft and stick</h3>
-          <label class="chk"><input type="checkbox" id="hdgAuto"> Run-in into the exit-altitude wind</label>
-          <div class="fields mt" id="airFields"></div>
-          <details id="windBox">
-            <summary>Wind layers</summary>
-            <p class="note">Altitude ft AMSL. Direction is where the wind blows from, °T. Speed in knots. Interpolated between layers.</p>
-            <table class="winds"><thead><tr><th>Alt ft</th><th>From °T</th><th>Kt</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
-            <div class="row mt" style="margin-bottom:10px"><button class="btn" id="windAdd">Add layer</button><button class="btn" id="windSort">Sort</button></div>
-            <div class="warn">Starting layers are placeholders. Enter the forecast or measured winds for the drop.</div>
-          </details>
+          <button class="mhead mt" id="mHead"><span>Jump Params:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
+          <div data-pp="1">
+          <section class="sec">
+            <h3>Sortie</h3>
+            <label class="fld">Sortie name / number<input type="text" id="sortie" placeholder="e.g. SORTIE 1 / POD1"></label>
+          </section>
+          <section class="sec">
+            <h3>Desired impact point</h3>
+            <div class="pi-grid" id="piGrid">Not set</div>
+            <div class="row"><input type="text" id="piInput" placeholder="Grid (30U WB 12345 67890) or lat, long" style="flex:1;min-width:200px"><button class="btn" id="piSet">Set DIP</button></div>
+          </section>
+          <section class="sec">
+            <h3>Jump profile</h3>
+            <div class="seg full" id="modeSeg"><button data-mode="HAHO">HAHO</button><button data-mode="HALO">HALO</button><button data-mode="HAMO">SP HAMO</button></div>
+            <div class="fields mt">
+              <label class="fld">Exit altitude<em id="exitAglHint">ft AMSL</em><select data-j="exitAlt"></select></label>
+              <label class="fld">Opening altitude<em>ft AGL</em><select data-j="openAlt"></select></label>
+              <label class="fld">Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
+            </div>
+            <div id="hamoBox" hidden>
+              <h4>Pod 2</h4>
+              <div class="fields">
+                <label class="fld">Pod 2 opening altitude<em>ft AGL</em><select id="pod2Open"></select></label>
+                <label class="fld">Pod 2 jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
+              </div>
+              <label class="fld mt">Aircraft course offset<em>degrees either side of the run-in; both HARPs must stay inside their HARP rings</em><input type="range" id="hamoSlider" min="-60" max="60" step="1"></label>
+              <p class="note" id="hamoNote"></p>
+            </div>
+          </section>
+          <section class="sec">
+            <h3>Safety factors</h3>
+            <div class="fields">
+              <label class="fld">Canopy assembly<em>ft off the top</em><input type="number" inputmode="decimal" step="500" data-j="casSF"></label>
+              <label class="fld">Landing pattern<em>ft off the bottom</em><input type="number" inputmode="decimal" step="500" data-j="lpSF"></label>
+            </div>
+          </section>
+          <section class="sec">
+            <h3>Canopy</h3>
+            <div class="fields">
+              <label class="fld">Canopy<select id="canopySel"></select></label>
+              <label class="fld">K factor<input type="number" inputmode="numeric" min="10" max="99" data-j="k"></label>
+              <label class="fld">CSC<em>kts</em><input type="number" inputmode="decimal" data-j="canopySpeed"></label>
+            </div>
+            <p class="note" id="canopyNote"></p>
+          </section>
+          <section class="sec">
+            <h3>Jumper</h3>
+            <div class="fields">
+              <label class="fld">Average jumper with rig<em>kg</em><input type="number" inputmode="decimal" data-j="jumperKg"></label>
+              <label class="fld">Equipment load<select id="loadSel"><option value="0">None</option><option value="10">Ruck, 10 kg</option><option value="20">3-day assault pack, 20 kg</option><option value="30">Bergan, 30 kg</option></select></label>
+            </div>
+          </section>
+          <section class="sec">
+            <h3>Aircraft</h3>
+            <div class="fields">
+              <label class="fld">Run-in<select id="runSel"><option value="into">Into wind</option><option value="down">Downwind</option><option value="left">Crosswind, 90° left</option><option value="right">Crosswind, 90° right</option><option value="custom">Custom</option></select></label>
+              <label class="fld">AC speed<em>KIAS</em><input type="number" inputmode="decimal" data-j="kias"></label>
+              <label class="fld">AC performance<em>forward throw</em><select id="acPerf"><option value="high">High, 300 m</option><option value="low">Low, 150 m</option><option value="none">None</option></select></label>
+              <label class="fld" id="runCustom">AC course<em>°M</em><input type="number" inputmode="decimal" data-j="headingMag"></label>
+            </div>
+            <p class="note" id="runNote"></p>
+          </section>
+          <section class="sec">
+            <h3>Exit detail</h3>
+            <div class="fields">
+              <label class="fld">Max jumpers in stick<input type="number" inputmode="numeric" data-j="jumpers"></label>
+              <label class="fld">Exit interval<em id="intervalHint">seconds</em><input type="number" inputmode="decimal" data-j="interval"></label>
+            </div>
+          </section>
+          <div class="row mt"><button class="btn primary" id="toWinds">Next: Winds →</button></div>
+          </div>
+          <div data-pp="2" hidden>
+          <h3>Wind layers</h3>
+          <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value is the wind as a fraction of the canopy's forward speed.</p>
+          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><button class="btn primary" id="windImport">Import winds aloft</button></div>
+          <p class="note" id="windSrc"></p>
+          <table class="winds"><thead><tr><th>Alt ft (m)</th><th>From °T</th><th>Kt</th><th>Value</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
+          <div class="row mt"><button class="btn" id="windFill">Copy top row down</button></div>
+          <div class="warn">Starting layers are placeholders. Enter the forecast or measured winds for the drop.</div>
           <h3>Release solution</h3>
           <div id="jumpOut"></div>
+          <div class="row mt"><button class="btn" id="toPlan">← Back</button></div>
+          </div>
+        </div>
+
+        <div data-jm-panel="summary" hidden>
+          <button class="mhead mt" id="mHead2"><span>Jump Params:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
+          <div id="sumOut"></div>
         </div>
 
         <div data-jm-panel="cypres" hidden>
-          <h3 class="mt">CYPRES offset</h3>
+          <section class="sec">
+            <h3>Military CYPRES setting</h3>
+            <div class="fields">
+              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">PNS, Military CYPRES 1000 35A</option></select></label>
+              <label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
+              <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
+            </div>
+            <label class="chk mt"><input type="checkbox" id="qnhUnknown"> Altimeter setting unknown (use combat 1013 mb / 29.92 inHg, +500 ft and +1,000 ft on the ladder)</label>
+          </section>
+          <section class="sec">
+            <h3>VDZ / HRPO check</h3>
+            <p class="note" id="hrpoRule"></p>
+            <div class="row"><button class="btn primary" id="hrpoCheck">Check terrain around HARP and PRP</button><button class="btn" id="hrpoClear">Clear</button></div>
+            <div class="fields mt"><label class="fld">VDZ elevation override<em>ft AMSL, blank uses the check or the DZ</em><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
+            <p class="note" id="hrpoOut"></p>
+          </section>
+          <div id="milOut"></div>
+          <h3 class="mt">Expert CYPRES offset</h3>
           <p class="note">Use when the landing area is at a different elevation from the take-off airfield.</p>
           <div class="fields">
             <label class="fld">Take-off airfield<em>ft AMSL</em><input type="number" inputmode="decimal" data-j="toElev"></label>
@@ -335,10 +486,19 @@ table.winds td:last-child{width:40px}
     <div class="dhead"><button class="iconbtn" id="dBack" aria-label="Back" hidden>‹</button><b id="dTitle">Menu</b><button class="iconbtn" id="dClose" aria-label="Close menu">✕</button></div>
     <div class="dbody">
       <div class="mlist" data-dpage="root">
+        <button data-go="missions"><b>Mission packages</b><small>Saved jump plans: DIP, parameters, winds and map markup</small></button>
         <button data-go="points"><b>Points and bloodhound</b><small>Add points by grid, pick a bloodhound target</small></button>
         <button data-go="sensors"><b>Sensors and simulation</b><small>GPS, compass, trail, rehearsal mode</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, bloodhound rings, display</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
+      </div>
+
+      <div class="panel" data-dpage="missions" hidden>
+        <h3>Save current plan</h3>
+        <div class="row"><input type="text" id="mInput" placeholder="Package name, e.g. POD1" style="flex:1;min-width:160px"><button class="btn primary" id="mSaveNew">Save as new</button></div>
+        <p class="note">A package holds the DIP, jump parameters, winds, Red Xs, points, drawings and range tools as they are now.</p>
+        <h3>Packages</h3>
+        <div class="list" id="mList"></div>
       </div>
 
       <div class="panel" data-dpage="points" hidden>
@@ -367,6 +527,8 @@ table.winds td:last-child{width:40px}
       </div>
 
       <div class="panel" data-dpage="settings" hidden>
+        <h3>Callsign</h3>
+        <div class="fields"><label class="fld">Shown in the GPS box<input type="text" id="sCall" placeholder="e.g. AIR REP"></label></div>
         <h3>Units and coordinates</h3>
         <div class="fields">
           <label class="fld">Coordinates<select id="sCoord"><option value="mgrs">MGRS</option><option value="ll">Lat, long</option></select></label>
@@ -403,6 +565,7 @@ table.winds td:last-child{width:40px}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script>
 (function(){
 'use strict';
@@ -431,10 +594,10 @@ function parseMGRS(str){const s=str.toUpperCase().replace(/\s+/g,'');const m=s.m
 function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)$/);if(m){const lat=+m[1],lon=+m[2];return Math.abs(lat)<=90&&Math.abs(lon)<=180?{lat,lon}:null}return parseMGRS(str)}
 
 /* ================= state ================= */
-const DEF_JUMP={mode:'HALO',toElev:300,dzElev:200,exitAlt:12500,openAlt:3500,ffRate:176,density:true,canopyRate:16,canopySpeed:20,safety:50,dzRadius:300,headingAuto:true,heading:0,gs:110,jumpers:8,interval:1,throwM:0};
+const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[{alt:200,dir:230,spd:8},{alt:2000,dir:240,spd:14},{alt:5000,dir:250,spd:20},{alt:10000,dir:260,spd:28},{alt:15000,dir:265,spd:34}];
-const DEF_OV={grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
-const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'osm',trail:true,theme:'auto',night:false,sim:false,simSpd:20,simMove:false,drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:500,altRef:null};
+const DEF_OV={cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'',drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:500,altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
@@ -443,12 +606,21 @@ const S={
   draws:store.get('draws',[]),
   rng:store.get('rng',[]),
   pi:store.get('pi',null),
+  pi2:store.get('pi2',null),
+  altDips:store.get('altDips',[]),
+  canopies:store.get('canopies',[]),
+  pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{})),
   set:Object.assign({},DEF_SET,store.get('set',{})),
   ov:Object.assign({},DEF_OV,store.get('ov',{})),
-  target:store.get('target',null)
+  target:store.get('target',null),
+  hound:Object.assign({dock:'bottom',tiles:['range','brgT','eta','agl']},store.get('hound',{})),
+  missions:store.get('missions',[]),
+  mission:store.get('mission',null)
 };
 const save=k=>store.set(k,S[k]);
-let me=null,compass=null,mode='none',tool=null,follow=false,J=null,selRing=null;
+if(S.jump.v===2){if(+S.jump.k===61&&!S.jump.canopy){S.jump.k=46;S.jump.canopySpeed=22;S.jump.canopy='MJ (MP360)'}S.jump.v=3;store.set('jump',S.jump)}
+if(!(S.jump.v>=2)){const kf=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;if(S.jump.kUnit){const r=kf(+S.jump.k||0,S.jump.kUnit);S.jump.k=r>0?Math.round(514.4/r):61;delete S.jump.kUnit}Object.assign(S.jump,{exitAlt:12000,openAlt:11000,casSF:2000,lpSF:1000,interval:4,jumperKg:110,throwSec:0,k:46,canopySpeed:22,canopy:'MJ (MP360)',v:3});S.canopies=S.canopies.map(c=>c.kUnit?{name:c.name,k:Math.round(514.4/kf(c.k,c.kUnit)),spd:c.spd}:c);store.set('jump',S.jump);store.set('canopies',S.canopies)}
+var view3d=false;let me=null,compass=null,mode='none',tool=null,follow=false,J=null,selRing=null;
 
 const TYPES={
   friend:{n:'Friendly',c:'--self',svg:'<rect x="-11" y="-8" width="22" height="16" rx="1"/>'},
@@ -467,23 +639,24 @@ const fb=b=>String(Math.round(norm(b))%360).padStart(3,'0')+'°';
 const ff=f=>`${Math.round(f).toLocaleString('en-GB')} ft`;
 const fsec=s=>{if(!isFinite(s))return '–';s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`};
 const magOf=t=>norm(t-(+S.set.decl||0));
-const bTM=b=>`${fb(b)} T · ${fb(magOf(b))} M`;
+const bTM=b=>`${fb(b)} T`;
 let toastT;function toast(msg,ms=3200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms)}
 
 /* ================= map ================= */
-const map=L.map('map',{zoomControl:false,worldCopyJump:true}).setView(S.pi?LL(S.pi):[52.6,-1.8],S.pi?13:6);
+const map=L.map('map',{zoomControl:false,worldCopyJump:true,rotate:true,bearing:0,touchRotate:false,rotateControl:false,shiftKeyRotate:false}).setView(S.pi?LL(S.pi):[52.6,-1.8],S.pi?13:6);
 L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
 const BASES={
   osm:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',o:{maxZoom:19,attribution:'© OpenStreetMap'}},
   sat:{u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',o:{maxZoom:19,attribution:'Imagery © Esri'}},
-  topo:{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',o:{maxZoom:17,subdomains:'abc',attribution:'© OpenTopoMap, © OpenStreetMap'}}
+  topo:{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',o:{maxZoom:17,subdomains:'abc',attribution:'© OpenTopoMap, © OpenStreetMap'}},
+  hyb:{u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',o:{maxZoom:19,attribution:'Imagery and labels © Esri'},extra:['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}','https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}']}
 };
-let baseLayer=null,tileOk=false,tileErr=0,tileWarned=false;
-function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}S.set.base=k;save('set');$$('#baseSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===k));if(k==='none')return;const b=BASES[k];baseLayer=L.tileLayer(b.u,b.o);baseLayer.on('tileload',()=>{tileOk=true});baseLayer.on('tileerror',()=>{tileErr++;if(!tileOk&&tileErr>=3&&!tileWarned){tileWarned=true;toast('Map imagery is blocked on this page, so the MGRS grid is showing. Host this file on your own site to load imagery.',6500)}});baseLayer.addTo(map)}
+let baseLayer=null,extraLayers=[],tileOk=false,tileErr=0,tileWarned=false;
+function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}extraLayers.forEach(l=>map.removeLayer(l));extraLayers=[];S.set.base=k;save('set');$$('#baseSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===k));if(k==='none')return;const b=BASES[k];baseLayer=L.tileLayer(b.u,b.o);baseLayer.on('tileload',()=>{tileOk=true});baseLayer.on('tileerror',()=>{tileErr++;if(!tileOk&&tileErr>=3&&!tileWarned){tileWarned=true;toast('Map imagery is blocked on this page, so the MGRS grid is showing. Host this file on your own site to load imagery.',6500)}});baseLayer.addTo(map);(b.extra||[]).forEach(u=>{const l=L.tileLayer(u,{maxZoom:19,pane:'tilePane',zIndex:5});l.addTo(map);extraLayers.push(l)})}
 
-const LY={grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup()};
+const LY={cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup()};
 const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
-const OV_NAMES={grid:'MGRS grid lines',jump:'Jump plan (PI, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line'};
+const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line'};
 function applyOverlays(){Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
 
 function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
@@ -496,6 +669,10 @@ function drawGrid(){LY.grid.clearLayers();const z=map.getZoom();if(z<7)return;co
   for(let E=Math.ceil(minE/sp)*sp;E<=maxE&&n<80;E+=sp,n++){const pts=[];for(let i=0;i<=8;i++){const p=fromUTM(zone,E,minN+(maxN-minN)*i/8,south);pts.push([p.lat,p.lon])}L.polyline(pts,st).addTo(LY.grid);const lp=fromUTM(zone,E,minN+(maxN-minN)*0.04,south);if(lab(E))L.marker([lp.lat,lp.lon],{icon:textPin(lab(E),'glbl'),interactive:false,keyboard:false}).addTo(LY.grid)}
   for(let N=Math.ceil(minN/sp)*sp;N<=maxN&&n<160;N+=sp,n++){const pts=[];for(let i=0;i<=8;i++){const p=fromUTM(zone,minE+(maxE-minE)*i/8,N,south);pts.push([p.lat,p.lon])}L.polyline(pts,st).addTo(LY.grid);const lp=fromUTM(zone,minE+(maxE-minE)*0.03,N,south);if(lab(N))L.marker([lp.lat,lp.lon],{icon:textPin(lab(N),'glbl'),interactive:false,keyboard:false}).addTo(LY.grid)}}
 map.on('moveend zoomend',drawGrid);
+/* eye altitude: height a camera with a 60 deg field of view would need to see this much ground */
+function updateEyeAlt(){const c=map.getCenter(),z=map.getZoom(),h=map.getSize().y;const mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,z+8);const eye=mpp*h/(2*Math.tan(30*D2R));$('#eyeAlt').textContent=`Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`}
+map.on('zoomend moveend resize',updateEyeAlt);
+
 
 /* ================= action sheet ================= */
 function sheet({title,sub,input,buttons}){$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
@@ -508,20 +685,21 @@ const relSub=p=>fc(p)+(me?` · ${fd(dist(me,p))} at ${fb(brg(me,p))} T`:'');
 /* ================= RED X ================= */
 let elevWarned=false;
 async function groundElevM(p){try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),5000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p.lat.toFixed(5)}&longitude=${p.lon.toFixed(5)}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();const v=j&&j.elevation&&j.elevation[0];return isFinite(v)?v:null}catch(e){return null}}
-async function plotX(p,gpsAltM){const x={id:uid(),lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
+async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
   if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Ground elevation lookup is blocked on this page. Tap a Red X to enter its altitude, or host the file to get it automatically.',6500)}save('xs');renderXs()}}
-function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=`X${i+1} · ${esc(fc(x))}<br>${x.alt!=null?ff(x.alt):'Alt –'}`;L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[34,34],iconAnchor:[17,17],html:`<div style="position:relative;width:34px;height:34px"><svg viewBox="-17 -17 34 34" width="34" height="34" style="overflow:visible"><path d="M-11-11 11 11M11-11-11 11" stroke="${bg}" stroke-width="9" stroke-linecap="round"/><path d="M-11-11 11 11M11-11-11 11" stroke="${col}" stroke-width="5" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:34px;top:0">${lab}</span></div>`})}).on('click',()=>xActions(x.id)).addTo(LY.xs)});
-  $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>X${i+1} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span><span class="btn" data-hound="x:${x.id}">Hound</span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
-function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;sheet({title:`Red X${i+1}`,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:''),input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},
-  buttons:[['Bloodhound',()=>setTarget('x:'+id),'primary'],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as PI',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('PI set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
+function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[34,34],iconAnchor:[17,17],html:`<div style="position:relative;width:34px;height:34px"><svg viewBox="-17 -17 34 34" width="34" height="34" style="overflow:visible"><path d="M-11-11 11 11M11-11-11 11" stroke="${bg}" stroke-width="9" stroke-linecap="round"/><path d="M-11-11 11 11M11-11-11 11" stroke="${col}" stroke-width="5" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:34px;top:0">${lab}</span></div>`})}).on('click',()=>xActions(x.id)).addTo(LY.xs)});
+  $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>${esc(x.name||`X${i+1}`)} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span><span class="btn" data-hound="x:${x.id}">Hound</span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
+function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;const nm=x.name||`X${i+1}`;sheet({title:nm,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:' · Alt –'),input:{label:'Name',value:nm,save:v=>{x.name=v.trim()||nm;save('xs');renderXs()}},
+  buttons:[['Bloodhound',()=>setTarget('x:'+id),'primary'],['Set altitude',()=>sheet({title:`${nm} altitude`,sub:x.alt!=null?ff(x.alt):'Not set',input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},buttons:[]})],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as DIP',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('DIP set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
 $('#xMe').onclick=()=>{if(!me){toast('No position yet. Start sensors or use simulation.');return}plotX(me,me.alt)};
 $('#xClear').onclick=()=>{if(!S.xs.length)return;sheet({title:'Clear all Red Xs?',buttons:[['Clear all',()=>{S.xs=[];save('xs');renderXs()},'danger']]})};
 $('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const b=e.target.closest('[data-x]');if(b)xActions(b.dataset.x)});
 
 /* ================= DRAW ================= */
 let lineDraft=null;
-function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(d.color);const pl=L.polyline(d.pts.map(LL),{color:col,weight:4,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);if(d.kind==='line'&&d.pts.length>1){const end=d.pts[d.pts.length-1];L.marker(LL(end),{icon:tagPin(fd(pathLen(d.pts))),interactive:false}).addTo(LY.draw);d.pts.forEach(p=>dot(p,col,4).addTo(LY.draw))}})}
-function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} long · starts ${fc(d.pts[0])}`,buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]})}
+function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col}">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const pl=L.polyline(d.pts.map(LL),{color:col,weight:4,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);if(d.kind==='line'&&d.pts.length>1){const end=d.pts[d.pts.length-1];L.marker(LL(end),{icon:tagPin(fd(pathLen(d.pts))),interactive:false}).addTo(LY.draw);d.pts.forEach(p=>dot(p,col,4).addTo(LY.draw))}})}
+function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} long · starts ${fc(d.pts[0])}`,buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]})}
+function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft)lineDraft=[];lineDraft.push(p);renderDraft()}
 function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=cssv(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
 function finishLine(){if(lineDraft&&lineDraft.length>1){S.draws.push({id:uid(),kind:'line',color:S.set.drawColor,pts:lineDraft});save('draws');renderDraws()}lineDraft=null;tmpLayer.clearLayers();if(mode==='draw-line')$('#tipText').textContent='Tap the map to start a line'}
@@ -531,7 +709,7 @@ mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.
 mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
 const freeEnd=()=>{if(!free)return;const pts=free.map(p=>({lat:p.lat,lon:p.lon}));free=null;tmpLayer.clearLayers();if(pts.length>2){S.draws.push({id:uid(),kind:'free',color:S.set.drawColor,pts});save('draws');renderDraws()}};
 mc.addEventListener('pointerup',freeEnd);mc.addEventListener('pointercancel',freeEnd);
-function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=S.set.drawMode!=='line';$('#drawNote').textContent=S.set.drawMode==='line'?'Tap points on the map to build a line. Length and leg bearing show as you go.':'Drag on the map to draw. The map stops panning while freehand is on; pinch still zooms off the tool.';$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" aria-pressed="${S.set.drawColor===v}" style="background:var(${v})"></button>`).join('')}
+function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=S.set.drawMode!=='line';$('#drawNote').textContent={line:'Tap points on the map to build a line. Length and leg bearing show as you go.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" aria-pressed="${S.set.drawColor===v}" style="background:var(${v})"></button>`).join('')}
 $('#drawSeg').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;finishLine();S.set.drawMode=b.dataset.dm;save('set');syncDraw();enterToolMode('draw')};
 $('#swatches').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
 $('#drawFinish').onclick=finishLine;
@@ -571,60 +749,145 @@ $('#rngList').onclick=e=>{const b=e.target.closest('[data-r]');if(b)rngActions(b
 
 /* ================= OVERLAYS ================= */
 function renderOvList(){$('#ovList').innerHTML=Object.entries(OV_NAMES).map(([k,n])=>`<label class="chk"><input type="checkbox" data-ov="${k}" ${S.ov[k]?'checked':''}> ${n}</label>`).join('')}
-$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='grid')drawGrid()};
+$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='cloud')$('#cloudBar').hidden=!(e.target.checked&&CL);if(k==='grid')drawGrid()};
 $('#baseSeg').onclick=e=>{const b=e.target.closest('[data-b]');if(b)setBase(b.dataset.b)};
 
 /* ================= JUMP CALC ================= */
 function makeWind(){const w=S.winds.filter(x=>isFinite(x.alt)&&isFinite(x.dir)&&isFinite(x.spd)).map(x=>{const t=(x.dir+180)*D2R;return {alt:+x.alt,u:x.spd*KT*Math.sin(t),v:x.spd*KT*Math.cos(t)}}).sort((a,b)=>a.alt-b.alt);return h=>{if(!w.length)return {u:0,v:0};if(h<=w[0].alt)return w[0];const top=w[w.length-1];if(h>=top.alt)return top;for(let i=0;i<w.length-1;i++){if(h<=w[i+1].alt){const a=w[i],b=w[i+1],f=(h-a.alt)/(b.alt-a.alt);return {u:a.u+(b.u-a.u)*f,v:a.v+(b.v-a.v)*f}}}return top}}
-function computeJump(){const j=S.jump;if(!S.pi)return {err:'Set the PI to see the release solution.'};const ground=+j.dzElev,exit=+j.exitAlt,open=ground+(+j.openAlt);if(!(open>ground))return {err:'Opening altitude must be above the DZ.'};if(!(exit>open))return {err:'Opening altitude must be below exit altitude (exit is AMSL, opening is AGL).'};if(!(+j.canopyRate>0)||!(+j.ffRate>0))return {err:'Descent rates must be greater than zero.'};
-  const wind=makeWind(),dt=0.25,ff0=(+j.ffRate)*FT,path=[[0,0]];let h=exit,t=0,x=0,y=0,k=0;
-  while(h>open&&t<1800){const term=j.density?ff0*Math.exp(h*FT/17000):ff0;const rate=Math.max(term*(1-Math.exp(-t/4)),0.5);h-=rate*dt/FT;const w=wind(h);x+=w.u*dt;y+=w.v*dt;t+=dt;if(++k%20===0)path.push([x,y])}
-  const ffT=t,ffX=x,ffY=y;path.push([x,y]);const openIdx=path.length-1;const cr=(+j.canopyRate)*FT;let tc=0;k=0;
-  while(h>ground&&tc<7200){h-=cr*dt/FT;const w=wind(h);x+=w.u*dt;y+=w.v*dt;tc+=dt;if(++k%40===0)path.push([x,y])}
-  path.push([x,y]);
-  const glide=(+j.canopySpeed)*KT*tc*((+j.safety||0)/100);const start=offset(S.pi,-x,-y);const we=wind(exit);
-  const heading=j.headingAuto?norm(Math.atan2(-we.u,-we.v)*R2D):norm(+j.heading||0);
-  const harp=dest(start,norm(heading+180),+j.throwM||0);const gsM=(+j.gs||0)*KT;const stick=Math.max(0,(+j.jumpers||1)-1)*(+j.interval||0)*gsM;
-  const gl=dest(harp,norm(heading+180),stick/2),rl=dest(harp,heading,stick/2),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*120);
-  const pts=path.map(([px,py])=>offset(start,px,py));
-  return {ffT,tc,ffD:Math.hypot(ffX,ffY),ffB:Math.atan2(ffX,ffY)*R2D,cD:Math.hypot(x-ffX,y-ffY),cB:Math.atan2(x-ffX,y-ffY)*R2D,dD:Math.hypot(x,y),dB:Math.atan2(x,y)*R2D,glide,harp,gl,rl,oneMin,runStart,heading,stick,path:pts,openPt:pts[openIdx],exitWind:we}}
-function renderJump(){LY.jump.clearLayers();J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?fc(S.pi):'Not set';renderCypres();renderAlti();
+/* ===== OJM manual method (para 5.3 to 5.8): D = KAV ===== */
+const trunc1=x=>Math.trunc(x*10)/10;
+function windRows(levelsAGL){const w=makeWind(),dz=+S.jump.dzElev||0;return levelsAGL.map(a=>{const x=w(dz+a);return {a,v:Math.hypot(x.u,x.v)/KT,d:norm(Math.atan2(-x.u,-x.v)*R2D)}})}
+const angDiff=(a,b)=>{const d=Math.abs(norm(a)-norm(b));return d>180?360-d:d};
+function averageSection(rows){const notes=[];let use=rows.slice();
+  // erroneous: a single value shifted 90 deg or more from both neighbours
+  const bad=new Set();for(let i=0;i<use.length;i++){const p=use[i-1],n=use[i+1],c=use[i];const sp=p?angDiff(c.d,p.d)>=90:null,sn=n?angDiff(c.d,n.d)>=90:null;if((sp===true&&sn===true)||(sp===true&&sn===null&&use.length>2&&angDiff(p.d,use[i-2].d)<90)||(sn===true&&sp===null&&use.length>2&&angDiff(n.d,use[i+2].d)<90))bad.add(i)}
+  // dogleg: two consecutive values shifted 90 deg or more from the value above
+  let dog=null;for(let i=1;i<use.length-1;i++){if(!bad.has(i)&&!bad.has(i+1)&&angDiff(use[i].d,use[i-1].d)>=90&&angDiff(use[i+1].d,use[i-1].d)>=90)dog=use[i].a}
+  if(bad.size)notes.push(`Erroneous wind removed at ${[...bad].map(i=>ff(use[i].a)).join(', ')}`);if(dog!=null)notes.push(`Dogleg at ${ff(dog)}: plan the legs separately`);
+  const kept=use.filter((_,i)=>!bad.has(i));if(!kept.length)return {v:0,d:0,notes,n:0};
+  const ds=kept.map(r=>Math.round(r.d));const north=ds.some(d=>d>=270)&&ds.some(d=>d<=90);const adj=north?ds.map(d=>d<=90?d+360:d):ds;
+  let d=Math.round(adj.reduce((s,x)=>s+x,0)/adj.length);if(d>=360)d-=360;const v=Math.round(kept.reduce((s,r)=>s+Math.round(r.v),0)/kept.length);if(north)notes.push('Northerly winds straddled: easterly values +360');
+  return {v,d,notes,n:kept.length}}
+function cleanRows(rows){const bad=new Set();for(let i=0;i<rows.length;i++){const p=rows[i-1],n=rows[i+1],c=rows[i];const sp=p?angDiff(c.d,p.d)>=90:null,sn=n?angDiff(c.d,n.d)>=90:null;if((sp===true&&sn===true)||(sp===true&&sn===null&&rows.length>2&&angDiff(p.d,rows[i-2].d)<90)||(sn===true&&sp===null&&rows.length>2&&angDiff(n.d,rows[i+2].d)<90))bad.add(i)}return {rows:rows.filter((_,i)=>!bad.has(i)),removed:rows.filter((_,i)=>bad.has(i)).map(r=>r.a)}}
+function splitLegs(rows){if(!rows.length)return [];const legs=[[rows[0]]];let ref=rows[0];for(let i=0;i<rows.length-1;i++){const n1=rows[i+1],n2=rows[i+2];if(n2&&angDiff(n1.d,ref.d)>=90&&angDiff(n2.d,ref.d)>=90){legs.push([n1]);ref=n1}else{legs[legs.length-1].push(n1);ref=n1}}return legs}
+function avgRows(rows){if(!rows.length)return {v:0,d:0,north:false};const ds=rows.map(r=>Math.round(r.d));const north=ds.some(d=>d>=270)&&ds.some(d=>d<=90);const adj=north?ds.map(d=>d<=90?d+360:d):ds;let d=Math.round(adj.reduce((a,x)=>a+x,0)/adj.length);if(d>=360)d-=360;const v=Math.round(rows.reduce((a,r)=>a+Math.round(r.v),0)/rows.length);return {v,d,north}}
+function cdLevels(pull){const L_=[];for(let a=1000;a<=Math.min(pull,10000);a+=1000)L_.push(a);for(let a=12000;a<=pull;a+=2000)L_.push(a);return L_}
+function ffLevels(exitAGL,pull){const L_=[];for(let a=exitAGL;a>pull;a-=2000)L_.push(a);return L_}
+function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if(!pi)return {err:'Set the DIP to see the release solution.'};
+  const dz=+j.dzElev||0,exitAGL=(+j.exitAlt)-dz,pull=+j.openAlt,cas=+j.casSF||0,lp=+j.lpSF||0;
+  if(!(pull>0))return {err:'Opening altitude must be above the DZ.'};if(!(exitAGL>=pull))return {err:'Opening altitude must be at or below exit altitude.'};
+  const K=(+j.k||46)*loadFactorFor(j),FS=+j.canopySpeed||0,A=pull/1000,SF=(cas+lp)/1000;if(!(A>SF))return {err:'Safety factors use up the whole canopy ride. Raise the opening altitude or reduce the safety factors.'};
+  const notes=[];
+  // canopy drift, split into dogleg legs (para 5.8). Rows are worked from the top down.
+  const cdC=cleanRows(windRows(cdLevels(pull)).reverse());if(cdC.removed.length)notes.push(`Canopy: erroneous wind removed at ${cdC.removed.map(a=>ff(a)).join(', ')}`);
+  const cdBU=splitLegs(cdC.rows).reverse(),nL=cdBU.length;let prevTop=0;
+  const cdLegs=cdBU.map((rows,i)=>{const top=i===nL-1?pull:Math.max(...rows.map(r=>r.a));const A_=(top-prevTop)/1000,bot=prevTop;prevTop=top;const sf=nL===1?(cas+lp)/1000:i===nL-1?cas/1000:i===0?lp/1000:0;const av=avgRows(rows);const nm=A_>sf?trunc1((A_-sf)*(FS+av.v)/K):0;const km=trunc1(nm*1.85);return {rows,top,bot,A:A_,sf,v:av.v,d:av.d,nm,km,m:km*1000,north:av.north}});
+  if(nL>1)notes.push(`Canopy dogleg at ${cdLegs.slice(0,-1).map(l=>ff(l.top)).join(', ')}: ${nL} legs, SF split ${cdLegs.map(l=>l.sf).join(' / ')} bottom to top`);
+  if(cdLegs.some(l=>l.north))notes.push('Canopy: northerly winds straddled, easterly values +360');
+  if(cdLegs.some(l=>l.A<=l.sf))notes.push('Canopy: a leg is shorter than its safety factor and adds no glide');
+  const cdPts=[pi];{let q=pi;cdLegs.forEach(l=>{l.start=q;q=dest(q,l.d,l.m);l.end=q;cdPts.push(q)})}const op=cdPts[cdPts.length-1];
+  const cdNm=Math.round(cdLegs.reduce((a,l)=>a+l.nm,0)*10)/10,cdKm=Math.round(cdLegs.reduce((a,l)=>a+l.km,0)*10)/10,cdM=dist(pi,op);const cd={v:cdLegs[0].v,d:nL===1?cdLegs[0].d:brg(pi,op)};
+  // freefall drift, also split into legs
+  const ffA=(exitAGL-pull)/1000;let ffLegs=[],ffChain=[op];
+  if(exitAGL-pull>=2000){const ffC=cleanRows(windRows(ffLevels(exitAGL,pull)));if(ffC.removed.length)notes.push(`Freefall: erroneous wind removed at ${ffC.removed.map(a=>ff(a)).join(', ')}`);const bu=splitLegs(ffC.rows).reverse();let prev=pull;
+    ffLegs=bu.map((rows,i)=>{const top=i===bu.length-1?exitAGL:Math.max(...rows.map(r=>r.a));const A_=(top-prev)/1000;prev=top;const av=avgRows(rows);return {rows,top,A:A_,v:av.v,d:av.d,m:3*A_*av.v,north:av.north}});
+    if(ffLegs.length>1)notes.push(`Freefall dogleg at ${ffLegs.slice(0,-1).map(l=>ff(l.top)).join(', ')}: ${ffLegs.length} legs`);if(ffLegs.some(l=>l.north))notes.push('Freefall: northerly winds straddled, easterly values +360');
+    let q=op;ffLegs.forEach(l=>{q=dest(q,l.d,l.m);ffChain.push(q)})}
+  const prp=ffChain[ffChain.length-1],ffM=dist(op,prp),ff_={v:ffLegs[0]?ffLegs[0].v:0,d:ffLegs.length===1?ffLegs[0].d:brg(op,prp)};
+  // aircraft
+  const wind=makeWind(),we=wind(+j.exitAlt);const intoW=norm(Math.atan2(-we.u,-we.v)*R2D);let heading=({into:intoW,down:norm(intoW+180),left:norm(intoW-90),right:norm(intoW+90),custom:norm((+j.headingMag||0)+(+S.set.decl||0))})[j.runMode||'into'];if(j.mode==='HAMO'&&hamoHeading!=null)heading=hamoHeading;
+  const tas=(+j.kias||0)*(1+0.02*(+j.exitAlt)/1000),tail=we.u*Math.sin(heading*D2R)+we.v*Math.cos(heading*D2R),gsM=Math.max(5,tas*KT+tail);
+  const n=Math.max(1,+j.jumpers||1),JD=(n/2)*50,FTm=({high:300,low:150,none:0})[j.acPerf||'high'];const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
+  const gl=dest(harp,norm(heading+180),JD),rl=dest(harp,heading,JD),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*600),runEnd=dest(rl,heading,gsM*60);
+  const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(gl,norm(heading+180),gsM*t)}));
+  // trackback: canopy leaves the OP at (pull - assembly SF), turns at each dogleg, arrives over the DIP at the landing pattern SF
+  const marks=[],trk=[{p:op,h:pull},{p:op,h:pull-cas}];
+  for(let i=nL-1;i>=0;i--){const l=cdLegs[i];const hi=i===nL-1?pull-cas:l.top,lo=i===0?lp:l.bot;if(hi>lo){const lb=brg(l.end,l.start),ld=dist(l.end,l.start);for(let a=Math.floor((hi-1)/1000)*1000;a>lo&&a>0;a-=1000){const f=(hi-a)/(hi-lo),p=dest(l.end,lb,ld*f),x=wind(dz+a);marks.push({agl:a,p,spd:Math.hypot(x.u,x.v)/KT,dir:norm(Math.atan2(x.u,x.v)*R2D)})}}trk.push({p:l.start,h:i===0?lp:l.bot})}
+  trk.push({p:pi,h:0});
+  // HARP ring: the modified D = KAV run in every direction across all canopy legs, then shifted by freefall drift
+  const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
+  const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
+  const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
+  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
+function loadFactorFor(j){const w=+j.jumperKg||110,l=+j.loadKg||0;return Math.sqrt((w+l)/w)}
+function inRing(ring,p){const lat0=p.lat*D2R;const X=q=>(q.lon-p.lon)*Math.cos(lat0),Y=q=>q.lat-p.lat;let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const xi=X(ring[i]),yi=Y(ring[i]),xj=X(ring[k]),yj=Y(ring[k]);if(((yi>0)!==(yj>0))&&(0<(xj-xi)*(0-yi)/(yj-yi)+xi))c=!c}return c}
+let hamoHeading=null,J2=null,hamo=null;
+function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;
+  const base=computeJump(S.pi);if(base.err)return;hamoHeading=norm(base.heading+(+S.jump.hamoOffset||0));
+  const A=computeJump(S.pi),B=computeJump(S.pi,{openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers});if(A.err||B.err)return;
+  const h=hamoHeading,mid={lat:(A.ringC.lat+B.ringC.lat)/2,lon:(A.ringC.lon+B.ringC.lon)/2};
+  const proj=c=>{const d=dist(mid,c),t=(brg(mid,c)-h)*D2R;return {along:d*Math.cos(t),off:Math.abs(d*Math.sin(t))}};
+  const place=P=>{const pr=proj(P.ringC);const mp=dest(mid,pr.along>=0?h:norm(h+180),Math.abs(pr.along));P.prp=mp;P.harp=dest(mp,norm(h+180),P.FTm);P.gl=dest(P.harp,norm(h+180),P.JD);P.rl=dest(P.harp,h,P.JD);P.off=pr.off;P.ok=inRing(P.ring,mp);P.along=pr.along-P.FTm-P.JD};
+  place(A);place(B);A.pod=1;B.pod=2;
+  const first=A.along<=B.along?A:B,second=first===A?B:A;
+  const gs=Math.max(5,first.gsM),sep=second.along-first.along,clear=sep-first.stick;
+  const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(first.gl,norm(h+180),gs*t)}));
+  hamo={A,B,first,second,gap:sep/gs,clear,ok:A.ok&&B.ok&&clear>=0,timePts,runStart:dest(first.gl,norm(h+180),gs*600),runEnd:dest(second.rl,h,gs*60),oneMin:dest(first.gl,norm(h+180),gs*60)};}
+function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the single pass.';const h=hamo;return `Course ${fb(hamoHeading)} T · pod ${h.first.pod} exits first · HARP to HARP ${fsec(h.gap)} · ${!h.A.ok||!h.B.ok?`pod ${!h.A.ok?1:2} HARP outside its ring`:h.clear<0?'sticks overlap, open the gap':'both HARPs inside their rings'}`}
+function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
-  L.circle(LL(S.pi),{radius:+S.jump.dzRadius||0,color:c.pi,weight:2,dashArray:'6 6',fillOpacity:.06,interactive:false}).addTo(LY.jump);
-  if(J.glide>0)L.circle(LL(J.harp),{radius:J.glide,color:c.amb,weight:1.5,fillColor:c.amb,fillOpacity:.08,interactive:false}).addTo(LY.jump);
-  L.polyline(J.path.map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
-  L.polyline([LL(J.runStart),LL(J.rl)],{color:c.ink,weight:2.5,interactive:false}).addTo(LY.jump);
+  {const bad=hamo&&!J.ok;L.polygon(J.ring.map(LL),{color:bad?'#FF2A2A':c.amb,weight:1.5,fillColor:bad?'#FF2A2A':c.amb,fillOpacity:.07,interactive:false}).addTo(LY.jump)}
+  L.polyline(J.path.slice(0,J.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
+  L.polyline(J.path.slice(J.openIdx).map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump);
+  J.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<J.marks.length?J.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),150)),LL(dest(m.p,norm(trk-90),150))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
+  const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
+  if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#9E9E9E",weight:1.2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
+  L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
+  J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;const half=tp.t===240;const dotHtml=half?`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block"><path d="M0-5A5 5 0 0 1 0 5Z" fill="${G}"/><path d="M0-5A5 5 0 0 0 0 5Z" fill="${Rd}"/><circle r="5" fill="none" stroke="#141414" stroke-width="1"/></svg>`:'';
+    if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
+    const lbl=half?`<span class="klbl" style="color:${c.amb}">4 min</span>`:`<span class="klbl" style="color:${col}">${tp.l}</span>`;L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:lbl}),interactive:false}).addTo(LY.jump)});}
   const calc=(p,svg,col,label,key)=>L.marker(LL(p),{icon:divPin(svg,col,label,24)}).on('click',()=>calcActions('c:'+key)).addTo(LY.jump);
-  calc(J.openPt,'<circle r="6"/>',c.amb,'Open','open');calc(J.oneMin,'<circle r="7"/>',c.amb,'1 min','onemin');calc(J.gl,'<circle r="8"/>',c.go,'GL','gl');calc(J.rl,'<circle r="8"/>',c.st,'RL','rl');calc(J.harp,'<path d="M0-11 11 0 0 11-11 0Z"/>',c.ink,'HARP','harp');
+  calc(J.op,'<circle r="6"/>',c.amb,'OP','open');if(J.ffM>0)calc(J.prp,'<rect x="-6" y="-6" width="12" height="12"/>',c.amb,'PRP','prp');if(showRun){calc(J.gl,'<circle r="8"/>',c.go,'First out','gl');calc(J.rl,'<circle r="8"/>',c.st,'Last out','rl')}L.marker(LL(J.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',hamo&&!J.ok?'#FF2A2A':c.ink,hamo?'HARP 1':'HARP',24)}).on('click',harpRadial).addTo(LY.jump);
+  if(S.jump.harpRings&&showRun){J.timePts.forEach(tp=>{const r=J.gsM*tp.t;L.circle(LL(J.harp),{radius:r,color:tp.t===60?G:tp.t===120?Rd:c.amb,weight:1,dashArray:'4 6',fill:false,interactive:false}).addTo(LY.jump);L.marker(LL(dest(J.harp,45,r)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${tp.t===60?G:tp.t===120?Rd:c.amb}">${tp.l}</span>`}),interactive:false}).addTo(LY.jump)})}
+  if(hamo&&J2){
+    L.polyline(J2.path.slice(0,J2.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',interactive:false}).addTo(LY.jump);L.polyline(J2.path.slice(J2.openIdx).map(LL),{color:'#CFCFCF',weight:2,opacity:.9,interactive:false}).addTo(LY.jump);
+    calc(J2.op,'<circle r="6"/>',c.amb,'OP 2','open2');
+    L.polygon(J2.ring.map(LL),{color:J2.ok?c.amb:Rd,weight:1.5,dashArray:'8 5',fillColor:J2.ok?c.amb:Rd,fillOpacity:.05,interactive:false}).addTo(LY.jump);L.circleMarker(LL(J2.prp),{radius:4,color:J2.ok?c.amb:Rd,weight:2,fill:false,interactive:false}).addTo(LY.jump);
+    if(showRun){L.marker(LL(J2.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',J2.ok?c.ink:Rd,'HARP 2',24)}).on('click',()=>openRadial(J2.harp,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:harp2')},{l:'Copy grid',icon:'save',f:()=>copy(fc(J2.harp))}])).addTo(LY.jump);calc(J2.gl,'<circle r="8"/>',c.go,'First out 2','gl2');calc(J2.rl,'<circle r="8"/>',c.st,'Last out 2','rl2');const mid={lat:(J.harp.lat+J2.harp.lat)/2,lon:(J.harp.lon+J2.harp.lon)/2};L.marker(LL(mid),{icon:tagPin(`HARP to HARP ${fsec(hamo.gap)}`),interactive:false}).addTo(LY.jump)}}
+  if(view3d){const k3=FT*Math.tan(48*D2R),up=(p,h)=>dest(p,0,Math.max(0,h)*k3),dzE=+S.jump.dzElev||0,exA=(+S.jump.exitAlt)-dzE,pull=+S.jump.openAlt,cas=+S.jump.casSF||0,lp=+S.jump.lpSF||0;
+    const drop=(p,h,col)=>{L.polyline([LL(p),LL(up(p,h))],{color:col,weight:1,opacity:.7,dashArray:'2 4',interactive:false}).addTo(LY.jump)};
+    L.polyline([LL(up(J.prp,exA)),LL(up(J.op,pull))],{color:c.amb,weight:3,dashArray:'2 7',interactive:false}).addTo(LY.jump);
+    L.polyline(J.trk.map(t=>LL(up(t.p,t.h))),{color:'#FFFFFF',weight:3.5,interactive:false}).addTo(LY.jump);J.trk.forEach(t=>{if(t.h>0)drop(t.p,t.h,'#FFFFFF')});
+    drop(J.prp,exA,c.amb);drop(J.op,pull,'#FFFFFF');drop(S.pi,lp,'#FFFFFF');J.marks.forEach(m=>{drop(m.p,m.agl,'#BBBBBB');L.circleMarker(LL(up(m.p,m.agl)),{radius:4,color:'#141414',weight:1,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(up(m.p,m.agl)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
+    L.marker(LL(up(J.prp,exA)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">Exit ${ff(+S.jump.exitAlt)}</span>`}),interactive:false}).addTo(LY.jump);
+    L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
+  if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';[J.harp,J.ffM>0?J.prp:J.op].forEach(c=>L.circle(LL(c),{radius:h.r,color:col,weight:1,dashArray:'3 5',fill:false,interactive:false}).addTo(LY.jump));L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:false}).addTo(LY.jump)}
   drawPI();
-  out.innerHTML=`<dl class="res">
-    <dt>HARP</dt><dd class="big">${fc(J.harp)}</dd>
-    <dt>Run-in heading</dt><dd>${bTM(J.heading)}</dd>
-    <dt>HARP from PI</dt><dd>${fd(dist(S.pi,J.harp))} at ${fb(brg(S.pi,J.harp))} T</dd>
-    <dt>Freefall</dt><dd>${fsec(J.ffT)} · drift ${fd(J.ffD)} toward ${fb(J.ffB)}</dd>
-    <dt>Canopy</dt><dd>${fsec(J.tc)} · drift ${fd(J.cD)} toward ${fb(J.cB)}</dd>
-    <dt>Total drift</dt><dd>${fd(J.dD)} toward ${fb(J.dB)}</dd>
-    <dt>Exit wind</dt><dd>${Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT)} kt</dd>
-    <dt>Release envelope</dt><dd>${fd(J.glide)} radius</dd>
-    <dt>Stick length</dt><dd>${fd(J.stick)} GL to RL</dd></dl>
-    <div class="row"><button class="btn primary" data-hound="c:harp">Bloodhound HARP</button><button class="btn" data-hound="c:gl">Bloodhound GL</button><button class="btn" data-hound="c:pi">Bloodhound PI</button></div>
-    <div class="warn">Planning aid only. Check against your approved calculation method and current met before use.</div>`;
+  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}<dl class="res">
+    <dd class="big" data-l="HARP">${fc(J.harp)}</dd>
+    ${J.ffLegs.length?J.ffLegs.map((l,i)=>`<dd data-l="Free Fall${J.ffLegs.length>1?` leg ${i+1}`:''}">D = 3 × ${+l.A.toFixed(1)} × ${l.v} = ${Math.round(l.m)} m @ ${fb(l.d)} T</dd>`).join(''):'<dd data-l="Free Fall">under 2,000 ft of freefall, disregarded</dd>'}
+    ${J.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${J.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===J.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${J.FS} + ${l.v}) ÷ ${+J.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
+    <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M, OP to DIP</dd>
+    <dd data-l="Aircraft Course">${bTM(J.heading)}</dd>
+    <dd data-l="FT + JD">${J.FTm} m + (${S.jump.jumpers} ÷ 2) × 50 = ${J.FTm+Math.round(J.JD)} m back along the course to first out; HARP is mid-stick, ${J.FTm} m back from the ${J.ffM>0?"PRP":"OP"}</dd>
+    <dd data-l="OP">${fc(J.op)}</dd>
+    ${J.ffM>0?`<dd data-l="PRP">${fc(J.prp)}</dd>`:''}
+    <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
+    <dd data-l="Ground speed on run-in">${Math.round(J.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(J.tas)} kt)</dd>
+    ${J.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>
+    <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
+    <div class="warn">Calculated per OJM manual para 5.3 to 5.8 (D = KAV, wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
   updateHound();renderPoints()}
-function drawPI(){const col=cssv('--pi');L.marker(LL(S.pi),{icon:L.divIcon({className:'pin',iconSize:[40,40],iconAnchor:[20,20],html:`<div style="position:relative;width:40px;height:40px"><svg viewBox="-20 -20 40 40" width="40" height="40" style="overflow:visible"><g stroke="${col}" stroke-width="3" fill="none"><circle r="11"/><path d="M0-19v10M0 9v10M-19 0h10M9 0h10"/></g></svg><span class="lbl" style="position:absolute;left:38px;top:12px">PI</span></div>`})}).on('click',()=>calcActions('c:pi')).addTo(LY.jump)}
+function drawDipRings(pi,name){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
+  [450*FT,900*FT].forEach(r=>L.circle(LL(pi),{radius:r,color:red,weight:1.5,fill:false,interactive:false}).addTo(LY.jump));
+  L.circle(LL(pi),{radius:R,color:grn,weight:1.5,fill:false,interactive:false}).addTo(LY.jump);
+  for(let b=0;b<360;b+=10){const big=b%30===0;L.polyline([LL(dest(pi,b,R)),LL(dest(pi,b,R+(big?34:17)))],{color:grn,weight:big?2:1,interactive:false}).addTo(LY.jump);if(big){const lp=dest(pi,b,R+72);const txt=b===0?'N':b===90?'E':b===180?'S':b===270?'W':String(b).padStart(3,'0');L.marker(LL(lp),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="clbl" style="color:${grn}">${txt}</span>`}),interactive:false}).addTo(LY.jump)}}
+  L.marker(LL(pi),{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html:`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28"><circle r="10" fill="none" stroke="${red}" stroke-width="3"/><circle r="2.5" fill="${red}"/></svg><span class="lbl" style="position:absolute;left:28px;top:7px">${esc(name)}</span></div>`})}).on('click',pi===S.pi?dipRadial:()=>openRadial(pi,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:pi2')},{l:'Remove',icon:'del',f:()=>{S.pi2=null;save('pi2');renderJump()}}])).addTo(LY.jump)}
+function drawPI(){drawDipRings(S.pi,S.pi.name||'DIP');renderAltDips();drawPattern()}
 
 /* CYPRES + altimeter */
-function renderCypres(){const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
+function renderCypres(){renderMilCypres();const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
   $('#cypOut').innerHTML=`<dl class="res">
-    <dt>Landing vs take-off</dt><dd>${abs(dFt)<1?'Same elevation':`${ff(abs(dFt))} ${dFt>0?'higher':'lower'}`}</dd>
-    <dt>Offset (metric unit)</dt><dd class="big">${rM===0?'0 m':`${sign(rM)}${abs(rM)} m`}</dd>
-    <dt>Offset (feet unit)</dt><dd class="big">${rFt===0?'0 ft':`${sign(rFt)}${abs(rFt).toLocaleString('en-GB')} ft`}</dd></dl>
+    <dd data-l="Landing vs take-off">${abs(dFt)<1?'Same elevation':`${ff(abs(dFt))} ${dFt>0?'higher':'lower'}`}</dd>
+    <dd class="big" data-l="Offset (metric unit)">${rM===0?'0 m':`${sign(rM)}${abs(rM)} m`}</dd>
+    <dd class="big" data-l="Offset (feet unit)">${rFt===0?'0 ft':`${sign(rFt)}${abs(rFt).toLocaleString('en-GB')} ft`}</dd></dl>
     ${rM===0?'<p class="note">Difference is under one 10 m step, so no offset is needed.</p>':`<p class="note">${dFt>0?'Landing area is higher than the take-off airfield, so the offset is positive.':'Landing area is lower than the take-off airfield, so the offset is negative.'} Rounded to the nearest 10 m or 30 ft step.</p>`}
     <div class="warn">Set the offset on the ground at the take-off airfield. Confirm the sign convention, step size and limits for your model against its user guide before jumping.</div>`}
 function renderAlti(){const to=+S.jump.toElev,dz=+S.jump.dzElev;const refRaw=S.set.altRef;const ref=isFinite(refRaw)&&refRaw!==null&&refRaw!==''?+refRaw:dz;if(!isFinite(to)||!isFinite(ref)){$('#altOut').innerHTML='';return}const setTo=to-ref;const exitR=(+S.jump.exitAlt)-ref,openR=(+S.jump.openAlt)+dz-ref;
   $('#altOut').innerHTML=`<p class="note" style="margin-top:12px">Set altimeter at take-off to</p><div class="big-out">${setTo>0?'+':setTo<0?'−':''}${ff(Math.abs(setTo))}</div>
     <p class="note">${setTo<0?'Below zero: the reference is higher than the airfield.':setTo>0?'Above zero: the reference is lower than the airfield.':'Airfield and reference are the same elevation, so set to zero.'} It will read 0 at ${refRaw!=null&&refRaw!==''?'the reference elevation':'the DZ'}.</p>
-    <dl class="res"><dt>Reads at exit</dt><dd>${ff(exitR)}</dd><dt>Reads at opening</dt><dd>${ff(openR)}</dd><dt>Reads on the DZ</dt><dd>${ff(dz-ref)}</dd></dl>
+    <dl class="res"><dd data-l="Reads at exit">${ff(exitR)}</dd><dd data-l="Reads at opening">${ff(openR)}</dd><dd data-l="Reads on the DZ">${ff(dz-ref)}</dd></dl>
     <div class="warn">Exit and opening readings use the jump plan values. Check the altimeter on the ground after setting.</div>`}
 $('#altRef').value=S.set.altRef??'';
 $('#altRef').oninput=e=>{const v=e.target.value.trim();S.set.altRef=v===''?null:parseFloat(v);save('set');renderAlti()};
@@ -632,17 +895,22 @@ $('#altRef').oninput=e=>{const v=e.target.value.trim();S.set.altRef=v===''?null:
 /* ================= points + targets ================= */
 function renderMarkers(){LY.pts.clearLayers();S.markers.forEach(m=>{const t=TYPES[m.type]||TYPES.wp;L.marker([m.lat,m.lon],{icon:divPin(t.svg,cssv(t.c),m.name,26)}).on('click',()=>markerActions(m.id)).addTo(LY.pts)})}
 function addMarker(p,type,name){const n=S.markers.filter(m=>m.type===type).length+1;const m={id:uid(),type,name:name||`${TYPES[type].n} ${n}`,lat:p.lat,lon:p.lon};S.markers.push(m);save('markers');renderMarkers();renderPoints();toast(`Added ${m.name}`);return m}
-function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Bloodhound',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as PI',()=>{S.pi={lat:m.lat,lon:m.lon};save('pi');renderJump();toast('PI set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
+function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Bloodhound',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as DIP',()=>{S.pi={lat:m.lat,lon:m.lon};save('pi');renderJump();toast('DIP set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
 function calcActions(key){const r=resolve(key);if(!r)return;sheet({title:r.name,sub:relSub(r.p),buttons:[['Bloodhound',()=>setTarget(key),'primary'],['Centre map',()=>map.setView(LL(r.p),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(r.p))]]})}
-function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'PI',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'Green light',p:J.gl,c:'--go'},{key:'c:rl',name:'Red light',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'Opening point',p:J.openPt,c:'--amber'});return a}
+function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'DIP',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'First out',p:J.gl,c:'--go'},{key:'c:rl',name:'Last out',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'OP',p:J.op,c:'--amber'},{key:'c:prp',name:'PRP',p:J.prp,c:'--amber'});return a}
 function resolve(key){if(!key)return null;const [t,id]=[key.slice(0,2),key.slice(2)];
   if(t==='m:'){const m=S.markers.find(x=>x.id===id);return m?{name:m.name,p:m}:null}
-  if(t==='x:'){const i=S.xs.findIndex(x=>x.id===id);return i>=0?{name:`Red X${i+1}`,p:S.xs[i]}:null}
+  if(key==='c:pi'&&S.pi)return {name:S.pi.name||'DIP',p:S.pi};
+  if(key==='c:harp2'&&J2)return {name:'HARP 2',p:J2.harp};
+  if(key==='c:gl2'&&J2)return {name:'First out 2',p:J2.gl};
+  if(key==='c:rl2'&&J2)return {name:'Last out 2',p:J2.rl};
+  if(t==='x:'){const i=S.xs.findIndex(x=>x.id===id);return i>=0?{name:S.xs[i].name||`X${i+1}`,p:S.xs[i]}:null}
+  if(t==='a:'){const d=S.altDips.find(x=>x.id===id);return d?{name:d.name,p:d}:null}
   if(t==='r:'){const r=S.rng.find(x=>x.id===id);return r?{name:r.kind==='ring'?'Ring centre':'Range line end',p:r.kind==='ring'?r.c:r.b}:null}
-  const c=calcPoints().find(x=>x.key===key);return c?{name:c.name,p:c.p}:null}
+  const c=[...calcPoints(),...(J2?[{key:'c:open2',name:'OP 2',p:J2.op},{key:'c:harp2',name:'HARP 2',p:J2.harp},{key:'c:gl2',name:'First out 2',p:J2.gl},{key:'c:rl2',name:'Last out 2',p:J2.rl}]:[])].find(x=>x.key===key);return c?{name:c.name,p:c.p}:null}
 let lastPts=0;
-function renderPoints(){lastPts=Date.now();const rows=[...calcPoints().map(c=>({key:c.key,name:c.name,p:c.p,col:c.c})),...S.xs.map((x,i)=>({key:'x:'+x.id,name:`Red X${i+1}`,p:x,col:'--x'})),...S.markers.map(m=>({key:'m:'+m.id,name:m.name,p:m,col:(TYPES[m.type]||TYPES.wp).c}))];
-  $('#ptList').innerHTML=rows.length?rows.map(r=>`<button class="item" data-act="${r.key}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}${S.target===r.key?' · tracking':''}</b><small>${esc(fc(r.p))}${me?` · ${fd(dist(me,r.p))} ${fb(brg(me,r.p))}`:''}</small></span><span class="btn" data-hound="${r.key}">Hound</span></button>`).join(''):'<p class="note">No points yet. Set a PI, plot a Red X, or add a point above.</p>'}
+function renderPoints(){lastPts=Date.now();const rows=[...calcPoints().map(c=>({key:c.key,name:c.name,p:c.p,col:c.c})),...S.xs.map((x,i)=>({key:'x:'+x.id,name:x.name||`X${i+1}`,p:x,col:'--x'})),...S.markers.map(m=>({key:'m:'+m.id,name:m.name,p:m,col:(TYPES[m.type]||TYPES.wp).c}))];
+  $('#ptList').innerHTML=rows.length?rows.map(r=>`<button class="item" data-act="${r.key}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}${S.target===r.key?' · tracking':''}</b><small>${esc(fc(r.p))}${me?` · ${fd(dist(me,r.p))} ${fb(brg(me,r.p))}`:''}</small></span><span class="btn" data-hound="${r.key}">Hound</span></button>`).join(''):'<p class="note">No points yet. Set a DIP, plot a Red X, or add a point above.</p>'}
 $('#ptList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;closeDrawer();if(k.startsWith('m:'))markerActions(k.slice(2));else if(k.startsWith('x:'))xActions(k.slice(2));else calcActions(k)});
 $('#ptType').innerHTML=Object.entries(TYPES).map(([k,t])=>`<option value="${k}">${t.n}</option>`).join('');
 $('#ptAddGrid').onclick=()=>{const p=parseCoord($('#ptGrid').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptGrid').value='';$('#ptName').value='';map.setView(LL(p),Math.max(map.getZoom(),14))};
@@ -655,46 +923,135 @@ function headingTrue(){if(compass!=null)return {h:norm(compass+(+S.set.decl||0))
 function meHtml(){const ht=headingTrue(),col=cssv('--self'),bg=cssv('--bg');return `<svg viewBox="-20 -20 40 40" width="40" height="40" style="overflow:visible"><circle r="15" fill="${col}" fill-opacity=".18"/><g class="meRot" transform="rotate(${ht?ht.h:0})">${ht?`<path d="M0-15 10 11 0 5-10 11Z" fill="${col}" stroke="${bg}" stroke-width="2"/>`:`<circle r="7" fill="${col}" stroke="${bg}" stroke-width="3"/>`}</g></svg>`}
 function drawMe(){if(!me)return;const icon=L.divIcon({className:'pin',iconSize:[40,40],iconAnchor:[20,20],html:meHtml()});if(!meMarker){meMarker=L.marker(LL(me),{icon,zIndexOffset:1000,keyboard:false,interactive:false}).addTo(meLayer);accCircle=L.circle(LL(me),{radius:me.acc||0,color:cssv('--self'),weight:1,fillOpacity:.07,interactive:false}).addTo(meLayer)}else{meMarker.setLatLng(LL(me));meMarker.setIcon(icon);accCircle.setLatLng(LL(me)).setRadius(me.acc||0).setStyle({color:cssv('--self')})}}
 function rotateMe(){if(!meMarker)return;const el=meMarker.getElement();const g=el&&el.querySelector('.meRot');const ht=headingTrue();if(g&&ht)g.setAttribute('transform',`rotate(${ht.h})`)}
-function onFix(f){const prev=me;me=f;
+function onFix(f){const prev=me;me=f;phaseFromFix(f);
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
-  drawMe();if(follow)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
-function updateBar(){if(!me)return;$('#bPos').textContent=fc(me)+(me.sim?' (sim)':'');$('#bAcc').textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'–';$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT):'–';$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kt`:'–';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:'–'}
+  drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
+function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0))+' AGL':'';$('#bAcc').textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
 let geoWatch=null,orientOn=false;
 async function startSensors(){
   if(!('geolocation' in navigator))toast('This browser has no location access. Use simulation in the menu.');
   else{if(geoWatch!=null)navigator.geolocation.clearWatch(geoWatch);geoWatch=navigator.geolocation.watchPosition(pos=>{if(S.set.sim)return;const c=pos.coords;onFix({lat:c.latitude,lon:c.longitude,acc:c.accuracy,alt:c.altitude,spd:c.speed,course:(c.heading!=null&&!isNaN(c.heading))?c.heading:null});$('#sensState').textContent='GPS live.'+(compass!=null?' Compass live.':'')},err=>{const m=err.code===1?'Location is blocked here. Allow location for this page, open it in its own browser tab, or use simulation.':'No GPS fix yet. Move to open sky and keep the screen on.';toast(m,6500);$('#sensState').textContent=m},{enableHighAccuracy:true,maximumAge:0,timeout:30000})}
   try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')toast('Compass permission refused. Heading will come from GPS track when moving.')}}catch(e){}
+  startMotion();
   if(!orientOn){orientOn=true;window.addEventListener('ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation',onOrient,true)}
   try{if('wakeLock' in navigator){await navigator.wakeLock.request('screen');document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){try{await navigator.wakeLock.request('screen')}catch(e){}}})}}catch(e){}
   $('#btnSensors').hidden=true;$('#sensStart').textContent='Restart sensors';$('#sensState').textContent='Waiting for GPS fix…';toast('Sensors started. Hold the phone flat for the best compass.')}
 let cx=null,cy=null,raf=false;
 function onOrient(e){let h=null;if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading))h=e.webkitCompassHeading;else if((e.absolute||e.type==='deviceorientationabsolute')&&e.alpha!=null)h=norm(360-e.alpha);if(h==null)return;const so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=norm(h+so);const r=h*D2R;cx=cx==null?Math.sin(r):cx*0.8+Math.sin(r)*0.2;cy=cy==null?Math.cos(r):cy*0.8+Math.cos(r)*0.2;compass=norm(Math.atan2(cx,cy)*R2D);
-  if(!raf){raf=true;requestAnimationFrame(()=>{raf=false;rotateMe();updateDial();if(me)$('#bHdg').textContent=`${fb(compass)} M`})}}
+  if(!raf){raf=true;requestAnimationFrame(()=>{raf=false;rotateMe();updateDial();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(me)$('#bHdg').textContent=`${fb(magOf(norm(compass+(+S.set.decl||0))))} M`})}}
 $('#btnSensors').onclick=startSensors;$('#sensStart').onclick=startSensors;
 
 /* ================= bloodhound ================= */
-let houndLine=null,hState='',prevR=null,prevT=0,closing=0;
+let houndLine=null,hState='',prevR=null,prevT=0,closing=0,live=null;
+const METRICS={
+  range:{l:'Range',f:d=>fd(d.R)},
+  brgT:{l:'Bearing °T',f:d=>fb(d.B)},
+  brgM:{l:'Bearing °M',f:d=>fb(magOf(d.B))},
+  rel:{l:'Relative bearing',f:d=>d.ht?`${Math.round(((norm(d.B-d.ht.h)+180)%360)-180)}°`:'–'},
+  hdg:{l:'My heading °T',f:d=>d.ht?fb(d.ht.h):'–'},
+  eta:{l:'Time to target',f:d=>closing>0.3?fsec(d.R/closing):'–'},
+  closing:{l:'Closing speed',f:d=>`${Math.round(closing/KT)} kt`},
+  gs:{l:'Ground speed',f:d=>me.spd!=null?`${Math.round(me.spd/KT)} kt`:'–'},
+  agl:{l:'Altitude AGL',f:d=>me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0)):'–'},
+  amsl:{l:'Altitude AMSL',f:d=>me.alt!=null?ff(me.alt/FT):'–'},
+  glide:{l:'Glide needed',f:d=>{const h=me.alt!=null?me.alt-(+S.jump.dzElev||0)*FT:null;return h>5?`1 : ${(d.R/h).toFixed(1)}`:'–'}},
+  sink:{l:'Sink to make it',f:d=>{const h=me.alt!=null?me.alt-(+S.jump.dzElev||0)*FT:null;return h>5&&closing>0.3?`${(h/(d.R/closing)/FT).toFixed(0)} ft/s`:'–'}},
+  xtk:{l:'Off run-in',f:d=>{if(!J||J.err)return '–';const a=J.runStart,b=J.rl;const d1=dist(a,me),t1=brg(a,me),t2=brg(a,b);const x=Math.asin(Math.sin(d1/RE)*Math.sin((t1-t2)*D2R))*RE;return `${fd(Math.abs(x))} ${x>0?'R':'L'}`}},
+  runin:{l:'Run-in heading °T',f:d=>J&&!J.err?fb(J.heading):'–'},
+  togl:{l:'Time to first out',f:d=>{if(!J||J.err||!me.spd||me.spd<1)return '–';return fsec(dist(me,J.gl)/me.spd)}},
+  grid:{l:'Target grid',f:d=>fc(d.p)}
+};
+const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Aircraft to HARP'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy back to DIP'}};
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}$('#hud').hidden=false;$('#hName').textContent=`Bloodhound · ${r.name}`;
-  if(!me){$('#hRange').textContent='No fix';$('#hBrg').textContent=fc(r.p);$('#hEta').textContent='Start sensors or simulate';return}
+function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}$('#hName').textContent=`Bloodhound · ${r.name}`;
+  if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
   const hud=$('#hud');hud.classList.toggle('st-outer',st==='outer');hud.classList.toggle('st-inner',st==='inner');const col=cssv(st==='inner'?'--stop':st==='outer'?'--amber':'--go');
   if(!houndLine)houndLine=L.polyline([LL(me),LL(r.p)],{color:col,weight:4,dashArray:'10 8',interactive:false}).addTo(LY.hound);houndLine.setLatLngs([LL(me),LL(r.p)]);houndLine.setStyle({color:col});const el=houndLine.getElement();if(el)el.classList.toggle('hound-inner',st==='inner');
-  $('#hRange').textContent=fd(R);$('#hBrg').innerHTML=`${fb(B)} T <span class="m">${fb(magOf(B))} M</span>`;$('#hEta').textContent=closing>0.3?`ETA ${fsec(R/closing)} · closing ${Math.round(closing/KT)} kt`:(closing<-0.3?`Opening ${Math.round(-closing/KT)} kt`:'ETA –');updateDial()}
+  live={R,B,p:r.p,ht:headingTrue()};S.hound.tiles.forEach((k,i)=>{const m=METRICS[k]||METRICS.range;const e=$('#tile'+i);if(e)e.textContent=m.f(live)});$('#hNote').textContent=closing<-0.3?`Opening ${Math.round(-closing/KT)} kt`:'';updateDial()}
+$('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-dock]');if(d){S.hound.dock=d.dataset.dock;save('hound');renderTiles();updateHound();setTimeout(()=>map.invalidateSize(),50);return}
+  const pr=e.target.closest('[data-preset]');if(pr){const P=PRESETS[pr.dataset.preset];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound();return}
+  const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue();if(ht){$('#dialArrow').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialArrow').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
-$('#hStop').onclick=()=>setTarget(null);
+$('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
+$('#zIn').onclick=()=>map.zoomIn();$('#zOut').onclick=()=>map.zoomOut();
 document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
+
+
+/* ================= jump phase detection ================= */
+let phase='ground',phaseAuto=true,vs=0,lastAltFix=null,lowGSince=null,shockAt=0,ffSince=null,canopySince=null,motionOn=false;
+const PH={ground:'Ground',aircraft:'Aircraft',freefall:'Freefall',canopy:'Canopy',landed:'Landed'};
+function setPhase(p,manual){if(manual){phaseAuto=false}if(p===phase){renderPhase();return}phase=p;renderPhase();renderJump();
+  if(p==='canopy'&&phaseAuto){const P=PRESETS.canopy;S.hound.tiles=P.tiles.slice();save('hound');if(resolve('c:pi'))setTarget('c:pi');renderTiles();updateHound()}
+  if(navigator.vibrate&&(p==='freefall'||p==='canopy'))navigator.vibrate([120,80,120]);toast(`Phase: ${PH[p]}`)}
+function renderPhase(){const b=$('#bPhase');b.textContent=`Phase: ${PH[phase]}`;b.dataset.auto=phaseAuto?'1':'0'}
+function phaseFromFix(f){if(f.alt==null)return;const now=Date.now();if(lastAltFix){const dt=(now-lastAltFix.t)/1000;if(dt>0.5){const v=(f.alt-lastAltFix.alt)/dt;vs=vs*0.6+v*0.4;lastAltFix={alt:f.alt,t:now}}}else lastAltFix={alt:f.alt,t:now};
+  if(!phaseAuto||f.sim)return;const agl=f.alt-(+S.jump.dzElev||0)*FT,gs=f.spd||0;
+  if(phase==='ground'&&agl>300&&(vs>2||gs>25))setPhase('aircraft');
+  if((phase==='aircraft')&&vs<-25){ffSince=ffSince||now;if(now-ffSince>2000)setPhase('freefall')}else ffSince=null;
+  if(phase==='freefall'&&vs>-12&&vs<-0.5){canopySince=canopySince||now;if(now-canopySince>4000)setPhase('canopy')}else if(phase==='freefall')canopySince=null;
+  if(phase==='aircraft'&&agl>300&&vs>-12&&vs<-0.5&&now-shockAt<15000)setPhase('canopy');
+  if((phase==='canopy'||phase==='freefall')&&agl<40&&gs<1.5&&Math.abs(vs)<0.7)setPhase('landed')}
+function onMotion(e){const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const g=Math.hypot(a.x,a.y,a.z);const now=Date.now();
+  if(g<3){lowGSince=lowGSince||now;if(phaseAuto&&phase==='aircraft'&&now-lowGSince>1200)setPhase('freefall')}else lowGSince=null;
+  if(g>30){shockAt=now;if(phaseAuto&&phase==='freefall'){canopySince=canopySince||now}}}
+async function startMotion(){if(motionOn)return;try{if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){const r=await DeviceMotionEvent.requestPermission();if(r!=='granted')return}}catch(e){return}if('DeviceMotionEvent' in window){window.addEventListener('devicemotion',onMotion,true);motionOn=true}}
+$('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected automatically from GPS descent rate and the accelerometer. Pick one to override.':'Manual. Choose Auto to let the phone detect it again.',buttons:[['Auto detect',()=>{phaseAuto=true;renderPhase()},phaseAuto?'primary':''],...Object.entries(PH).map(([k,n])=>[n,()=>setPhase(k,true),(!phaseAuto&&phase===k)?'primary':''])]});
+
+
+
+async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Terrain lookup blocked here; host the page to auto-fill.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
+/* ================= DIP radial menu ================= */
+const RI={edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M5 19V9l7-5 7 5v10"/><path d="M9 19v-6h6v6"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
+function openRadial(latlon,items){closeRadial();const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=92,n=items.length;r.innerHTML='<div class="ring"></div>'+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();closeRadial();items[+b.dataset.i].f()}}
+function closeRadial(){$('#radial').hidden=true}
+map.on('movestart zoomstart click',closeRadial);
+function dipRadial(){openRadial(S.pi,[
+  {l:'Edit DIP',icon:'edit',f:()=>sheet({title:'Edit DIP',sub:fc(S.pi),input:{label:'Grid or lat, long',value:fc(S.pi),save:v=>{const p=parseCoord(v);if(!p){toast('Grid not recognised');return}S.pi=Object.assign({},S.pi,p);save('pi');renderJump();autoDzElev()}},buttons:[['Name',()=>sheet({title:'DIP name',input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump()}},buttons:[]})],['Move: tap on map',()=>{openTool('jump');setMode('pi','Tap the map to set the DIP');$('#tool').classList.add('min')}],['Use my position',()=>{if(!me){toast('No position yet');return}S.pi={lat:me.lat,lon:me.lon};save('pi');renderJump()}],['DZ elevation',()=>sheet({title:'DZ elevation',sub:`${ff(+S.jump.dzElev)} AMSL${S.jump.dzSrc?` · ${S.jump.dzSrc}`:''}`,buttons:[['Refresh from terrain',()=>autoDzElev(true),'primary'],['Edit manually',()=>sheet({title:'Change DZ elevation?',sub:'This overrides the terrain value for this DIP and changes every calculation.',buttons:[['Yes, edit',()=>sheet({title:'DZ elevation',input:{label:'ft AMSL',type:'number',value:S.jump.dzElev,save:v=>{const n=parseFloat(v);if(isFinite(n)){S.jump.dzElev=n;S.jump.dzSrc='entered manually';save('jump');syncJumpInputs();renderWinds();renderJump();toast('DZ elevation set to '+ff(n))}}},buttons:[]}),'danger']]})]]})]]})},
+  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan');showPage(1)}},
+  {l:'Alt DIPs',icon:'alt',f:altDipSheet},
+  {l:'Landing',icon:'pattern',f:patternSheet},
+  {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
+  {l:'Bloodhound',icon:'hound',f:()=>setTarget('c:pi')}])}
+
+function harpRadial(){if(!J||J.err)return;openRadial(J.harp,[
+  {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
+  {l:'Bloodhound',icon:'hound',f:()=>setTarget('c:harp')},
+  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan');showPage(1)}},
+  {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}])}
+/* alternate DIPs */
+function altDipSheet(){sheet({title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>swapDip(d.id)])]})}
+function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.lat,lon:p.lon};S.altDips.push(d);save('altDips');renderAltDips();toast(`${d.name} added`)}
+function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old=S.pi;S.pi={lat:d.lat,lon:d.lon};d.lat=old.lat;d.lon=old.lon;save('pi');save('altDips');renderJump();renderAltDips();autoDzElev();toast(`${d.name} is now the DIP`)}
+function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});S.altDips.forEach(d=>{L.circle([d.lat,d.lon],{radius:450*FT,color:'#FF2A2A',weight:1.5,dashArray:'6 6',fill:false,interactive:false,altdip:true}).addTo(LY.jump);L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[24,24],iconAnchor:[12,12],html:`<div style="position:relative;width:24px;height:24px"><svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="8" fill="none" stroke="#FF2A2A" stroke-width="2.5" stroke-dasharray="4 3"/></svg><span class="lbl" style="position:absolute;left:24px;top:5px">${esc(d.name)}</span></div>`})}).on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>swapDip(d.id)},{l:'Bloodhound',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
+/* landing pattern */
+function patternSheet(){const P=S.pattern;sheet({title:'Landing pattern',sub:P.on?`${P.hand}-hand · downwind ${P.alts[0]} ft, base ${P.alts[1]} ft, final ${P.alts[2]} ft · landing ${P.dirAuto?'into surface wind':fb(P.dir)+' T'}`:'Not drawn',input:{label:'Landing direction °T (blank = into surface wind)',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;save('pattern');renderJump()}},buttons:[[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;save('pattern');renderJump()},'primary'],[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.on=true;save('pattern');renderJump()}],['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]]})}
+function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const wind=makeWind();const w=wind(+S.jump.dzElev||0);const ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;const cs=(+S.jump.canopySpeed||0)*KT,cr=(+S.jump.canopyRate||16)*FT;const [a1,a2,a3]=P.alts;const hw=P.dirAuto?ws:Math.max(0,-(w.u*Math.sin(landDir*D2R)+w.v*Math.cos(landDir*D2R)));
+  const finalLen=Math.max(30,(cs-hw)*(a3*FT/cr)),baseLen=Math.max(30,cs*((a2-a3)*FT/cr)),dwLen=Math.max(30,(cs+hw)*((a1-a2)*FT/cr));
+  const back=norm(landDir+180),side=norm(landDir+(P.hand==='left'?90:-90));
+  const fStart=dest(S.pi,back,finalLen),bStart=dest(fStart,side,baseLen),dStart=dest(bStart,landDir,dwLen);
+  const col='#39FF6A';L.polyline([LL(dStart),LL(bStart),LL(fStart),LL(S.pi)],{color:col,weight:2,dashArray:'6 5',interactive:false}).addTo(LY.jump);
+  [[dStart,`${a1} ft`],[bStart,`${a2} ft`],[fStart,`${a3} ft`]].forEach(([p,t])=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${t}</span>`}),interactive:false}).addTo(LY.jump)});
+  const arrowBase=dest(S.pi,back,finalLen*0.4);L.marker(LL(arrowBase),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col};left:-20px;top:4px">land ${fb(landDir)} T</span>`}),interactive:false}).addTo(LY.jump)}
+
+
+/* ================= map view: north up / heading up / 3D ================= */
+let viewMode='north';
+function applyView(){const w=$('#mapwrap');w.classList.toggle('tilt',viewMode==='3d');const was=view3d;view3d=viewMode==='3d';if(was!==view3d)renderJump();if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
+$('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast('3D view is for looking only; taps on the map are not accurate until you return to north up.');applyView()};
+map.on('rotate',()=>{$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
 
 /* ================= modes / quick menu ================= */
 function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').textContent=tip;$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
   const freeOn=m==='draw-free';if(freeOn){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}
   if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
-$('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','range'].includes(mode))closeTool();else setMode('none')};
-function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Red X');else if(t==='draw')setMode(S.set.drawMode==='line'?'draw-line':'draw-free',S.set.drawMode==='line'?'Tap the map to start a line':'Drag on the map to draw');else if(t==='range')setMode('range',rngTip());else setMode('none')}
+$('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','draw-text','range'].includes(mode))closeTool();else setMode('none')};
+function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Red X');else if(t==='draw')setMode({line:'draw-line',free:'draw-free',text:'draw-text'}[S.set.drawMode],{line:'Tap the map to start a line',free:'Drag on the map to draw',text:'Tap the map where the text should go'}[S.set.drawMode]);else if(t==='range')setMode('range',rngTip());else setMode('none')}
 const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jumpmaster'};
 function openTool(t){finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
-  if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base)}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
+  if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base);$$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
 function closeTool(){finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
 $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{tool===b.dataset.tool?closeTool():openTool(b.dataset.tool)});
 $('#toolClose').onclick=e=>{e.stopPropagation();closeTool()};
@@ -704,9 +1061,11 @@ map.on('click',e=>{const p={lat:e.latlng.lat,lon:e.latlng.lng};
   switch(mode){
     case 'redx':plotX(p);return;
     case 'draw-line':drawLineTap(p);return;
+    case 'draw-text':drawTextTap(p);return;
+    case 'altdip':addAltDip(p);setMode('none');return;
     case 'draw-free':return;
     case 'range':rangeTap(p);return;
-    case 'pi':S.pi=p;save('pi');renderJump();setMode('none');toast('PI set');if(tool==='jump')$('#tool').classList.remove('min');return;
+    case 'pi':S.pi=p;save('pi');renderJump();autoDzElev();setMode('none');toast('DIP set');if(tool==='jump')$('#tool').classList.remove('min');return;
     case 'drop':addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value='';return;
   }
   if(S.set.sim){onFix({lat:p.lat,lon:p.lon,acc:5,alt:null,spd:0,course:me?brg(me,p):null,sim:true})}});
@@ -715,39 +1074,179 @@ function setFollow(v){follow=v;$('#follow').setAttribute('aria-pressed',v);if(v&
 $('#follow').onclick=()=>{if(!me){toast('No position yet. Start sensors or turn on simulation in the menu.');return}setFollow(!follow)};
 setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=resolve(S.target);if(!r)return;const v=(+S.set.simSpd||0)*KT,d=dist(me,r.p);if(d<1)return;const b=brg(me,r.p),n=dest(me,b,Math.min(d,v));onFix({lat:n.lat,lon:n.lon,acc:5,alt:null,spd:v,course:b,sim:true})},1000);
 
+
+function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
+  o.innerHTML=`<div class="sum">
+    <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
+    <div><span>Jump Type</span><b>${j.mode==='HAMO'?'Single Pass HAMO':j.mode}</b></div>
+    <div><span>Canopy</span><b>${j.canopy||'Custom'}</b> <span>K</span><b>${+J.K.toFixed(1)}${j.loadKg?` (${j.k} clean)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
+    <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Interval</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
+    <div><span>Load</span><b>${j.jumperKg} kg + ${j.loadKg} kg</b></div>
+    <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
+    <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
+    <div><span>DZ Elev</span><b>${ff(j.dzElev)}</b></div>
+    <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${Math.round(J.tas)} kt</b> <span>GS on run-in</span><b>${Math.round(J.gsM/KT)} kt</b></div>
+  </div>
+  <dl class="res">
+    <dd data-l="Free Fall">${J.ffLegs.length?J.ffLegs.map(l=>`${Math.round(l.m)} m @ ${fb(l.d)} T`).join(", then "):"disregarded"}</dd>
+    <dd data-l="Canopy Drift">${J.cdLegs.map(l=>`${l.km} km @ ${fb(l.d)} T`).join(", then ")}</dd>
+    <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M</dd>
+    <dd data-l="OP">${fc(J.op)}</dd>${J.ffM>0?`<dd data-l="PRP">${fc(J.prp)}</dd>`:""}
+    
+    <dd data-l="Aircraft Course">${fb(J.heading)} T · ${({into:'into wind',down:'downwind',left:'crosswind 90° left',right:'crosswind 90° right',custom:'custom'})[j.runMode||'into']}</dd>
+    <dd data-l="DIP">${fc(S.pi)}</dd>
+    <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
+    <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod ${hamo.first.pod} first</dd>`:''}
+    <dd data-l="Forward throw">${J.FTm} m (${({high:"high",low:"low",none:"no"})[S.jump.acPerf||"high"]} performance)</dd><dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
+  </dl>
+  <div class="row"><button class="btn primary" data-hound="c:harp">Bloodhound HARP</button><button class="btn" data-hound="c:gl">Bloodhound First out</button><button class="btn" data-hound="c:pi">Bloodhound DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
+function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
+function showJm(k){$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==k);if(k==='summary')renderSummary()}
+document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showPage(2)}if(e.target.id==='toPlan'){showPage(1)}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
+
+
+/* ================= Military CYPRES (para 5.10, 5.11, 2.1 C and D) ================= */
+const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'PNS (1000 35A)',act:1000,sep:1300}};
+function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
+async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
+async function checkHrpo(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},...(J.ffM>0?[{n:'PRP',p:J.prp}]:[{n:'OP',p:J.op}])];if(J2)centres.push({n:'HARP 2',p:J2.harp});
+  const pts=[];centres.forEach(c=>{pts.push({...c.p,c:c.n});for(const f of [.25,.5,.75,1])for(let b=0;b<360;b+=22.5)pts.push({...dest(c.p,b,R*f),c:c.n})});
+  $('#hrpoOut').textContent='Checking terrain…';
+  try{const el=await elevMany(pts);let mi=0;el.forEach((e,i)=>{if(e>el[mi])mi=i});const maxFt=Math.round(el[mi]/FT),dz=+S.jump.dzElev||0;const top=pts[mi];
+    S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now()};save('jump');renderJump();toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO found')}
+  catch(e){$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed (2.1 D.2).'}}
+function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
+function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CYP[j.cypModel||'mj1900'],dz=+j.dzElev||0,unk=!!j.qnhUnknown;
+  const qnhMb=unk?1013:(j.qnhUnit==='inhg'?(+j.qnh||29.92)*33.8639:(+j.qnh||1013));const v=vdzElev();const entered=v.ft+(unk?500:0);
+  const setMb=Math.round(qnhMb-entered/32.25),chk=Math.round(qnhMb-entered/30);
+  const ra=entered+m.act,da=ra+m.sep,mda=da+1500,amda=mda+(unk?1000:0);const pull=+j.openAlt,ok=pull>=amda-dz;
+  const R=hrpoRadius();$('#hrpoRule').textContent=`Highest point within ${R} m of the release point (exit ${R===1000?'above':'at or below'} 13,000 ft AGL). An obstacle 200 ft or more above the DZ becomes the VDZ.`;
+  const h=j.hrpo;$('#hrpoOut').textContent=h?(h.isHrpo?`HRPO: ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`No HRPO. Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`):'Not checked yet.';
+  const row=(l,msl,agl)=>`<tr><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`;
+  o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
+    <dd class="big" data-l="CYPRES setting">${setMb} mb</dd>
+    <dd data-l="Working">${Math.round(qnhMb)} − ${entered.toLocaleString('en-GB')} ÷ 32.25 = ${setMb} mb (30 ft per mb sanity check: ${chk} mb)</dd>
+    <dd data-l="Zero reference">${ff(v.ft)} AMSL, ${v.src}${unk?', +500 ft as setting unknown':''}</dd></dl>
+    <h3>Key altitude ladder</h3>
+    <table class="winds"><thead><tr><th>${m.n}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
+    ${row('CYPRES elevation',ff(entered),'')}
+    ${row(`Reserve activation (+${m.act.toLocaleString('en-GB')})`,ff(ra),ff(ra-dz))}
+    ${row(`Decision (+${m.sep.toLocaleString('en-GB')})`,ff(da),ff(da-dz))}
+    ${row('Minimum deployment (+1,500)',ff(mda),unk?'':ff(mda-dz))}
+    ${unk?row('Adjusted minimum deployment (+1,000)',ff(amda),ff(amda-dz)):''}
+    </tbody></table>
+    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(pull+1000)} · deployment ${ff(pull)} · decision ${ff(da-dz)} AGL</dd></dl>
+    <div class="warn" style="border-left-color:${ok?'var(--go)':'var(--stop)'}">${ok?`Planned opening ${ff(pull)} AGL is at or above the minimum planned deployment altitude of ${ff(amda-dz)} AGL.`:`Planned opening ${ff(pull)} AGL is BELOW the minimum planned deployment altitude of ${ff(amda-dz)} AGL. Raise the pull altitude.`}</div>
+    <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing (5.10 A.4).</p></section>`}
+$('#cypModel').onchange=e=>{S.jump.cypModel=e.target.value;save('jump');renderMilCypres()};
+$('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;save('jump');renderMilCypres()}};
+$('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
+$('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
+$('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
+$('#hrpoCheck').onclick=checkHrpo;
+$('#hrpoClear').onclick=()=>{S.jump.hrpo=null;save('jump');renderJump()};
+function syncCypInputs(){$('#cypModel').value=S.jump.cypModel||'mj1900';$('#qnhUnit').value=S.jump.qnhUnit||'mb';$('#qnhVal').value=S.jump.qnh;$('#qnhUnknown').checked=!!S.jump.qnhUnknown;$('#vdzManual').value=S.jump.vdzManual??''}
+
+
+/* ================= cloud forecast overlay (Open-Meteo) ================= */
+let CL=null,clTimer=null;const clLayer=()=>S.set.cloudLayer||'total';
+async function loadClouds(){const c=S.pi||{lat:map.getCenter().lat,lon:map.getCenter().lng};const N=11,half=45000,step=2*half/(N-1);const pts=[];for(let i=0;i<N;i++)for(let k=0;k<N;k++){pts.push(offset(c,-half+k*step,half-i*step))}
+  $('#cloudStamp').textContent='Loading…';
+  try{const vars='cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,temperature_2m,dew_point_2m,visibility';const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),15000);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pts.map(p=>p.lat.toFixed(4)).join(',')}&longitude=${pts.map(p=>p.lon.toFixed(4)).join(',')}&hourly=${vars}&forecast_hours=13&timezone=GMT`,{signal:ctl.signal});clearTimeout(t);let j=await r.json();if(!Array.isArray(j))j=[j];if(!j.length||!j[0].hourly)throw new Error('no data');
+    CL={c,N,step,pts,data:j,times:j[0].hourly.time,loaded:Date.now()};$('#cloudHour').max=CL.times.length-1;$('#cloudHour').value=0;S.ov.cloud=true;save('ov');applyOverlays();renderOvList();
+    $('#cloudStamp').textContent=`Loaded ${new Date().toISOString().slice(11,16)}Z`;$('#cloudBar').hidden=false;drawClouds();toast('Cloud forecast loaded')}
+  catch(e){$('#cloudStamp').textContent='';$('#cloudDip').textContent='Could not load the forecast. This needs the page hosted outside claude.ai with internet access.';toast('Cloud forecast needs the hosted page',4000)}}
+function drawClouds(){LY.cloud.clearLayers();if(!CL)return;const h=+$('#cloudHour').value||0,key={total:'cloud_cover',low:'cloud_cover_low',mid:'cloud_cover_mid',high:'cloud_cover_high'}[clLayer()];const night=S.set.night;
+  CL.pts.forEach((p,i)=>{const v=CL.data[i].hourly[key][h];if(!(v>2))return;const sw=offset(p,-CL.step/2,-CL.step/2),ne=offset(p,CL.step/2,CL.step/2);L.rectangle([LL(sw),LL(ne)],{stroke:false,fillColor:night?'#FF6A50':'#FFFFFF',fillOpacity:Math.min(.6,v/100*.6),interactive:false}).addTo(LY.cloud)});
+  const t=CL.times[h];$('#cloudLbl').textContent=`${h?`+${h} h`:'Now'} · ${t.slice(11,16)}Z`;
+  const tgt=S.pi||CL.c;let bi=0,bd=1e18;CL.pts.forEach((p,i)=>{const d=dist(p,tgt);if(d<bd){bd=d;bi=i}});const H=CL.data[bi].hourly;const spread=H.temperature_2m[h]-H.dew_point_2m[h];const base=Math.max(0,Math.round(spread*400/100)*100);
+  $('#cloudDip').textContent=`${S.pi?'At the DIP':'At the map centre'}, ${h?`+${h} h`:'now'}: total ${H.cloud_cover[h]}%, low ${H.cloud_cover_low[h]}%, mid ${H.cloud_cover_mid[h]}%, high ${H.cloud_cover_high[h]}% · est. cloud base ${ff(base)} AGL · visibility ${H.visibility[h]!=null?fd(H.visibility[h]):'–'}`;
+  $$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}
+$('#cloudLoad').onclick=loadClouds;
+$('#cloudSeg').onclick=e=>{const b=e.target.closest('[data-cl]');if(!b)return;S.set.cloudLayer=b.dataset.cl;save('set');drawClouds()};
+$('#cloudHour').oninput=drawClouds;
+$('#cloudPlay').onclick=()=>{if(clTimer){clearInterval(clTimer);clTimer=null;$('#cloudPlay').textContent='▶';return}$('#cloudPlay').textContent='❚❚';clTimer=setInterval(()=>{const el=$('#cloudHour');el.value=(+el.value+1)%(+el.max+1);drawClouds()},900)};
+$('#cloudX').onclick=()=>{if(clTimer){clearInterval(clTimer);clTimer=null;$('#cloudPlay').textContent='▶'}$('#cloudBar').hidden=true;S.ov.cloud=false;save('ov');applyOverlays();renderOvList()};
+
+/* ================= canopies ================= */
+const GENERIC_CANOPIES=[{name:'HG380',k:31,spd:20.8},{name:'RA1',k:36,spd:22.6},{name:'HG380(PM)',k:39,spd:20.8},{name:'MJ (MS360)',k:45,spd:22},{name:'MJ (MP360)',k:46,spd:22},{name:'SOV3-TS (TP400)',k:46,spd:22},{name:'MMPS',k:46,spd:20.8},{name:'MC4/5',k:48,spd:20.8},{name:'MT2XX',k:48,spd:20.8},{name:'PNS',k:48,spd:20.8},{name:'SOV3-TS (TP460)',k:62,spd:30}];
+const loadFactor=()=>{const w=+S.jump.jumperKg||110,l=+S.jump.loadKg||0;return Math.sqrt((w+l)/w)};
+const kToFts=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;
+const allCanopies=()=>[...GENERIC_CANOPIES,...S.canopies];
+function renderCanopySel(){const o=allCanopies().map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');$('#ffSel').value=String(+S.jump.ffRate||176);$('#ffSel').onchange=function(e){S.jump.ffRate=+e.target.value;save('jump');renderJump()};
+$('#canopySel').innerHTML=`<option value="">Custom values</option>${o}<option value="__add">Add canopy…</option>`;$('#canopySel').value=allCanopies().some(c=>c.name===S.jump.canopy)?S.jump.canopy:'';
+  const r=(+S.jump.k>0)?(+S.jump.k)*1000/3600:0;const lf=loadFactor();const re=r*lf;if(document.getElementById('ffSel'))document.getElementById('ffSel').value=String(+S.jump.ffRate||176);
+$('#loadSel').value=String(S.jump.loadKg||0);$('#canopyNote').textContent=r>0?`K ${S.jump.k}${lf!==1?` (${(S.jump.k*lf).toFixed(1)} with load)`:''} · ≈ ${re.toFixed(1)} ft/s descent · CSC ${S.jump.canopySpeed} kts · values for mid-range AUM`:'Enter the K factor and CSC.'}
+function applyK(){const k=+S.jump.k||46;S.jump.canopyRate=(k*1000/3600)*loadFactor();save('jump')}
+$('#canopySel').onchange=e=>{const v=e.target.value;if(v==='__add'){sheet({title:'Add canopy',sub:'Name, then K factor and forward speed in the next steps',input:{label:'Canopy name',value:'',save:n=>{if(!n.trim())return;sheet({title:n.trim(),input:{label:'K factor (e.g. 46)',type:'number',value:'',save:k=>{const kk=parseFloat(k);if(!(kk>0))return;sheet({title:n.trim(),input:{label:'CSC forward speed, kts',type:'number',value:'',save:sp=>{const ss=parseFloat(sp);if(!(ss>=0))return;const c={name:n.trim(),k:Math.round(kk),spd:ss};S.canopies.push(c);save('canopies');selectCanopy(c);toast(`${c.name} added`)}},buttons:[]})}},buttons:[]})}},buttons:[]});renderCanopySel();return}
+  const c=allCanopies().find(x=>x.name===v);if(c)selectCanopy(c);else{S.jump.canopy='';save('jump');renderCanopySel()}};
+function selectCanopy(c){S.jump.canopy=c.name;S.jump.k=c.k;S.jump.canopySpeed=c.spd;applyK();syncJumpInputs();renderCanopySel();renderJump()}
+$('#loadSel').onchange=e=>{S.jump.loadKg=+e.target.value;applyK();renderCanopySel();renderJump()};
 /* ================= jump tool UI ================= */
-$('#jmSeg').onclick=e=>{const b=e.target.closest('[data-jm]');if(!b)return;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==b.dataset.jm)};
-const JF=[['dzElev','DZ elevation','ft AMSL'],['exitAlt','Exit altitude','ft AMSL'],['openAlt','Opening altitude','ft AGL'],['ffRate','Freefall rate','ft/s at sea level'],['canopyRate','Canopy descent','ft/s'],['canopySpeed','Canopy forward speed','kt'],['safety','Glide used for envelope','%'],['dzRadius','DZ radius','m']];
-const AF=[['heading','Run-in heading','°T'],['gs','Ground speed','kt'],['jumpers','Jumpers in stick',''],['interval','Exit interval','s'],['throwM','Forward throw','m']];
-const fieldHTML=([k,l,u])=>`<label class="fld">${l}${u?`<em>${u}</em>`:''}<input type="number" inputmode="decimal" data-j="${k}"></label>`;
-$('#jumpFields').innerHTML=JF.map(fieldHTML).join('')+`<label class="chk" style="grid-column:1/-1"><input type="checkbox" id="densityChk"> Faster freefall in thinner air at altitude</label>`;
-$('#airFields').innerHTML=AF.map(fieldHTML).join('');
-function syncJumpInputs(){$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#densityChk').checked=!!S.jump.density;$('#hdgAuto').checked=!!S.jump.headingAuto;$('[data-j="heading"]').disabled=!!S.jump.headingAuto;$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode))}
-let jt;document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
-$('#densityChk').onchange=e=>{S.jump.density=e.target.checked;save('jump');renderJump()};
-$('#hdgAuto').onchange=e=>{S.jump.headingAuto=e.target.checked;if(!e.target.checked&&J&&!J.err)S.jump.heading=Math.round(J.heading);save('jump');syncJumpInputs();renderJump()};
-$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;S.jump.openAlt=b.dataset.mode==='HALO'?3500:Math.max(1000,Math.round((S.jump.exitAlt-S.jump.dzElev-1500)/100)*100);save('jump');syncJumpInputs();renderJump()};
-$('#piTap').onclick=()=>{setMode('pi','Tap the map to set the PI');$('#tool').classList.add('min')};
-$('#piMe').onclick=()=>{if(!me){toast('No position yet. Start sensors or use simulation.');return}S.pi={lat:me.lat,lon:me.lon};save('pi');renderJump();toast('PI set at your position')};
-$('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();map.setView(LL(p),14);toast('PI set')};
-function renderWinds(){$('#windRows').innerHTML=S.winds.map((w,i)=>`<tr><td><input type="number" inputmode="decimal" data-w="${i}" data-f="alt" value="${w.alt}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="dir" value="${w.dir}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="spd" value="${w.spd}"></td><td><button class="iconbtn" data-wdel="${i}" aria-label="Remove layer">✕</button></td></tr>`).join('')}
-$('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.winds[i][e.target.dataset.f]=e.target.dataset.f==='dir'?norm(v):v;save('winds');clearTimeout(jt);jt=setTimeout(renderJump,200)});
-$('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wdel]');if(!d)return;S.winds.splice(+d.dataset.wdel,1);save('winds');renderWinds();renderJump()});
-$('#windAdd').onclick=()=>{const top=S.winds.reduce((m,w)=>Math.max(m,w.alt),0);const last=S.winds[S.winds.length-1]||{dir:270,spd:10};S.winds.push({alt:top+2000,dir:last.dir,spd:last.spd});save('winds');renderWinds();renderJump()};
-$('#windSort').onclick=()=>{S.winds.sort((a,b)=>a.alt-b.alt);save('winds');renderWinds()};
+$('#acPerf').onchange=e=>{S.jump.acPerf=e.target.value;save('jump');renderJump()};
+$('#sortie').oninput=e=>{S.jump.sortie=e.target.value;save('jump')};
+$('#jmSeg').onclick=e=>{const b=e.target.closest('[data-jm]');if(b)showJm(b.dataset.jm)};
+function fillExitSel(){const sel=$('[data-j="exitAlt"]');if(!sel)return;let o='';for(let a=3000;a<=35000;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.min(35000,Math.max(3000,Math.round((+S.jump.exitAlt||12000)/500)*500));if(v!==S.jump.exitAlt){S.jump.exitAlt=v;save('jump')}sel.value=v}
+function fillOpenSel(){const sel=$('[data-j="openAlt"]');if(!sel)return;const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0))/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.round((+S.jump.openAlt||3500)/500)*500;v=Math.min(top,Math.max(1000,v));if(v!==S.jump.openAlt){S.jump.openAlt=v;save('jump')}sel.value=v}
+function exitHint(){const e=$('#exitAglHint');if(e)e.textContent=`ft AMSL (${((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)).toLocaleString('en-GB')} ft AGL)`}
+function intervalHint(){const e=$('#intervalHint');if(!e)return;const gs=J&&!J.err?J.gsM:(+S.jump.kias||0)*KT;e.textContent=`seconds (${Math.round((+S.jump.interval||0)*gs)} m separation on opening)`}
+function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)-(+S.jump.casSF||0))/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.min(top,Math.max(1000,Math.round((+S.jump.pod2Open||6000)/500)*500));S.jump.pod2Open=v;sel.value=v;$('#pod2Jumpers').value=S.jump.pod2Jumpers}
+function syncJumpInputs(){syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=S.jump.hamoOffset||0;$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#runSel').value=S.jump.runMode||'into';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Into-wind heading minus 90°.',right:'Into-wind heading plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
+let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
+
+$('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
+$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;S.jump.openAlt=b.dataset.mode==='HALO'?3500:b.dataset.mode==='HAMO'?8000:Math.max(1000,Math.floor(((+S.jump.exitAlt||12000)-1000)/500)*500);save('jump');syncJumpInputs();renderJump()};
+$('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;save('jump');renderJump()};
+$('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+$('#hamoSlider').oninput=e=>{S.jump.hamoOffset=+e.target.value;save('jump');renderJump()};
+$('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
+function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=+S.jump.exitAlt||0;const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
+function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:270,spd:near?near.spd:10}});save('winds')}
+function windValue(spd){const cs=+S.jump.canopySpeed||0;if(!(cs>0))return '–';const r=spd/cs;return r<0.05?'Zero':r<0.375?'¼':r<0.625?'½':r<0.875?'¾':r<=1.05?'Full':'Full+'}
+function renderWinds(){syncWindRows();$('#windRows').innerHTML=S.winds.map((w,i)=>`<tr><td style="font:400 15px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="dir" value="${w.dir}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="spd" value="${w.spd}"></td><td class="wv" style="font:400 15px var(--cond);white-space:nowrap">${windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`).join('')}
+$('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.winds[i][e.target.dataset.f]=e.target.dataset.f==='dir'?norm(v):v;save('winds');const row=e.target.closest('tr');if(row)row.querySelector('.wv').textContent=windValue(+S.winds[i].spd);clearTimeout(jt);jt=setTimeout(renderJump,200)});
+$('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy;for(let k=i+1;k<S.winds.length;k++){S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd}save('winds');renderWinds();renderJump()});
+
+/* winds aloft import (markschulze.net) */
+async function importWinds(){if(!S.pi){toast('Set the DIP first; winds are fetched for its position.');return}const h=+$('#windHour').value||0;$('#windSrc').textContent='Fetching winds aloft…';
+  try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://markschulze.net/winds/winds.php?lat=${S.pi.lat.toFixed(4)}&lon=${S.pi.lon.toFixed(4)}&hourOffset=${h}&referrer=JumpmasterTAK`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();
+    const alts=(j.altFt||Object.keys(j.direction||{}).map(Number)).map(Number).filter(a=>isFinite(a)).sort((a,b)=>a-b);if(!alts.length)throw new Error('no data');
+    const dirAt=a=>+j.direction[String(a)],spdAt=a=>+j.speed[String(a)];
+    const interp=(a)=>{if(a<=alts[0])return {dir:dirAt(alts[0]),spd:spdAt(alts[0])};const top=alts[alts.length-1];if(a>=top)return {dir:dirAt(top),spd:spdAt(top)};for(let i=0;i<alts.length-1;i++){if(a<=alts[i+1]){const f=(a-alts[i])/(alts[i+1]-alts[i]);const d1=dirAt(alts[i]),d2=dirAt(alts[i+1]),s1=spdAt(alts[i]),s2=spdAt(alts[i+1]);const u1=s1*Math.sin(d1*D2R),v1=s1*Math.cos(d1*D2R),u2=s2*Math.sin(d2*D2R),v2=s2*Math.cos(d2*D2R);const u=u1+(u2-u1)*f,v=v1+(v2-v1)*f;return {dir:norm(Math.atan2(u,v)*R2D),spd:Math.hypot(u,v)}}}return {dir:0,spd:0}};
+    syncWindRows();S.winds.forEach(w=>{const x=interp(w.alt);w.dir=Math.round(x.dir);w.spd=Math.round(x.spd)});save('winds');renderWinds();renderJump();
+    const when=j.validtime||j.validTime||'';$('#windSrc').textContent=`Winds aloft from markschulze.net for the DIP, ${h?`+${h} h`:'now'}${when?` (valid ${when})`:''}. Check against the met brief.`;toast('Winds imported')}
+  catch(e){$('#windSrc').textContent='Could not fetch winds aloft. This needs the page to be hosted outside claude.ai with internet access; otherwise enter the winds by hand.';toast('Winds aloft fetch failed',4000)}}
+$('#windImport').onclick=importWinds;
+$('#windFill').onclick=()=>{for(let k=1;k<S.winds.length;k++){S.winds[k].dir=S.winds[0].dir;S.winds[k].spd=S.winds[0].spd}save('winds');renderWinds();renderJump()};
+
+
+/* ================= mission packages ================= */
+const snapshot=()=>({canopies:S.canopies,pi:S.pi,pi2:S.pi2,altDips:S.altDips,pattern:S.pattern,jump:S.jump,winds:S.winds,markers:S.markers,xs:S.xs,draws:S.draws,rng:S.rng});
+function missionName(){const m=S.missions.find(x=>x.id===S.mission);return m?m.name:'Unsaved'}
+function renderMissionHead(){$('#mName').textContent=missionName();$('#mName2').textContent=missionName()}
+function renderMissions(){renderMissionHead();$('#mList').innerHTML=S.missions.length?S.missions.map(m=>`<button class="item" data-m="${m.id}"><span class="sw" style="background:var(${m.id===S.mission?'--go':'--mute'})"></span><span><b>${esc(m.name)}${m.id===S.mission?' · loaded':''}</b><small>${m.data.pi?esc(fc(m.data.pi)):'No DIP'} · ${new Date(m.saved).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</small></span><span></span></button>`).join(''):'<p class="note">No packages saved yet. Name the current plan above and save it.</p>'}
+function saveMission(name){const m={id:uid(),name:name.trim()||`Package ${S.missions.length+1}`,saved:Date.now(),data:JSON.parse(JSON.stringify(snapshot()))};S.missions.push(m);S.mission=m.id;save('missions');save('mission');renderMissions();toast(`Saved ${m.name}`)}
+function loadMission(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const d=JSON.parse(JSON.stringify(m.data));S.pi=d.pi||null;S.pi2=d.pi2||null;S.jump=Object.assign({},DEF_JUMP,d.jump||{});S.winds=d.winds||[];S.markers=d.markers||[];S.xs=d.xs||[];S.draws=d.draws||[];S.rng=d.rng||[];S.altDips=d.altDips||[];if(d.canopies)S.canopies=d.canopies;applyK();renderCanopySel();S.pattern=Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},d.pattern||{});S.mission=id;['pi','pi2','altDips','pattern','jump','winds','markers','xs','draws','rng','mission','canopies'].forEach(save);setTarget(null);syncJumpInputs();renderWinds();redrawAll();renderMissions();if(S.pi)map.setView(LL(S.pi),13);toast(`Loaded ${m.name}`)}
+function missionActions(id){const m=S.missions.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:`${m.data.pi?fc(m.data.pi):'No DIP'} · saved ${new Date(m.saved).toLocaleString('en-GB')}`,input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('missions');renderMissions()}},buttons:[['Load',()=>{closeDrawer();loadMission(id)},'primary'],['Update with current plan',()=>{m.data=JSON.parse(JSON.stringify(snapshot()));m.saved=Date.now();S.mission=id;save('missions');save('mission');renderMissions();toast(`Updated ${m.name}`)}],['Delete',()=>{S.missions=S.missions.filter(x=>x.id!==id);if(S.mission===id)S.mission=null;save('missions');save('mission');renderMissions()},'danger']]})}
+$('#mHead').onclick=()=>openDrawer('missions');
+$('#mSaveNew').onclick=()=>{saveMission($('#mInput').value);$('#mInput').value=''};
+$('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions(b.dataset.m)};
 
 /* ================= drawer ================= */
-const DTITLES={root:'Menu',points:'Points and bloodhound',sensors:'Sensors and simulation',settings:'Settings',data:'Data'};
+const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and bloodhound',sensors:'Sensors and simulation',settings:'Settings',data:'Data'};
 function openDrawer(page='root'){$('#drawer').hidden=false;goPage(page)}
-function goPage(p){$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints()}
+function goPage(p){$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
 function closeDrawer(){$('#drawer').hidden=true}
 $('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>goPage('root');
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
 function redrawAll(){renderJump();renderMarkers();renderXs();renderDraws();renderRng();drawGrid();if(trailLine)trailLine.setStyle({color:cssv('--self')});drawMe();updateBar();updateHound();renderPoints()}
-function syncSetup(){const s=S.set;$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
+function syncSetup(){const s=S.set;$('#sCall').value=s.callsign||'';renderCall();$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
 const setS=(k,v,after)=>{S.set[k]=v;save('set');after&&after()};
+function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'GPS'}
+$('#sCall').oninput=e=>setS('callsign',e.target.value,renderCall);
 $('#sCoord').onchange=e=>setS('coord',e.target.value,redrawAll);
 $('#sDist').onchange=e=>setS('dist',e.target.value,redrawAll);
 $('#sDecl').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('decl',v,redrawAll)};
@@ -760,10 +1259,11 @@ $('#sNight').onchange=e=>setS('night',e.target.checked,applyTheme);
 $('#sSim').onchange=e=>setS('sim',e.target.checked,()=>toast(e.target.checked?'Simulation on. Close the menu and tap the map to place yourself.':'Simulation off. Phone GPS will be used.'));
 $('#sSimSpd').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('simSpd',v)};
 $('#sSimMove').onchange=e=>setS('simMove',e.target.checked);
-let resetArm=0;$('#sReset').onclick=e=>{if(Date.now()-resetArm<3000){['jump','winds','markers','xs','draws','rng','pi','set','ov','target'].forEach(k=>{try{localStorage.removeItem('jmtak:'+k)}catch(x){}});location.reload();return}resetArm=Date.now();e.target.textContent='Tap again to erase';setTimeout(()=>e.target.textContent='Erase all data',3000)};
+let resetArm=0;$('#sReset').onclick=e=>{if(Date.now()-resetArm<3000){['jump','winds','markers','xs','draws','rng','pi','pi2','altDips','pattern','canopies','set','ov','target','missions','mission'].forEach(k=>{try{localStorage.removeItem('jmtak:'+k)}catch(x){}});location.reload();return}resetArm=Date.now();e.target.textContent='Tap again to erase';setTimeout(()=>e.target.textContent='Erase all data',3000)};
 
 /* ================= boot ================= */
-syncJumpInputs();renderWinds();syncSetup();syncDraw();syncRng();setBase(S.set.base);applyOverlays();applyTheme();
+setTimeout(updateEyeAlt,0);
+applyK();renderCanopySel();syncJumpInputs();renderMissionHead();renderWinds();syncSetup();syncDraw();syncRng();setBase(S.set.base);applyOverlays();applyTheme();
 if(S.pi)map.setView(LL(S.pi),13);
 })();
 </script>
