@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jumpmaster TAK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E6E9E0; --panel:#F5F6F0; --panel2:#E9ECE2; --ink:#1A211C; --mute:#59624F; --line:#C1C8B8;
+  --amber:#A86C00; --self:#0A7891; --pi:#BC1B5A; --go:#2A8743; --stop:#C3392C; --x:#E01E1E;
+  --grid:rgba(25,45,30,.38); --mapbg:#D7DBCF;
+  --cond:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1E2520; --panel:#262E28; --panel2:#2F3931; --ink:#ECE7D6; --mute:#9CA592; --line:#3B473D;
+    --amber:#F2B53E; --self:#4CC6DE; --pi:#F25C93; --go:#5FCC72; --stop:#F05747; --x:#FF3B3B;
+    --grid:rgba(236,231,214,.30); --mapbg:#222A24; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1E2520; --panel:#262E28; --panel2:#2F3931; --ink:#ECE7D6; --mute:#9CA592; --line:#3B473D;
+  --amber:#F2B53E; --self:#4CC6DE; --pi:#F25C93; --go:#5FCC72; --stop:#F05747; --x:#FF3B3B;
+  --grid:rgba(236,231,214,.30); --mapbg:#222A24; color-scheme:dark;
+}
+:root[data-night="1"]{
+  --bg:#110404; --panel:#1A0606; --panel2:#250A09; --ink:#FF4B3E; --mute:#B4382D; --line:#4B1611;
+  --amber:#FF6A3F; --self:#FF7A5E; --pi:#FF3328; --go:#FF8A6A; --stop:#FF2318; --x:#FF2A1F;
+  --grid:rgba(255,75,62,.35); --mapbg:#0D0303; color-scheme:dark;
+}
+:root{box-sizing:border-box;height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
+#top,#tool,#mapwrap{min-width:0}
+
+/* ---------- top: quick menu + status ---------- */
+#top{background:var(--panel);border-bottom:1px solid var(--line)}
+#quick{display:grid;grid-template-columns:repeat(5,1fr) 52px;border-bottom:1px solid var(--line)}
+.qb{background:none;border:none;border-bottom:3px solid transparent;padding:7px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:var(--ink);min-width:0}
+.qb svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qb span{font:600 13px/1 var(--cond);letter-spacing:.02em;white-space:nowrap}
+.qb[aria-pressed="true"]{border-bottom-color:var(--ink);background:var(--panel2)}
+.qb.redx svg{stroke:var(--x);stroke-width:3.2}
+#menuBtn{border-left:1px solid var(--line)}
+#status{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:5px 10px 6px}
+#status::-webkit-scrollbar{display:none}
+.pos{font:700 19px/1.1 var(--cond);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st{font:600 15px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
+.st i{font:500 11px var(--body);color:var(--mute);font-style:normal;margin-right:3px}
+#btnSensors{margin-left:auto;flex:none;padding:5px 10px}
+
+/* ---------- map ---------- */
+#mapwrap{position:relative;min-height:0}
+#map{position:absolute;inset:0;background:var(--mapbg)}
+:root[data-night="1"] .leaflet-tile-pane{filter:grayscale(1) brightness(.5) sepia(1) hue-rotate(-45deg) saturate(6)}
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent}
+.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}
+.leaflet-container img.leaflet-tile{max-width:none!important;max-height:none!important;width:256px;height:256px}
+.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
+.leaflet-container.leaflet-touch-zoom{touch-action:pan-x pan-y}
+.leaflet-container.leaflet-touch-drag{touch-action:pinch-zoom}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{touch-action:none}
+.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-map-pane svg{z-index:200}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{transition:none}
+.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}
+.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}
+.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive{pointer-events:auto;cursor:pointer}
+.leaflet-grab{cursor:grab}.leaflet-dragging .leaflet-grab{cursor:grabbing}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-right .leaflet-control{float:right}
+.leaflet-control-attribution{font-size:10px;padding:0 5px;background:color-mix(in srgb,var(--panel) 75%,transparent);color:var(--mute)}
+.leaflet-control-attribution a{color:var(--mute)}
+.leaflet-control-scale{margin:0 0 8px 8px}
+.leaflet-control-scale-line{border:2px solid var(--ink);border-top:none;padding:0 5px;font:600 12px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);white-space:nowrap;box-sizing:content-box}
+.drawing .leaflet-container{cursor:crosshair}
+.pin{background:none;border:none}
+.lbl{font:700 13px/1.15 var(--cond);color:var(--ink);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)}
+.glbl{font:600 11px/1 var(--cond);color:var(--ink);opacity:.75;text-shadow:0 0 3px var(--mapbg),0 0 2px var(--mapbg)}
+.tag{display:inline-block;transform:translate(-50%,-50%);font:700 13px/1.15 var(--cond);white-space:nowrap;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
+.xlbl{font:700 14px/1.15 var(--cond);color:var(--x);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);font-variant-numeric:tabular-nums}
+
+#follow{position:absolute;right:10px;bottom:14px;z-index:900;width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+#follow svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+#follow[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+#tip{position:absolute;left:10px;right:68px;bottom:14px;z-index:900;background:var(--ink);color:var(--panel);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-weight:500;font-size:15px}
+#tip span{flex:1}
+#tip button{background:none;border:1px solid currentColor;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
+
+/* ---------- bloodhound ---------- */
+#hud{position:absolute;top:8px;left:8px;right:8px;z-index:900;background:var(--panel);border:1px solid var(--line);border-left:8px solid var(--go);border-radius:12px;padding:8px 10px 8px 8px;display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;max-width:520px}
+#hud.st-outer{border-left-color:var(--amber)}
+#hud.st-inner{border-left-color:var(--stop)}
+#dial{width:80px;height:80px}
+#dial .ring{fill:none;stroke:var(--line);stroke-width:3}
+#dial .tick{stroke:var(--mute);stroke-width:2}
+#dial .nmark{font:700 13px var(--cond);fill:var(--mute);text-anchor:middle}
+#dialArrow path{fill:var(--go)}
+#hud.st-outer #dialArrow path{fill:var(--amber)}
+#hud.st-inner #dialArrow path{fill:var(--stop)}
+.hname{font:600 14px/1.2 var(--body);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrange{font:700 38px/1 var(--cond);font-variant-numeric:tabular-nums}
+.hsub{display:flex;flex-wrap:wrap;gap:2px 14px;font:600 16px/1.25 var(--cond);font-variant-numeric:tabular-nums}
+.hsub .m{color:var(--mute);font-weight:500}
+.iconbtn{align-self:start;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:16px;flex:none}
+@keyframes blink{50%{opacity:.25}}
+.hound-inner{animation:blink .8s steps(2) infinite}
+@media (prefers-reduced-motion:reduce){.hound-inner{animation:none}}
+
+/* ---------- tool sheet ---------- */
+#tool{background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.thead b{flex:1;font:700 19px/1.1 var(--cond)}
+.tbody{max-height:42vh;overflow:auto;overscroll-behavior:contain}
+#tool.tall .tbody{max-height:58vh}
+#tool.min .tbody{display:none}
+.panel{padding:12px 14px 18px;max-width:720px;margin:0 auto}
+.panel h3{font:700 18px/1.2 var(--cond);margin:16px 0 8px}
+.panel h3:first-child{margin-top:0}
+.note{font-size:14px;color:var(--mute);margin:6px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mt{margin-top:10px}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--mute)}
+.fld em{font-style:normal;font-size:12px}
+input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 9px;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:0}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
+.chk{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink);cursor:pointer;padding:4px 0}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:8px 12px;font-weight:600;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.danger{color:var(--stop)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;max-width:100%;flex-wrap:wrap}
+.seg button{border:none;background:var(--panel2);padding:8px 10px;font-weight:600;cursor:pointer;flex:1;white-space:nowrap;min-width:0}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.seg.full{display:flex}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:700 22px var(--cond);cursor:pointer}
+.stepper output{min-width:110px;text-align:center;font:700 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
+.swatches{display:flex;gap:8px}
+.swatch{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
+.big-out{font:700 30px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:4px 0}
+.pi-grid{font:700 22px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:2px 0 8px}
+.res{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:8px 0 10px;font-variant-numeric:tabular-nums}
+.res dt{color:var(--mute);font-size:14px;align-self:center}
+.res dd{margin:0;font:600 18px/1.25 var(--cond)}
+.res dd.big{font-size:22px}
+.warn{border-left:3px solid var(--amber);padding:6px 10px;background:var(--panel2);border-radius:0 8px 8px 0;font-size:14px;margin:10px 0}
+details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:0 10px}
+summary{font:700 18px/1.2 var(--cond);padding:10px 0;cursor:pointer}
+table.winds{width:100%;border-collapse:collapse}
+table.winds th{font:500 13px var(--body);color:var(--mute);text-align:left;padding:0 4px 4px}
+table.winds td{padding:3px 4px}
+table.winds td:last-child{width:40px}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;width:100%}
+.item b{display:block;font-weight:600}
+.item small{color:var(--mute);font-variant-numeric:tabular-nums}
+.sw{width:18px;height:18px;border-radius:4px}
+
+/* ---------- drawer (three-stripe menu) ---------- */
+#drawer{position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.35);display:flex;justify-content:flex-end}
+#drawer .dbox{background:var(--panel);width:min(92vw,400px);height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
+.dhead{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}
+.dhead b{flex:1;font:700 21px/1.1 var(--cond)}
+.dbody{overflow:auto;flex:1}
+.mlist button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.mlist b{display:block;font:700 18px/1.2 var(--cond)}
+.mlist small{color:var(--mute);font-size:14px}
+
+/* ---------- action sheet + toast ---------- */
+#act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center}
+#act .box{background:var(--panel);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#act h4{margin:0;font:700 22px/1.2 var(--cond)}
+#act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
+#act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#actInput{margin-bottom:10px}
+#toast{position:fixed;left:50%;top:calc(120px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4000;background:var(--ink);color:var(--panel);padding:10px 14px;border-radius:10px;max-width:min(92vw,440px);font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <nav id="quick" aria-label="Quick menu">
+      <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Red X</span></button>
+      <button class="qb" data-tool="draw" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/><path d="M14 7l3 3"/></svg><span>Draw</span></button>
+      <button class="qb" data-tool="range" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12 19 5"/></svg><span>Range</span></button>
+      <button class="qb" data-tool="layers" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="m2 13 10 5 10-5"/></svg><span>Overlays</span></button>
+      <button class="qb" data-tool="jump" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 11a9 7 0 0 1 18 0"/><path d="M3 11l9 9 9-9M8 11l4 9 4-9"/></svg><span>JM</span></button>
+      <button class="qb" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    </nav>
+    <div id="status">
+      <div class="pos" id="bPos">No fix</div>
+      <div class="st"><i>Acc</i><span id="bAcc">–</span></div>
+      <div class="st"><i>Alt</i><span id="bAlt">–</span></div>
+      <div class="st"><i>Spd</i><span id="bSpd">–</span></div>
+      <div class="st"><i>Hdg</i><span id="bHdg">–</span></div>
+      <button id="btnSensors" class="btn primary">Start sensors</button>
+    </div>
+  </header>
+
+  <div id="mapwrap">
+    <div id="map" aria-label="Map"></div>
+    <div id="hud" hidden>
+      <svg id="dial" viewBox="-50 -50 100 100" aria-hidden="true">
+        <circle r="44" class="ring"/>
+        <g id="dialN"><line class="tick" x1="0" y1="-44" x2="0" y2="-36"/><text class="nmark" y="-24">N</text></g>
+        <g id="dialArrow"><path d="M0,-36 L13,14 L0,5 L-13,14Z"/></g>
+      </svg>
+      <div>
+        <div class="hname" id="hName">Target</div>
+        <div class="hrange" id="hRange">–</div>
+        <div class="hsub"><span id="hBrg">–</span><span id="hEta" class="m">–</span></div>
+      </div>
+      <button id="hStop" class="iconbtn" aria-label="Stop bloodhound">✕</button>
+    </div>
+    <div id="tip" hidden><span id="tipText"></span><button id="tipBtn">Done</button></div>
+    <button id="follow" aria-pressed="false" aria-label="Centre on me" title="Centre on me"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+  </div>
+
+  <section id="tool" hidden>
+    <div class="thead" id="thead"><b id="toolTitle">Tool</b><button class="iconbtn" id="toolMin" aria-label="Minimise">▾</button><button class="iconbtn" id="toolClose" aria-label="Close tool">✕</button></div>
+    <div class="tbody">
+
+      <!-- RED X -->
+      <div class="panel" data-tool-panel="redx">
+        <p class="note" style="margin-top:0">Tap the map to plot a red X. Each one shows its grid and ground altitude in feet.</p>
+        <div class="row"><button class="btn" id="xMe">Plot at my position</button><button class="btn danger" id="xClear">Clear all</button></div>
+        <h3>Plotted</h3>
+        <div class="list" id="xList"></div>
+      </div>
+
+      <!-- DRAW -->
+      <div class="panel" data-tool-panel="draw">
+        <div class="seg full" id="drawSeg"><button data-dm="line" aria-pressed="true">Lines</button><button data-dm="free" aria-pressed="false">Freehand</button></div>
+        <p class="note" id="drawNote"></p>
+        <div class="swatches" id="swatches"></div>
+        <div class="row mt"><button class="btn primary" id="drawFinish">Finish line</button><button class="btn" id="drawUndo">Undo last</button><button class="btn danger" id="drawClear">Clear all</button></div>
+      </div>
+
+      <!-- RANGE -->
+      <div class="panel" data-tool-panel="range">
+        <div class="seg full" id="rngSeg"><button data-rm="perm" aria-pressed="true">Fixed line</button><button data-rm="move" aria-pressed="false">Moveable line</button><button data-rm="ring" aria-pressed="false">Range rings</button></div>
+        <p class="note" id="rngNote"></p>
+        <div id="ringCtl">
+          <div class="fields"><label class="fld">Ring interval<em>metres</em><input type="number" inputmode="decimal" id="ringStep"></label></div>
+          <div class="row mt"><span class="note" style="margin:0">Selected rings</span><div class="stepper"><button id="ringMinus" aria-label="Remove a ring">−</button><output id="ringCount">–</output><button id="ringPlus" aria-label="Add a ring">+</button></div></div>
+        </div>
+        <div class="row mt"><button class="btn danger" id="rngClear">Clear all range tools</button></div>
+        <h3>On the map</h3>
+        <div class="list" id="rngList"></div>
+      </div>
+
+      <!-- OVERLAYS -->
+      <div class="panel" data-tool-panel="layers">
+        <h3>Base map</h3>
+        <div class="seg full" id="baseSeg"><button data-b="osm">Street</button><button data-b="sat">Imagery</button><button data-b="topo">Topo</button><button data-b="none">Grid only</button></div>
+        <h3>Overlays</h3>
+        <div id="ovList"></div>
+      </div>
+
+      <!-- JUMPMASTER -->
+      <div class="panel" data-tool-panel="jump">
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button></div>
+
+        <div data-jm-panel="plan">
+          <h3 class="mt">Point of impact</h3>
+          <div class="pi-grid" id="piGrid">Not set</div>
+          <div class="row"><button class="btn" id="piTap">Tap on map</button><button class="btn" id="piMe">Use my position</button></div>
+          <div class="row mt"><input type="text" id="piInput" placeholder="Grid (30U WB 12345 67890) or lat, long" style="flex:1;min-width:200px"><button class="btn" id="piSet">Set PI</button></div>
+          <h3>Jump profile</h3>
+          <div class="seg" id="modeSeg"><button data-mode="HALO">HALO</button><button data-mode="HAHO">HAHO</button></div>
+          <p class="note">Switching profile sets a typical opening altitude. Every value stays editable.</p>
+          <div class="fields" id="jumpFields"></div>
+          <h3>Aircraft and stick</h3>
+          <label class="chk"><input type="checkbox" id="hdgAuto"> Run-in into the exit-altitude wind</label>
+          <div class="fields mt" id="airFields"></div>
+          <details id="windBox">
+            <summary>Wind layers</summary>
+            <p class="note">Altitude ft AMSL. Direction is where the wind blows from, °T. Speed in knots. Interpolated between layers.</p>
+            <table class="winds"><thead><tr><th>Alt ft</th><th>From °T</th><th>Kt</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
+            <div class="row mt" style="margin-bottom:10px"><button class="btn" id="windAdd">Add layer</button><button class="btn" id="windSort">Sort</button></div>
+            <div class="warn">Starting layers are placeholders. Enter the forecast or measured winds for the drop.</div>
+          </details>
+          <h3>Release solution</h3>
+          <div id="jumpOut"></div>
+        </div>
+
+        <div data-jm-panel="cypres" hidden>
+          <h3 class="mt">CYPRES offset</h3>
+          <p class="note">Use when the landing area is at a different elevation from the take-off airfield.</p>
+          <div class="fields">
+            <label class="fld">Take-off airfield<em>ft AMSL</em><input type="number" inputmode="decimal" data-j="toElev"></label>
+            <label class="fld">Landing area / DZ<em>ft AMSL</em><input type="number" inputmode="decimal" data-j="dzElev"></label>
+          </div>
+          <div id="cypOut"></div>
+        </div>
+
+        <div data-jm-panel="alti" hidden>
+          <h3 class="mt">Altimeter offset</h3>
+          <p class="note">Set the altimeter on the ground at take-off so it reads zero over the reference elevation.</p>
+          <div class="fields">
+            <label class="fld">Take-off airfield<em>ft AMSL</em><input type="number" inputmode="decimal" data-j="toElev"></label>
+            <label class="fld">DZ elevation<em>ft AMSL</em><input type="number" inputmode="decimal" data-j="dzElev"></label>
+            <label class="fld">Zero reference<em>ft AMSL, blank uses DZ</em><input type="number" inputmode="decimal" id="altRef" placeholder="DZ"></label>
+          </div>
+          <div id="altOut"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- three-stripe menu -->
+<div id="drawer" hidden>
+  <div class="dbox" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="dhead"><button class="iconbtn" id="dBack" aria-label="Back" hidden>‹</button><b id="dTitle">Menu</b><button class="iconbtn" id="dClose" aria-label="Close menu">✕</button></div>
+    <div class="dbody">
+      <div class="mlist" data-dpage="root">
+        <button data-go="points"><b>Points and bloodhound</b><small>Add points by grid, pick a bloodhound target</small></button>
+        <button data-go="sensors"><b>Sensors and simulation</b><small>GPS, compass, trail, rehearsal mode</small></button>
+        <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, bloodhound rings, display</small></button>
+        <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
+      </div>
+
+      <div class="panel" data-dpage="points" hidden>
+        <h3>Add a point</h3>
+        <div class="fields">
+          <label class="fld">Type<select id="ptType"></select></label>
+          <label class="fld">Name<input type="text" id="ptName" placeholder="Auto"></label>
+        </div>
+        <div class="row mt"><input type="text" id="ptGrid" placeholder="Grid or lat, long" style="flex:1;min-width:180px"><button class="btn" id="ptAddGrid">Add at grid</button></div>
+        <div class="row mt"><button class="btn" id="ptAddMe">Add at my position</button><button class="btn" id="ptDrop">Drop on map</button></div>
+        <h3>Bloodhound targets</h3>
+        <div class="list" id="ptList"></div>
+      </div>
+
+      <div class="panel" data-dpage="sensors" hidden>
+        <h3>Phone sensors</h3>
+        <p class="note" id="sensState">Not started.</p>
+        <button class="btn primary" id="sensStart">Start sensors</button>
+        <h3>Breadcrumb trail</h3>
+        <div class="row"><label class="chk"><input type="checkbox" id="sTrail"> Record trail</label><button class="btn" id="sClearTrail">Clear trail</button></div>
+        <h3>Simulation</h3>
+        <p class="note">For rehearsal or when location is blocked. Tap the map to place yourself when no tool is active.</p>
+        <label class="chk"><input type="checkbox" id="sSim"> Simulate my position</label>
+        <div class="fields mt"><label class="fld">Sim speed<em>knots</em><input type="number" id="sSimSpd"></label></div>
+        <label class="chk mt"><input type="checkbox" id="sSimMove"> Move toward bloodhound target</label>
+      </div>
+
+      <div class="panel" data-dpage="settings" hidden>
+        <h3>Units and coordinates</h3>
+        <div class="fields">
+          <label class="fld">Coordinates<select id="sCoord"><option value="mgrs">MGRS</option><option value="ll">Lat, long</option></select></label>
+          <label class="fld">Distance<select id="sDist"><option value="m">Metres / km</option><option value="nm">Nautical miles</option></select></label>
+          <label class="fld">Magnetic variation<em>degrees, east positive</em><input type="number" step="0.1" id="sDecl"></label>
+        </div>
+        <h3>Bloodhound rings</h3>
+        <div class="fields">
+          <label class="fld">Outer<em>metres, turns amber</em><input type="number" id="sOuter"></label>
+          <label class="fld">Inner<em>metres, turns red and flashes</em><input type="number" id="sInner"></label>
+        </div>
+        <h3>Display</h3>
+        <div class="fields"><label class="fld">Theme<select id="sTheme"><option value="auto">Match phone</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
+        <label class="chk mt"><input type="checkbox" id="sNight"> Night mode (red only)</label>
+      </div>
+
+      <div class="panel" data-dpage="data" hidden>
+        <h3>Stored on this device</h3>
+        <p class="note">Red Xs, drawings, range tools, points, the jump plan, winds and settings are kept in this browser only. Nothing is sent anywhere, apart from ground elevation lookups for Red X where the page allows them.</p>
+        <button class="btn danger" id="sReset">Erase all data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="act" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="actTitle">
+    <h4 id="actTitle"></h4>
+    <p id="actSub"></p>
+    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn primary" id="actSave">Save</button></div></label></div>
+    <div class="acts" id="actBtns"></div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+(function(){
+'use strict';
+const D2R=Math.PI/180,R2D=180/Math.PI,RE=6371008.8,KT=0.514444,FT=0.3048;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const norm=d=>((d%360)+360)%360;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const store={get(k,d){try{const v=localStorage.getItem('jmtak:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('jmtak:'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= geodesy ================= */
+function dist(a,b){const p1=a.lat*D2R,p2=b.lat*D2R,dp=p2-p1,dl=(b.lon-a.lon)*D2R;const h=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*RE*Math.asin(Math.min(1,Math.sqrt(h)))}
+function brg(a,b){const p1=a.lat*D2R,p2=b.lat*D2R,dl=(b.lon-a.lon)*D2R;return norm(Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))*R2D)}
+function dest(p,b,d){const dr=d/RE,br=b*D2R,p1=p.lat*D2R,l1=p.lon*D2R;const p2=Math.asin(Math.sin(p1)*Math.cos(dr)+Math.cos(p1)*Math.sin(dr)*Math.cos(br));const l2=l1+Math.atan2(Math.sin(br)*Math.sin(dr)*Math.cos(p1),Math.cos(dr)-Math.sin(p1)*Math.sin(p2));return {lat:p2*R2D,lon:((l2*R2D+540)%360)-180}}
+function offset(p,e,n){const d=Math.hypot(e,n);return d<1e-6?{lat:p.lat,lon:p.lon}:dest(p,norm(Math.atan2(e,n)*R2D),d)}
+const LL=p=>[p.lat,p.lon];
+const pathLen=pts=>pts.reduce((s,p,i)=>i?s+dist(pts[i-1],p):0,0);
+
+const A=6378137,F=1/298.257223563,E2=F*(2-F),EP2=E2/(1-E2),K0=0.9996;
+function utmZone(lat,lon){let z=Math.floor((lon+180)/6)+1;if(lat>=56&&lat<64&&lon>=3&&lon<12)z=32;if(lat>=72&&lat<84){if(lon>=0&&lon<9)z=31;else if(lon>=9&&lon<21)z=33;else if(lon>=21&&lon<33)z=35;else if(lon>=33&&lon<42)z=37}return Math.min(60,Math.max(1,z))}
+function toUTM(lat,lon,zone){zone=zone||utmZone(lat,lon);const l0=((zone-1)*6-180+3)*D2R,ph=lat*D2R,la=lon*D2R,s=Math.sin(ph),c=Math.cos(ph),t=Math.tan(ph);const N=A/Math.sqrt(1-E2*s*s),T=t*t,C=EP2*c*c,a=c*(la-l0),e4=E2*E2,e6=e4*E2;const M=A*((1-E2/4-3*e4/64-5*e6/256)*ph-(3*E2/8+3*e4/32+45*e6/1024)*Math.sin(2*ph)+(15*e4/256+45*e6/1024)*Math.sin(4*ph)-(35*e6/3072)*Math.sin(6*ph));const x=K0*N*(a+(1-T+C)*a**3/6+(5-18*T+T*T+72*C-58*EP2)*a**5/120)+5e5;let y=K0*(M+N*t*(a*a/2+(5-T+9*C+4*C*C)*a**4/24+(61-58*T+T*T+600*C-330*EP2)*a**6/720));if(lat<0)y+=1e7;return {zone,E:x,N:y}}
+function fromUTM(zone,E,N,south){const l0=((zone-1)*6-180+3)*D2R,x=E-5e5,y=south?N-1e7:N,e4=E2*E2,e6=e4*E2;const mu=y/K0/(A*(1-E2/4-3*e4/64-5*e6/256)),e1=(1-Math.sqrt(1-E2))/(1+Math.sqrt(1-E2));const p1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu)+(1097*e1**4/512)*Math.sin(8*mu);const s=Math.sin(p1),c=Math.cos(p1),t=Math.tan(p1);const N1=A/Math.sqrt(1-E2*s*s),T1=t*t,C1=EP2*c*c,R1=A*(1-E2)/Math.pow(1-E2*s*s,1.5),D=x/(N1*K0);const lat=p1-(N1*t/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*EP2)*D**4/24+(61+90*T1+298*C1+45*T1*T1-252*EP2-3*C1*C1)*D**6/720);const lon=l0+(D-(1+2*T1+C1)*D**3/6+(5-2*C1+28*T1-3*C1*C1+8*EP2+24*T1*T1)*D**5/120)/c;return {lat:lat*R2D,lon:lon*R2D}}
+const BANDS='CDEFGHJKLMNPQRSTUVWX',COLS=['ABCDEFGH','JKLMNPQR','STUVWXYZ'],ROWS='ABCDEFGHJKLMNPQRSTUV';
+function toMGRS(lat,lon){if(lat<-80||lat>=84)return 'Outside MGRS (polar)';const u=toUTM(lat,lon);const band=BANDS[Math.min(19,Math.floor((lat+80)/8))];const set=((u.zone-1)%6)+1;const col=COLS[(set-1)%3][Math.floor(u.E/1e5)-1];const row=ROWS[(Math.floor(u.N/1e5)+(set%2===0?5:0))%20];return `${u.zone}${band} ${col}${row} ${String(Math.floor(u.E%1e5)).padStart(5,'0')} ${String(Math.floor(u.N%1e5)).padStart(5,'0')}`}
+function parseMGRS(str){const s=str.toUpperCase().replace(/\s+/g,'');const m=s.match(/^(\d{1,2})([C-HJ-NP-X])([A-HJ-NP-Z])([A-HJ-NP-V])(\d*)$/);if(!m)return null;const zone=+m[1],band=m[2],dg=m[5];if(zone<1||zone>60||dg.length%2||dg.length>10)return null;const k=dg.length/2,f=10**(5-k),half=k<5?f/2:0;const e=k?+dg.slice(0,k)*f:0,n=k?+dg.slice(k)*f:0;const set=((zone-1)%6)+1;const ci=COLS[(set-1)%3].indexOf(m[3]),ri=ROWS.indexOf(m[4]);if(ci<0||ri<0)return null;const E=(ci+1)*1e5+e+half;let N=((ri-(set%2===0?5:0)+20)%20)*1e5+n+half;const south=band<'N';const minN=toUTM(BANDS.indexOf(band)*8-80,(zone-1)*6-177,zone).N;while(N<minN-1e5)N+=2e6;return fromUTM(zone,E,N,south)}
+function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)$/);if(m){const lat=+m[1],lon=+m[2];return Math.abs(lat)<=90&&Math.abs(lon)<=180?{lat,lon}:null}return parseMGRS(str)}
+
+/* ================= state ================= */
+const DEF_JUMP={mode:'HALO',toElev:300,dzElev:200,exitAlt:12500,openAlt:3500,ffRate:176,density:true,canopyRate:16,canopySpeed:20,safety:50,dzRadius:300,headingAuto:true,heading:0,gs:110,jumpers:8,interval:1,throwM:0};
+const DEF_WINDS=[{alt:200,dir:230,spd:8},{alt:2000,dir:240,spd:14},{alt:5000,dir:250,spd:20},{alt:10000,dir:260,spd:28},{alt:15000,dir:265,spd:34}];
+const DEF_OV={grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'osm',trail:true,theme:'auto',night:false,sim:false,simSpd:20,simMove:false,drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:500,altRef:null};
+const S={
+  jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
+  winds:store.get('winds',DEF_WINDS),
+  markers:store.get('markers',[]),
+  xs:store.get('xs',[]),
+  draws:store.get('draws',[]),
+  rng:store.get('rng',[]),
+  pi:store.get('pi',null),
+  set:Object.assign({},DEF_SET,store.get('set',{})),
+  ov:Object.assign({},DEF_OV,store.get('ov',{})),
+  target:store.get('target',null)
+};
+const save=k=>store.set(k,S[k]);
+let me=null,compass=null,mode='none',tool=null,follow=false,J=null,selRing=null;
+
+const TYPES={
+  friend:{n:'Friendly',c:'--self',svg:'<rect x="-11" y="-8" width="22" height="16" rx="1"/>'},
+  hostile:{n:'Hostile',c:'--stop',svg:'<path d="M0-12 12 0 0 12-12 0Z"/>'},
+  rv:{n:'RV',c:'--go',svg:'<circle r="10"/>'},
+  hazard:{n:'Hazard',c:'--amber',svg:'<path d="M0-12 12 10H-12Z"/>'},
+  wp:{n:'Waypoint',c:'--ink',svg:'<rect x="-8" y="-8" width="16" height="16"/>'}
+};
+const COLORS=[['--x','Red'],['--amber','Amber'],['--self','Cyan'],['--go','Green'],['--ink','Ink']];
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+
+/* ================= formatting ================= */
+const fc=p=>p?(S.set.coord==='mgrs'?toMGRS(p.lat,p.lon):`${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`):'–';
+function fd(m){if(m==null||!isFinite(m))return '–';if(S.set.dist==='nm'){const nm=m/1852;return nm<0.1?`${Math.round(m/FT)} ft`:`${nm.toFixed(nm<10?2:1)} nm`}return m<1000?`${Math.round(m)} m`:`${(m/1000).toFixed(m<10000?2:1)} km`}
+const fb=b=>String(Math.round(norm(b))%360).padStart(3,'0')+'°';
+const ff=f=>`${Math.round(f).toLocaleString('en-GB')} ft`;
+const fsec=s=>{if(!isFinite(s))return '–';s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`};
+const magOf=t=>norm(t-(+S.set.decl||0));
+const bTM=b=>`${fb(b)} T · ${fb(magOf(b))} M`;
+let toastT;function toast(msg,ms=3200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms)}
+
+/* ================= map ================= */
+const map=L.map('map',{zoomControl:false,worldCopyJump:true}).setView(S.pi?LL(S.pi):[52.6,-1.8],S.pi?13:6);
+L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+const BASES={
+  osm:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',o:{maxZoom:19,attribution:'© OpenStreetMap'}},
+  sat:{u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',o:{maxZoom:19,attribution:'Imagery © Esri'}},
+  topo:{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',o:{maxZoom:17,subdomains:'abc',attribution:'© OpenTopoMap, © OpenStreetMap'}}
+};
+let baseLayer=null,tileOk=false,tileErr=0,tileWarned=false;
+function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}S.set.base=k;save('set');$$('#baseSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===k));if(k==='none')return;const b=BASES[k];baseLayer=L.tileLayer(b.u,b.o);baseLayer.on('tileload',()=>{tileOk=true});baseLayer.on('tileerror',()=>{tileErr++;if(!tileOk&&tileErr>=3&&!tileWarned){tileWarned=true;toast('Map imagery is blocked on this page, so the MGRS grid is showing. Host this file on your own site to load imagery.',6500)}});baseLayer.addTo(map)}
+
+const LY={grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup()};
+const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
+const OV_NAMES={grid:'MGRS grid lines',jump:'Jump plan (PI, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line'};
+function applyOverlays(){Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
+
+function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
+const textPin=(text,cls='lbl')=>L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="${cls}">${text}</span>`});
+const tagPin=html=>L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tag">${html}</span>`});
+const dot=(p,col,r=6)=>L.circleMarker(LL(p),{radius:r,color:col,weight:2,fillColor:col,fillOpacity:1,interactive:false});
+
+/* MGRS grid */
+function drawGrid(){LY.grid.clearLayers();const z=map.getZoom();if(z<7)return;const sp=z>=16?100:z>=12?1000:z>=9?10000:100000;const b=map.getBounds(),c=map.getCenter(),zone=utmZone(c.lat,c.lng),south=c.lat<0;const cs=[b.getSouthWest(),b.getNorthWest(),b.getNorthEast(),b.getSouthEast()].map(p=>toUTM(p.lat,p.lng,zone));const minE=Math.min(...cs.map(u=>u.E)),maxE=Math.max(...cs.map(u=>u.E)),minN=Math.min(...cs.map(u=>u.N)),maxN=Math.max(...cs.map(u=>u.N));const st={color:cssv('--grid'),weight:1,interactive:false};const lab=v=>sp===100?String(Math.floor(v%1e5/100)).padStart(3,'0'):sp===1000?String(Math.floor(v%1e5/1000)).padStart(2,'0'):sp===10000?String(Math.floor(v%1e5/10000)):'';let n=0;
+  for(let E=Math.ceil(minE/sp)*sp;E<=maxE&&n<80;E+=sp,n++){const pts=[];for(let i=0;i<=8;i++){const p=fromUTM(zone,E,minN+(maxN-minN)*i/8,south);pts.push([p.lat,p.lon])}L.polyline(pts,st).addTo(LY.grid);const lp=fromUTM(zone,E,minN+(maxN-minN)*0.04,south);if(lab(E))L.marker([lp.lat,lp.lon],{icon:textPin(lab(E),'glbl'),interactive:false,keyboard:false}).addTo(LY.grid)}
+  for(let N=Math.ceil(minN/sp)*sp;N<=maxN&&n<160;N+=sp,n++){const pts=[];for(let i=0;i<=8;i++){const p=fromUTM(zone,minE+(maxE-minE)*i/8,N,south);pts.push([p.lat,p.lon])}L.polyline(pts,st).addTo(LY.grid);const lp=fromUTM(zone,minE+(maxE-minE)*0.03,N,south);if(lab(N))L.marker([lp.lat,lp.lon],{icon:textPin(lab(N),'glbl'),interactive:false,keyboard:false}).addTo(LY.grid)}}
+map.on('moveend zoomend',drawGrid);
+
+/* ================= action sheet ================= */
+function sheet({title,sub,input,buttons}){$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+  $('#actBtns').innerHTML='';[...buttons,['Close',()=>{}]].forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
+function closeSheet(){$('#act').hidden=true}
+$('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});
+function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied')).catch(()=>toast(t,5000))}
+const relSub=p=>fc(p)+(me?` · ${fd(dist(me,p))} at ${fb(brg(me,p))} T`:'');
+
+/* ================= RED X ================= */
+let elevWarned=false;
+async function groundElevM(p){try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),5000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p.lat.toFixed(5)}&longitude=${p.lon.toFixed(5)}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();const v=j&&j.elevation&&j.elevation[0];return isFinite(v)?v:null}catch(e){return null}}
+async function plotX(p,gpsAltM){const x={id:uid(),lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
+  if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Ground elevation lookup is blocked on this page. Tap a Red X to enter its altitude, or host the file to get it automatically.',6500)}save('xs');renderXs()}}
+function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=`X${i+1} · ${esc(fc(x))}<br>${x.alt!=null?ff(x.alt):'Alt –'}`;L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[34,34],iconAnchor:[17,17],html:`<div style="position:relative;width:34px;height:34px"><svg viewBox="-17 -17 34 34" width="34" height="34" style="overflow:visible"><path d="M-11-11 11 11M11-11-11 11" stroke="${bg}" stroke-width="9" stroke-linecap="round"/><path d="M-11-11 11 11M11-11-11 11" stroke="${col}" stroke-width="5" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:34px;top:0">${lab}</span></div>`})}).on('click',()=>xActions(x.id)).addTo(LY.xs)});
+  $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>X${i+1} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span><span class="btn" data-hound="x:${x.id}">Hound</span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
+function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;sheet({title:`Red X${i+1}`,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:''),input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},
+  buttons:[['Bloodhound',()=>setTarget('x:'+id),'primary'],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as PI',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('PI set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
+$('#xMe').onclick=()=>{if(!me){toast('No position yet. Start sensors or use simulation.');return}plotX(me,me.alt)};
+$('#xClear').onclick=()=>{if(!S.xs.length)return;sheet({title:'Clear all Red Xs?',buttons:[['Clear all',()=>{S.xs=[];save('xs');renderXs()},'danger']]})};
+$('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const b=e.target.closest('[data-x]');if(b)xActions(b.dataset.x)});
+
+/* ================= DRAW ================= */
+let lineDraft=null;
+function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(d.color);const pl=L.polyline(d.pts.map(LL),{color:col,weight:4,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);if(d.kind==='line'&&d.pts.length>1){const end=d.pts[d.pts.length-1];L.marker(LL(end),{icon:tagPin(fd(pathLen(d.pts))),interactive:false}).addTo(LY.draw);d.pts.forEach(p=>dot(p,col,4).addTo(LY.draw))}})}
+function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} long · starts ${fc(d.pts[0])}`,buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]})}
+function drawLineTap(p){if(!lineDraft)lineDraft=[];lineDraft.push(p);renderDraft()}
+function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=cssv(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
+function finishLine(){if(lineDraft&&lineDraft.length>1){S.draws.push({id:uid(),kind:'line',color:S.set.drawColor,pts:lineDraft});save('draws');renderDraws()}lineDraft=null;tmpLayer.clearLayers();if(mode==='draw-line')$('#tipText').textContent='Tap the map to start a line'}
+/* freehand */
+const mc=map.getContainer();let free=null,freeLast=null;
+mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.leaflet-marker-icon'))return;e.preventDefault();try{mc.setPointerCapture(e.pointerId)}catch(x){}const ll=map.mouseEventToLatLng(e);free=[{lat:ll.lat,lon:ll.lng}];freeLast=[e.clientX,e.clientY];tmpLayer.clearLayers();free.line=L.polyline([ll],{color:cssv(S.set.drawColor),weight:4,interactive:false}).addTo(tmpLayer)});
+mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
+const freeEnd=()=>{if(!free)return;const pts=free.map(p=>({lat:p.lat,lon:p.lon}));free=null;tmpLayer.clearLayers();if(pts.length>2){S.draws.push({id:uid(),kind:'free',color:S.set.drawColor,pts});save('draws');renderDraws()}};
+mc.addEventListener('pointerup',freeEnd);mc.addEventListener('pointercancel',freeEnd);
+function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=S.set.drawMode!=='line';$('#drawNote').textContent=S.set.drawMode==='line'?'Tap points on the map to build a line. Length and leg bearing show as you go.':'Drag on the map to draw. The map stops panning while freehand is on; pinch still zooms off the tool.';$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" aria-pressed="${S.set.drawColor===v}" style="background:var(${v})"></button>`).join('')}
+$('#drawSeg').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;finishLine();S.set.drawMode=b.dataset.dm;save('set');syncDraw();enterToolMode('draw')};
+$('#swatches').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
+$('#drawFinish').onclick=finishLine;
+$('#drawUndo').onclick=()=>{if(lineDraft&&lineDraft.length){lineDraft.pop();renderDraft();return}S.draws.pop();save('draws');renderDraws()};
+$('#drawClear').onclick=()=>{if(!S.draws.length)return;sheet({title:'Clear all drawings?',buttons:[['Clear all',()=>{S.draws=[];save('draws');renderDraws()},'danger']]})};
+
+/* ================= RANGE ================= */
+let rngA=null;
+const lineLabel=(a,b)=>`${fd(dist(a,b))}<br>${bTM(brg(a,b))}<br><span style="font-weight:500">back ${fb(brg(b,a))} T</span>`;
+function renderRng(){LY.rng.clearLayers();const ink=cssv('--ink'),amb=cssv('--amber');
+  S.rng.forEach(r=>{
+    if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:2,fill:false,interactive:false}).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fd(r.step*i)),interactive:false}).addTo(LY.rng)}
+      [0,90,180,270].forEach(b=>L.polyline([LL(r.c),LL(dest(r.c,b,r.step*r.n))],{color:col,weight:1,dashArray:'3 6',interactive:false}).addTo(LY.rng));
+      L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
+    const pl=L.polyline([LL(r.a),LL(r.b)],{color:r.kind==='move'?amb:ink,weight:3,dashArray:r.kind==='move'?'10 6':null}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
+    const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
+    const tag=L.marker(LL(mid()),{icon:tagPin(lineLabel(r.a,r.b)),interactive:false}).addTo(LY.rng);
+    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:divPin(k==='a'?'<circle r="7"/>':'<rect x="-7" y="-7" width="14" height="14"/>',r.kind==='move'?amb:ink,'',r.kind==='move'?30:22)}).addTo(LY.rng);
+      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(tagPin(lineLabel(r.a,r.b)))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
+  renderRngList()}
+function rngText(r){return r.kind==='ring'?`Rings ${r.n} × ${fd(r.step)} · ${fc(r.c)}`:`${r.kind==='move'?'Moveable':'Fixed'} · ${fd(dist(r.a,r.b))} ${fb(brg(r.a,r.b))} T`}
+function renderRngList(){$('#rngList').innerHTML=S.rng.length?S.rng.map(r=>`<button class="item" data-r="${r.id}"><span class="sw" style="background:var(${r.kind==='move'||r.id===selRing?'--amber':'--ink'})"></span><span><b>${r.kind==='ring'?'Range rings':r.kind==='move'?'Moveable line':'Fixed line'}</b><small>${esc(rngText(r))}</small></span><span></span></button>`).join(''):'<p class="note">No range tools placed.</p>';const s=S.rng.find(r=>r.id===selRing);$('#ringCount').textContent=s?`${s.n} × ${fd(s.step)}`:'–'}
+function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;if(r.kind==='ring'){selRing=id;renderRng();sheet({title:'Range rings',sub:`${r.n} rings × ${fd(r.step)} · outer ${fd(r.n*r.step)} · ${fc(r.c)}`,input:{label:'Ring interval, metres',type:'number',value:r.step,save:v=>{const n=parseFloat(v);if(n>0){r.step=n;save('rng');renderRng()}}},buttons:[['Add ring',()=>{r.n=Math.min(r.n+1,40);save('rng');renderRng()}],['Remove ring',()=>{r.n=Math.max(1,r.n-1);save('rng');renderRng()}],['Bloodhound centre',()=>setTarget('r:'+id),'primary'],['Delete',()=>delRng(id),'danger']]});return}
+  sheet({title:r.kind==='move'?'Moveable line':'Fixed line',sub:`${fd(dist(r.a,r.b))} · ${bTM(brg(r.a,r.b))} · back ${fb(brg(r.b,r.a))} T`,buttons:[['Copy',()=>copy(`${fc(r.a)} to ${fc(r.b)}: ${fd(dist(r.a,r.b))} ${bTM(brg(r.a,r.b))}`)],[r.kind==='move'?'Make fixed':'Make moveable',()=>{r.kind=r.kind==='move'?'perm':'move';save('rng');renderRng()}],['Bloodhound to end',()=>setTarget('r:'+id),'primary'],['Delete',()=>delRng(id),'danger']]})}
+function delRng(id){S.rng=S.rng.filter(x=>x.id!==id);if(selRing===id)selRing=null;if(S.target==='r:'+id)setTarget(null);save('rng');renderRng()}
+function rangeTap(p){const m=S.set.rngMode;if(m==='ring'){const r={id:uid(),kind:'ring',c:p,step:+S.set.ringStep||500,n:3};S.rng.push(r);selRing=r.id;save('rng');renderRng();return}
+  if(!rngA){rngA=p;tmpLayer.clearLayers();dot(p,cssv('--ink')).addTo(tmpLayer);$('#tipText').textContent='Tap the end point';return}
+  S.rng.push({id:uid(),kind:m,a:rngA,b:p});rngA=null;tmpLayer.clearLayers();save('rng');renderRng();$('#tipText').textContent=rngTip()}
+const rngTip=()=>({perm:'Tap start, then end, for a fixed range line',move:'Tap start, then end. Drag either end to move it',ring:'Tap the map to place range rings'}[S.set.rngMode]);
+function syncRng(){$$('#rngSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rm===S.set.rngMode));$('#ringCtl').hidden=S.set.rngMode!=='ring';$('#ringStep').value=S.set.ringStep;$('#rngNote').textContent={perm:'Fixed lines stay where you put them and show distance, true and magnetic bearing, and back bearing.',move:'Moveable lines have draggable ends; the readout updates as you drag.',ring:'Rings show the radius of each ring. Use − and + to add or remove rings on the selected set.'}[S.set.rngMode]}
+$('#rngSeg').onclick=e=>{const b=e.target.closest('[data-rm]');if(!b)return;S.set.rngMode=b.dataset.rm;save('set');rngA=null;tmpLayer.clearLayers();syncRng();enterToolMode('range')};
+$('#ringStep').oninput=e=>{const v=parseFloat(e.target.value);if(v>0){S.set.ringStep=v;save('set');const r=S.rng.find(x=>x.id===selRing);if(r){r.step=v;save('rng');renderRng()}}};
+$('#ringPlus').onclick=()=>{const r=S.rng.find(x=>x.id===selRing);if(!r){toast('Place or tap a ring set first');return}r.n=Math.min(r.n+1,40);save('rng');renderRng()};
+$('#ringMinus').onclick=()=>{const r=S.rng.find(x=>x.id===selRing);if(!r){toast('Place or tap a ring set first');return}r.n=Math.max(1,r.n-1);save('rng');renderRng()};
+$('#rngClear').onclick=()=>{if(!S.rng.length)return;sheet({title:'Clear all range tools?',buttons:[['Clear all',()=>{S.rng=[];selRing=null;save('rng');renderRng()},'danger']]})};
+$('#rngList').onclick=e=>{const b=e.target.closest('[data-r]');if(b)rngActions(b.dataset.r)};
+
+/* ================= OVERLAYS ================= */
+function renderOvList(){$('#ovList').innerHTML=Object.entries(OV_NAMES).map(([k,n])=>`<label class="chk"><input type="checkbox" data-ov="${k}" ${S.ov[k]?'checked':''}> ${n}</label>`).join('')}
+$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='grid')drawGrid()};
+$('#baseSeg').onclick=e=>{const b=e.target.closest('[data-b]');if(b)setBase(b.dataset.b)};
+
+/* ================= JUMP CALC ================= */
+function makeWind(){const w=S.winds.filter(x=>isFinite(x.alt)&&isFinite(x.dir)&&isFinite(x.spd)).map(x=>{const t=(x.dir+180)*D2R;return {alt:+x.alt,u:x.spd*KT*Math.sin(t),v:x.spd*KT*Math.cos(t)}}).sort((a,b)=>a.alt-b.alt);return h=>{if(!w.length)return {u:0,v:0};if(h<=w[0].alt)return w[0];const top=w[w.length-1];if(h>=top.alt)return top;for(let i=0;i<w.length-1;i++){if(h<=w[i+1].alt){const a=w[i],b=w[i+1],f=(h-a.alt)/(b.alt-a.alt);return {u:a.u+(b.u-a.u)*f,v:a.v+(b.v-a.v)*f}}}return top}}
+function computeJump(){const j=S.jump;if(!S.pi)return {err:'Set the PI to see the release solution.'};const ground=+j.dzElev,exit=+j.exitAlt,open=ground+(+j.openAlt);if(!(open>ground))return {err:'Opening altitude must be above the DZ.'};if(!(exit>open))return {err:'Opening altitude must be below exit altitude (exit is AMSL, opening is AGL).'};if(!(+j.canopyRate>0)||!(+j.ffRate>0))return {err:'Descent rates must be greater than zero.'};
+  const wind=makeWind(),dt=0.25,ff0=(+j.ffRate)*FT,path=[[0,0]];let h=exit,t=0,x=0,y=0,k=0;
+  while(h>open&&t<1800){const term=j.density?ff0*Math.exp(h*FT/17000):ff0;const rate=Math.max(term*(1-Math.exp(-t/4)),0.5);h-=rate*dt/FT;const w=wind(h);x+=w.u*dt;y+=w.v*dt;t+=dt;if(++k%20===0)path.push([x,y])}
+  const ffT=t,ffX=x,ffY=y;path.push([x,y]);const openIdx=path.length-1;const cr=(+j.canopyRate)*FT;let tc=0;k=0;
+  while(h>ground&&tc<7200){h-=cr*dt/FT;const w=wind(h);x+=w.u*dt;y+=w.v*dt;tc+=dt;if(++k%40===0)path.push([x,y])}
+  path.push([x,y]);
+  const glide=(+j.canopySpeed)*KT*tc*((+j.safety||0)/100);const start=offset(S.pi,-x,-y);const we=wind(exit);
+  const heading=j.headingAuto?norm(Math.atan2(-we.u,-we.v)*R2D):norm(+j.heading||0);
+  const harp=dest(start,norm(heading+180),+j.throwM||0);const gsM=(+j.gs||0)*KT;const stick=Math.max(0,(+j.jumpers||1)-1)*(+j.interval||0)*gsM;
+  const gl=dest(harp,norm(heading+180),stick/2),rl=dest(harp,heading,stick/2),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*120);
+  const pts=path.map(([px,py])=>offset(start,px,py));
+  return {ffT,tc,ffD:Math.hypot(ffX,ffY),ffB:Math.atan2(ffX,ffY)*R2D,cD:Math.hypot(x-ffX,y-ffY),cB:Math.atan2(x-ffX,y-ffY)*R2D,dD:Math.hypot(x,y),dB:Math.atan2(x,y)*R2D,glide,harp,gl,rl,oneMin,runStart,heading,stick,path:pts,openPt:pts[openIdx],exitWind:we}}
+function renderJump(){LY.jump.clearLayers();J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?fc(S.pi):'Not set';renderCypres();renderAlti();
+  if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
+  const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
+  L.circle(LL(S.pi),{radius:+S.jump.dzRadius||0,color:c.pi,weight:2,dashArray:'6 6',fillOpacity:.06,interactive:false}).addTo(LY.jump);
+  if(J.glide>0)L.circle(LL(J.harp),{radius:J.glide,color:c.amb,weight:1.5,fillColor:c.amb,fillOpacity:.08,interactive:false}).addTo(LY.jump);
+  L.polyline(J.path.map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
+  L.polyline([LL(J.runStart),LL(J.rl)],{color:c.ink,weight:2.5,interactive:false}).addTo(LY.jump);
+  const calc=(p,svg,col,label,key)=>L.marker(LL(p),{icon:divPin(svg,col,label,24)}).on('click',()=>calcActions('c:'+key)).addTo(LY.jump);
+  calc(J.openPt,'<circle r="6"/>',c.amb,'Open','open');calc(J.oneMin,'<circle r="7"/>',c.amb,'1 min','onemin');calc(J.gl,'<circle r="8"/>',c.go,'GL','gl');calc(J.rl,'<circle r="8"/>',c.st,'RL','rl');calc(J.harp,'<path d="M0-11 11 0 0 11-11 0Z"/>',c.ink,'HARP','harp');
+  drawPI();
+  out.innerHTML=`<dl class="res">
+    <dt>HARP</dt><dd class="big">${fc(J.harp)}</dd>
+    <dt>Run-in heading</dt><dd>${bTM(J.heading)}</dd>
+    <dt>HARP from PI</dt><dd>${fd(dist(S.pi,J.harp))} at ${fb(brg(S.pi,J.harp))} T</dd>
+    <dt>Freefall</dt><dd>${fsec(J.ffT)} · drift ${fd(J.ffD)} toward ${fb(J.ffB)}</dd>
+    <dt>Canopy</dt><dd>${fsec(J.tc)} · drift ${fd(J.cD)} toward ${fb(J.cB)}</dd>
+    <dt>Total drift</dt><dd>${fd(J.dD)} toward ${fb(J.dB)}</dd>
+    <dt>Exit wind</dt><dd>${Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT)} kt</dd>
+    <dt>Release envelope</dt><dd>${fd(J.glide)} radius</dd>
+    <dt>Stick length</dt><dd>${fd(J.stick)} GL to RL</dd></dl>
+    <div class="row"><button class="btn primary" data-hound="c:harp">Bloodhound HARP</button><button class="btn" data-hound="c:gl">Bloodhound GL</button><button class="btn" data-hound="c:pi">Bloodhound PI</button></div>
+    <div class="warn">Planning aid only. Check against your approved calculation method and current met before use.</div>`;
+  updateHound();renderPoints()}
+function drawPI(){const col=cssv('--pi');L.marker(LL(S.pi),{icon:L.divIcon({className:'pin',iconSize:[40,40],iconAnchor:[20,20],html:`<div style="position:relative;width:40px;height:40px"><svg viewBox="-20 -20 40 40" width="40" height="40" style="overflow:visible"><g stroke="${col}" stroke-width="3" fill="none"><circle r="11"/><path d="M0-19v10M0 9v10M-19 0h10M9 0h10"/></g></svg><span class="lbl" style="position:absolute;left:38px;top:12px">PI</span></div>`})}).on('click',()=>calcActions('c:pi')).addTo(LY.jump)}
+
+/* CYPRES + altimeter */
+function renderCypres(){const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
+  $('#cypOut').innerHTML=`<dl class="res">
+    <dt>Landing vs take-off</dt><dd>${abs(dFt)<1?'Same elevation':`${ff(abs(dFt))} ${dFt>0?'higher':'lower'}`}</dd>
+    <dt>Offset (metric unit)</dt><dd class="big">${rM===0?'0 m':`${sign(rM)}${abs(rM)} m`}</dd>
+    <dt>Offset (feet unit)</dt><dd class="big">${rFt===0?'0 ft':`${sign(rFt)}${abs(rFt).toLocaleString('en-GB')} ft`}</dd></dl>
+    ${rM===0?'<p class="note">Difference is under one 10 m step, so no offset is needed.</p>':`<p class="note">${dFt>0?'Landing area is higher than the take-off airfield, so the offset is positive.':'Landing area is lower than the take-off airfield, so the offset is negative.'} Rounded to the nearest 10 m or 30 ft step.</p>`}
+    <div class="warn">Set the offset on the ground at the take-off airfield. Confirm the sign convention, step size and limits for your model against its user guide before jumping.</div>`}
+function renderAlti(){const to=+S.jump.toElev,dz=+S.jump.dzElev;const refRaw=S.set.altRef;const ref=isFinite(refRaw)&&refRaw!==null&&refRaw!==''?+refRaw:dz;if(!isFinite(to)||!isFinite(ref)){$('#altOut').innerHTML='';return}const setTo=to-ref;const exitR=(+S.jump.exitAlt)-ref,openR=(+S.jump.openAlt)+dz-ref;
+  $('#altOut').innerHTML=`<p class="note" style="margin-top:12px">Set altimeter at take-off to</p><div class="big-out">${setTo>0?'+':setTo<0?'−':''}${ff(Math.abs(setTo))}</div>
+    <p class="note">${setTo<0?'Below zero: the reference is higher than the airfield.':setTo>0?'Above zero: the reference is lower than the airfield.':'Airfield and reference are the same elevation, so set to zero.'} It will read 0 at ${refRaw!=null&&refRaw!==''?'the reference elevation':'the DZ'}.</p>
+    <dl class="res"><dt>Reads at exit</dt><dd>${ff(exitR)}</dd><dt>Reads at opening</dt><dd>${ff(openR)}</dd><dt>Reads on the DZ</dt><dd>${ff(dz-ref)}</dd></dl>
+    <div class="warn">Exit and opening readings use the jump plan values. Check the altimeter on the ground after setting.</div>`}
+$('#altRef').value=S.set.altRef??'';
+$('#altRef').oninput=e=>{const v=e.target.value.trim();S.set.altRef=v===''?null:parseFloat(v);save('set');renderAlti()};
+
+/* ================= points + targets ================= */
+function renderMarkers(){LY.pts.clearLayers();S.markers.forEach(m=>{const t=TYPES[m.type]||TYPES.wp;L.marker([m.lat,m.lon],{icon:divPin(t.svg,cssv(t.c),m.name,26)}).on('click',()=>markerActions(m.id)).addTo(LY.pts)})}
+function addMarker(p,type,name){const n=S.markers.filter(m=>m.type===type).length+1;const m={id:uid(),type,name:name||`${TYPES[type].n} ${n}`,lat:p.lat,lon:p.lon};S.markers.push(m);save('markers');renderMarkers();renderPoints();toast(`Added ${m.name}`);return m}
+function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Bloodhound',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as PI',()=>{S.pi={lat:m.lat,lon:m.lon};save('pi');renderJump();toast('PI set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
+function calcActions(key){const r=resolve(key);if(!r)return;sheet({title:r.name,sub:relSub(r.p),buttons:[['Bloodhound',()=>setTarget(key),'primary'],['Centre map',()=>map.setView(LL(r.p),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(r.p))]]})}
+function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'PI',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'Green light',p:J.gl,c:'--go'},{key:'c:rl',name:'Red light',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'Opening point',p:J.openPt,c:'--amber'});return a}
+function resolve(key){if(!key)return null;const [t,id]=[key.slice(0,2),key.slice(2)];
+  if(t==='m:'){const m=S.markers.find(x=>x.id===id);return m?{name:m.name,p:m}:null}
+  if(t==='x:'){const i=S.xs.findIndex(x=>x.id===id);return i>=0?{name:`Red X${i+1}`,p:S.xs[i]}:null}
+  if(t==='r:'){const r=S.rng.find(x=>x.id===id);return r?{name:r.kind==='ring'?'Ring centre':'Range line end',p:r.kind==='ring'?r.c:r.b}:null}
+  const c=calcPoints().find(x=>x.key===key);return c?{name:c.name,p:c.p}:null}
+let lastPts=0;
+function renderPoints(){lastPts=Date.now();const rows=[...calcPoints().map(c=>({key:c.key,name:c.name,p:c.p,col:c.c})),...S.xs.map((x,i)=>({key:'x:'+x.id,name:`Red X${i+1}`,p:x,col:'--x'})),...S.markers.map(m=>({key:'m:'+m.id,name:m.name,p:m,col:(TYPES[m.type]||TYPES.wp).c}))];
+  $('#ptList').innerHTML=rows.length?rows.map(r=>`<button class="item" data-act="${r.key}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}${S.target===r.key?' · tracking':''}</b><small>${esc(fc(r.p))}${me?` · ${fd(dist(me,r.p))} ${fb(brg(me,r.p))}`:''}</small></span><span class="btn" data-hound="${r.key}">Hound</span></button>`).join(''):'<p class="note">No points yet. Set a PI, plot a Red X, or add a point above.</p>'}
+$('#ptList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;closeDrawer();if(k.startsWith('m:'))markerActions(k.slice(2));else if(k.startsWith('x:'))xActions(k.slice(2));else calcActions(k)});
+$('#ptType').innerHTML=Object.entries(TYPES).map(([k,t])=>`<option value="${k}">${t.n}</option>`).join('');
+$('#ptAddGrid').onclick=()=>{const p=parseCoord($('#ptGrid').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptGrid').value='';$('#ptName').value='';map.setView(LL(p),Math.max(map.getZoom(),14))};
+$('#ptAddMe').onclick=()=>{if(!me){toast('No position yet.');return}addMarker(me,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value=''};
+$('#ptDrop').onclick=()=>{closeDrawer();closeTool();setMode('drop',`Tap the map to drop a ${TYPES[$('#ptType').value].n.toLowerCase()} point`)};
+
+/* ================= self / sensors ================= */
+const trail=[];let trailLine=null,meMarker=null,accCircle=null;
+function headingTrue(){if(compass!=null)return {h:norm(compass+(+S.set.decl||0)),src:'compass'};if(me&&me.course!=null&&me.spd>1)return {h:me.course,src:'track'};return null}
+function meHtml(){const ht=headingTrue(),col=cssv('--self'),bg=cssv('--bg');return `<svg viewBox="-20 -20 40 40" width="40" height="40" style="overflow:visible"><circle r="15" fill="${col}" fill-opacity=".18"/><g class="meRot" transform="rotate(${ht?ht.h:0})">${ht?`<path d="M0-15 10 11 0 5-10 11Z" fill="${col}" stroke="${bg}" stroke-width="2"/>`:`<circle r="7" fill="${col}" stroke="${bg}" stroke-width="3"/>`}</g></svg>`}
+function drawMe(){if(!me)return;const icon=L.divIcon({className:'pin',iconSize:[40,40],iconAnchor:[20,20],html:meHtml()});if(!meMarker){meMarker=L.marker(LL(me),{icon,zIndexOffset:1000,keyboard:false,interactive:false}).addTo(meLayer);accCircle=L.circle(LL(me),{radius:me.acc||0,color:cssv('--self'),weight:1,fillOpacity:.07,interactive:false}).addTo(meLayer)}else{meMarker.setLatLng(LL(me));meMarker.setIcon(icon);accCircle.setLatLng(LL(me)).setRadius(me.acc||0).setStyle({color:cssv('--self')})}}
+function rotateMe(){if(!meMarker)return;const el=meMarker.getElement();const g=el&&el.querySelector('.meRot');const ht=headingTrue();if(g&&ht)g.setAttribute('transform',`rotate(${ht.h})`)}
+function onFix(f){const prev=me;me=f;
+  if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
+  drawMe();if(follow)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
+function updateBar(){if(!me)return;$('#bPos').textContent=fc(me)+(me.sim?' (sim)':'');$('#bAcc').textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'–';$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT):'–';$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kt`:'–';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:'–'}
+let geoWatch=null,orientOn=false;
+async function startSensors(){
+  if(!('geolocation' in navigator))toast('This browser has no location access. Use simulation in the menu.');
+  else{if(geoWatch!=null)navigator.geolocation.clearWatch(geoWatch);geoWatch=navigator.geolocation.watchPosition(pos=>{if(S.set.sim)return;const c=pos.coords;onFix({lat:c.latitude,lon:c.longitude,acc:c.accuracy,alt:c.altitude,spd:c.speed,course:(c.heading!=null&&!isNaN(c.heading))?c.heading:null});$('#sensState').textContent='GPS live.'+(compass!=null?' Compass live.':'')},err=>{const m=err.code===1?'Location is blocked here. Allow location for this page, open it in its own browser tab, or use simulation.':'No GPS fix yet. Move to open sky and keep the screen on.';toast(m,6500);$('#sensState').textContent=m},{enableHighAccuracy:true,maximumAge:0,timeout:30000})}
+  try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')toast('Compass permission refused. Heading will come from GPS track when moving.')}}catch(e){}
+  if(!orientOn){orientOn=true;window.addEventListener('ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation',onOrient,true)}
+  try{if('wakeLock' in navigator){await navigator.wakeLock.request('screen');document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){try{await navigator.wakeLock.request('screen')}catch(e){}}})}}catch(e){}
+  $('#btnSensors').hidden=true;$('#sensStart').textContent='Restart sensors';$('#sensState').textContent='Waiting for GPS fix…';toast('Sensors started. Hold the phone flat for the best compass.')}
+let cx=null,cy=null,raf=false;
+function onOrient(e){let h=null;if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading))h=e.webkitCompassHeading;else if((e.absolute||e.type==='deviceorientationabsolute')&&e.alpha!=null)h=norm(360-e.alpha);if(h==null)return;const so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=norm(h+so);const r=h*D2R;cx=cx==null?Math.sin(r):cx*0.8+Math.sin(r)*0.2;cy=cy==null?Math.cos(r):cy*0.8+Math.cos(r)*0.2;compass=norm(Math.atan2(cx,cy)*R2D);
+  if(!raf){raf=true;requestAnimationFrame(()=>{raf=false;rotateMe();updateDial();if(me)$('#bHdg').textContent=`${fb(compass)} M`})}}
+$('#btnSensors').onclick=startSensors;$('#sensStart').onclick=startSensors;
+
+/* ================= bloodhound ================= */
+let houndLine=null,hState='',prevR=null,prevT=0,closing=0;
+function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}$('#hud').hidden=false;$('#hName').textContent=`Bloodhound · ${r.name}`;
+  if(!me){$('#hRange').textContent='No fix';$('#hBrg').textContent=fc(r.p);$('#hEta').textContent='Start sensors or simulate';return}
+  const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
+  const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
+  const hud=$('#hud');hud.classList.toggle('st-outer',st==='outer');hud.classList.toggle('st-inner',st==='inner');const col=cssv(st==='inner'?'--stop':st==='outer'?'--amber':'--go');
+  if(!houndLine)houndLine=L.polyline([LL(me),LL(r.p)],{color:col,weight:4,dashArray:'10 8',interactive:false}).addTo(LY.hound);houndLine.setLatLngs([LL(me),LL(r.p)]);houndLine.setStyle({color:col});const el=houndLine.getElement();if(el)el.classList.toggle('hound-inner',st==='inner');
+  $('#hRange').textContent=fd(R);$('#hBrg').innerHTML=`${fb(B)} T <span class="m">${fb(magOf(B))} M</span>`;$('#hEta').textContent=closing>0.3?`ETA ${fsec(R/closing)} · closing ${Math.round(closing/KT)} kt`:(closing<-0.3?`Opening ${Math.round(-closing/KT)} kt`:'ETA –');updateDial()}
+function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue();if(ht){$('#dialArrow').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialArrow').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
+$('#hStop').onclick=()=>setTarget(null);
+document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
+
+/* ================= modes / quick menu ================= */
+function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').textContent=tip;$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
+  const freeOn=m==='draw-free';if(freeOn){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}
+  if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
+$('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','range'].includes(mode))closeTool();else setMode('none')};
+function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Red X');else if(t==='draw')setMode(S.set.drawMode==='line'?'draw-line':'draw-free',S.set.drawMode==='line'?'Tap the map to start a line':'Drag on the map to draw');else if(t==='range')setMode('range',rngTip());else setMode('none')}
+const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jumpmaster'};
+function openTool(t){finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
+  if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base)}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
+function closeTool(){finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
+$$('.qb[data-tool]').forEach(b=>b.onclick=()=>{tool===b.dataset.tool?closeTool():openTool(b.dataset.tool)});
+$('#toolClose').onclick=e=>{e.stopPropagation();closeTool()};
+$('#thead').onclick=()=>{$('#tool').classList.toggle('min');$('#toolMin').textContent=$('#tool').classList.contains('min')?'▴':'▾';setTimeout(()=>map.invalidateSize(),50)};
+
+map.on('click',e=>{const p={lat:e.latlng.lat,lon:e.latlng.lng};
+  switch(mode){
+    case 'redx':plotX(p);return;
+    case 'draw-line':drawLineTap(p);return;
+    case 'draw-free':return;
+    case 'range':rangeTap(p);return;
+    case 'pi':S.pi=p;save('pi');renderJump();setMode('none');toast('PI set');if(tool==='jump')$('#tool').classList.remove('min');return;
+    case 'drop':addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value='';return;
+  }
+  if(S.set.sim){onFix({lat:p.lat,lon:p.lon,acc:5,alt:null,spd:0,course:me?brg(me,p):null,sim:true})}});
+map.on('dragstart',()=>setFollow(false));
+function setFollow(v){follow=v;$('#follow').setAttribute('aria-pressed',v);if(v&&me)map.setView(LL(me),Math.max(map.getZoom(),15))}
+$('#follow').onclick=()=>{if(!me){toast('No position yet. Start sensors or turn on simulation in the menu.');return}setFollow(!follow)};
+setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=resolve(S.target);if(!r)return;const v=(+S.set.simSpd||0)*KT,d=dist(me,r.p);if(d<1)return;const b=brg(me,r.p),n=dest(me,b,Math.min(d,v));onFix({lat:n.lat,lon:n.lon,acc:5,alt:null,spd:v,course:b,sim:true})},1000);
+
+/* ================= jump tool UI ================= */
+$('#jmSeg').onclick=e=>{const b=e.target.closest('[data-jm]');if(!b)return;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==b.dataset.jm)};
+const JF=[['dzElev','DZ elevation','ft AMSL'],['exitAlt','Exit altitude','ft AMSL'],['openAlt','Opening altitude','ft AGL'],['ffRate','Freefall rate','ft/s at sea level'],['canopyRate','Canopy descent','ft/s'],['canopySpeed','Canopy forward speed','kt'],['safety','Glide used for envelope','%'],['dzRadius','DZ radius','m']];
+const AF=[['heading','Run-in heading','°T'],['gs','Ground speed','kt'],['jumpers','Jumpers in stick',''],['interval','Exit interval','s'],['throwM','Forward throw','m']];
+const fieldHTML=([k,l,u])=>`<label class="fld">${l}${u?`<em>${u}</em>`:''}<input type="number" inputmode="decimal" data-j="${k}"></label>`;
+$('#jumpFields').innerHTML=JF.map(fieldHTML).join('')+`<label class="chk" style="grid-column:1/-1"><input type="checkbox" id="densityChk"> Faster freefall in thinner air at altitude</label>`;
+$('#airFields').innerHTML=AF.map(fieldHTML).join('');
+function syncJumpInputs(){$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#densityChk').checked=!!S.jump.density;$('#hdgAuto').checked=!!S.jump.headingAuto;$('[data-j="heading"]').disabled=!!S.jump.headingAuto;$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode))}
+let jt;document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
+$('#densityChk').onchange=e=>{S.jump.density=e.target.checked;save('jump');renderJump()};
+$('#hdgAuto').onchange=e=>{S.jump.headingAuto=e.target.checked;if(!e.target.checked&&J&&!J.err)S.jump.heading=Math.round(J.heading);save('jump');syncJumpInputs();renderJump()};
+$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;S.jump.openAlt=b.dataset.mode==='HALO'?3500:Math.max(1000,Math.round((S.jump.exitAlt-S.jump.dzElev-1500)/100)*100);save('jump');syncJumpInputs();renderJump()};
+$('#piTap').onclick=()=>{setMode('pi','Tap the map to set the PI');$('#tool').classList.add('min')};
+$('#piMe').onclick=()=>{if(!me){toast('No position yet. Start sensors or use simulation.');return}S.pi={lat:me.lat,lon:me.lon};save('pi');renderJump();toast('PI set at your position')};
+$('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();map.setView(LL(p),14);toast('PI set')};
+function renderWinds(){$('#windRows').innerHTML=S.winds.map((w,i)=>`<tr><td><input type="number" inputmode="decimal" data-w="${i}" data-f="alt" value="${w.alt}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="dir" value="${w.dir}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="spd" value="${w.spd}"></td><td><button class="iconbtn" data-wdel="${i}" aria-label="Remove layer">✕</button></td></tr>`).join('')}
+$('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.winds[i][e.target.dataset.f]=e.target.dataset.f==='dir'?norm(v):v;save('winds');clearTimeout(jt);jt=setTimeout(renderJump,200)});
+$('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wdel]');if(!d)return;S.winds.splice(+d.dataset.wdel,1);save('winds');renderWinds();renderJump()});
+$('#windAdd').onclick=()=>{const top=S.winds.reduce((m,w)=>Math.max(m,w.alt),0);const last=S.winds[S.winds.length-1]||{dir:270,spd:10};S.winds.push({alt:top+2000,dir:last.dir,spd:last.spd});save('winds');renderWinds();renderJump()};
+$('#windSort').onclick=()=>{S.winds.sort((a,b)=>a.alt-b.alt);save('winds');renderWinds()};
+
+/* ================= drawer ================= */
+const DTITLES={root:'Menu',points:'Points and bloodhound',sensors:'Sensors and simulation',settings:'Settings',data:'Data'};
+function openDrawer(page='root'){$('#drawer').hidden=false;goPage(page)}
+function goPage(p){$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints()}
+function closeDrawer(){$('#drawer').hidden=true}
+$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>goPage('root');
+$('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
+
+function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
+function redrawAll(){renderJump();renderMarkers();renderXs();renderDraws();renderRng();drawGrid();if(trailLine)trailLine.setStyle({color:cssv('--self')});drawMe();updateBar();updateHound();renderPoints()}
+function syncSetup(){const s=S.set;$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
+const setS=(k,v,after)=>{S.set[k]=v;save('set');after&&after()};
+$('#sCoord').onchange=e=>setS('coord',e.target.value,redrawAll);
+$('#sDist').onchange=e=>setS('dist',e.target.value,redrawAll);
+$('#sDecl').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('decl',v,redrawAll)};
+$('#sOuter').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('outer',v,updateHound)};
+$('#sInner').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('inner',v,updateHound)};
+$('#sTrail').onchange=e=>setS('trail',e.target.checked);
+$('#sClearTrail').onclick=()=>{trail.length=0;if(trailLine)trailLine.setLatLngs([]);toast('Trail cleared')};
+$('#sTheme').onchange=e=>setS('theme',e.target.value,applyTheme);
+$('#sNight').onchange=e=>setS('night',e.target.checked,applyTheme);
+$('#sSim').onchange=e=>setS('sim',e.target.checked,()=>toast(e.target.checked?'Simulation on. Close the menu and tap the map to place yourself.':'Simulation off. Phone GPS will be used.'));
+$('#sSimSpd').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('simSpd',v)};
+$('#sSimMove').onchange=e=>setS('simMove',e.target.checked);
+let resetArm=0;$('#sReset').onclick=e=>{if(Date.now()-resetArm<3000){['jump','winds','markers','xs','draws','rng','pi','set','ov','target'].forEach(k=>{try{localStorage.removeItem('jmtak:'+k)}catch(x){}});location.reload();return}resetArm=Date.now();e.target.textContent='Tap again to erase';setTimeout(()=>e.target.textContent='Erase all data',3000)};
+
+/* ================= boot ================= */
+syncJumpInputs();renderWinds();syncSetup();syncDraw();syncRng();setBase(S.set.base);applyOverlays();applyTheme();
+if(S.pi)map.setView(LL(S.pi),13);
+})();
+</script>
+</body>
+</html>
