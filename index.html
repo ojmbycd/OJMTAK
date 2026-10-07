@@ -264,7 +264,7 @@ table.winds td small{font-size:11px}
       <button class="qb" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </nav>
     <div id="status">
-      <div class="cs"><span id="bCall">GPS</span> <span id="bSrc"></span></div>
+      <div class="cs"><span id="bCall">JUMPMASTER</span> <span id="bSrc"></span></div>
       <div id="bPos">No fix</div>
       <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span></div>
       <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span></div>
@@ -422,7 +422,8 @@ table.winds td small{font-size:11px}
           <div data-pp="2" hidden>
           <h3>Wind layers</h3>
           <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value is the wind as a fraction of the canopy's forward speed.</p>
-          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><button class="btn primary" id="windImport">Import winds aloft</button></div>
+          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds aloft</button></div>
+          <div class="row mt"><button class="btn" id="windSchulze">Cross-check on markschulze.net</button></div>
           <p class="note" id="windSrc"></p>
           <table class="winds"><thead><tr><th>Alt ft (m)</th><th>From °T</th><th>Kt</th><th>Value</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
           <div class="row mt"><button class="btn" id="windFill">Copy top row down</button></div>
@@ -442,7 +443,7 @@ table.winds td small{font-size:11px}
           <section class="sec">
             <h3>Military CYPRES setting</h3>
             <div class="fields">
-              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">PNS, Military CYPRES 1000 35A</option></select></label>
+              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option></select></label>
               <label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
               <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
             </div>
@@ -528,7 +529,7 @@ table.winds td small{font-size:11px}
 
       <div class="panel" data-dpage="settings" hidden>
         <h3>Callsign</h3>
-        <div class="fields"><label class="fld">Shown in the GPS box<input type="text" id="sCall" placeholder="e.g. AIR REP"></label></div>
+        <div class="fields"><label class="fld">Shown in the GPS box<input type="text" id="sCall" placeholder="JUMPMASTER"></label></div>
         <h3>Units and coordinates</h3>
         <div class="fields">
           <label class="fld">Coordinates<select id="sCoord"><option value="mgrs">MGRS</option><option value="ll">Lat, long</option></select></label>
@@ -597,7 +598,7 @@ function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?
 const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[{alt:200,dir:230,spd:8},{alt:2000,dir:240,spd:14},{alt:5000,dir:250,spd:20},{alt:10000,dir:260,spd:28},{alt:15000,dir:265,spd:34}];
 const DEF_OV={cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
-const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'',drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:500,altRef:null};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMPMASTER',drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:500,altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
@@ -618,6 +619,8 @@ const S={
   mission:store.get('mission',null)
 };
 const save=k=>store.set(k,S[k]);
+if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
+if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
 if(S.jump.v===2){if(+S.jump.k===61&&!S.jump.canopy){S.jump.k=46;S.jump.canopySpeed=22;S.jump.canopy='MJ (MP360)'}S.jump.v=3;store.set('jump',S.jump)}
 if(!(S.jump.v>=2)){const kf=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;if(S.jump.kUnit){const r=kf(+S.jump.k||0,S.jump.kUnit);S.jump.k=r>0?Math.round(514.4/r):61;delete S.jump.kUnit}Object.assign(S.jump,{exitAlt:12000,openAlt:11000,casSF:2000,lpSF:1000,interval:4,jumperKg:110,throwSec:0,k:46,canopySpeed:22,canopy:'MJ (MP360)',v:3});S.canopies=S.canopies.map(c=>c.kUnit?{name:c.name,k:Math.round(514.4/kf(c.k,c.kUnit)),spd:c.spd}:c);store.set('jump',S.jump);store.set('canopies',S.canopies)}
 var view3d=false;let me=null,compass=null,mode='none',tool=null,follow=false,J=null,selRing=null;
@@ -1106,7 +1109,7 @@ document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showPage(2)}if
 
 
 /* ================= Military CYPRES (para 5.10, 5.11, 2.1 C and D) ================= */
-const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'PNS (1000 35A)',act:1000,sep:1300}};
+const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300}};
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
 async function checkHrpo(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},...(J.ffM>0?[{n:'PRP',p:J.prp}]:[{n:'OP',p:J.op}])];if(J2)centres.push({n:'HARP 2',p:J2.harp});
@@ -1170,7 +1173,7 @@ $('#cloudPlay').onclick=()=>{if(clTimer){clearInterval(clTimer);clTimer=null;$('
 $('#cloudX').onclick=()=>{if(clTimer){clearInterval(clTimer);clTimer=null;$('#cloudPlay').textContent='▶'}$('#cloudBar').hidden=true;S.ov.cloud=false;save('ov');applyOverlays();renderOvList()};
 
 /* ================= canopies ================= */
-const GENERIC_CANOPIES=[{name:'HG380',k:31,spd:20.8},{name:'RA1',k:36,spd:22.6},{name:'HG380(PM)',k:39,spd:20.8},{name:'MJ (MS360)',k:45,spd:22},{name:'MJ (MP360)',k:46,spd:22},{name:'SOV3-TS (TP400)',k:46,spd:22},{name:'MMPS',k:46,spd:20.8},{name:'MC4/5',k:48,spd:20.8},{name:'MT2XX',k:48,spd:20.8},{name:'PNS',k:48,spd:20.8},{name:'SOV3-TS (TP460)',k:62,spd:30}];
+const GENERIC_CANOPIES=[{name:'HG380',k:31,spd:20.8},{name:'RA1',k:36,spd:22.6},{name:'HG380(PM)',k:39,spd:20.8},{name:'MJ (MS360)',k:45,spd:22},{name:'MJ (MP360)',k:46,spd:22},{name:'SOV3-TS (TP400)',k:46,spd:22},{name:'MMPS',k:46,spd:20.8},{name:'MC4/5',k:48,spd:20.8},{name:'MT2XX',k:48,spd:20.8},{name:'Non Standard',k:48,spd:20.8},{name:'SOV3-TS (TP460)',k:62,spd:30}];
 const loadFactor=()=>{const w=+S.jump.jumperKg||110,l=+S.jump.loadKg||0;return Math.sqrt((w+l)/w)};
 const kToFts=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;
 const allCanopies=()=>[...GENERIC_CANOPIES,...S.canopies];
@@ -1192,7 +1195,7 @@ function fillOpenSel(){const sel=$('[data-j="openAlt"]');if(!sel)return;const to
 function exitHint(){const e=$('#exitAglHint');if(e)e.textContent=`ft AMSL (${((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)).toLocaleString('en-GB')} ft AGL)`}
 function intervalHint(){const e=$('#intervalHint');if(!e)return;const gs=J&&!J.err?J.gsM:(+S.jump.kias||0)*KT;e.textContent=`seconds (${Math.round((+S.jump.interval||0)*gs)} m separation on opening)`}
 function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)-(+S.jump.casSF||0))/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.min(top,Math.max(1000,Math.round((+S.jump.pod2Open||6000)/500)*500));S.jump.pod2Open=v;sel.value=v;$('#pod2Jumpers').value=S.jump.pod2Jumpers}
-function syncJumpInputs(){syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=S.jump.hamoOffset||0;$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#runSel').value=S.jump.runMode||'into';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Into-wind heading minus 90°.',right:'Into-wind heading plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
+function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=S.jump.hamoOffset||0;$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#runSel').value=S.jump.runMode||'into';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Into-wind heading minus 90°.',right:'Into-wind heading plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
@@ -1209,14 +1212,17 @@ $('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==nul
 $('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy;for(let k=i+1;k<S.winds.length;k++){S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd}save('winds');renderWinds();renderJump()});
 
 /* winds aloft import (markschulze.net) */
-async function importWinds(){if(!S.pi){toast('Set the DIP first; winds are fetched for its position.');return}const h=+$('#windHour').value||0;$('#windSrc').textContent='Fetching winds aloft…';
-  try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://markschulze.net/winds/winds.php?lat=${S.pi.lat.toFixed(4)}&lon=${S.pi.lon.toFixed(4)}&hourOffset=${h}&referrer=JumpmasterTAK`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();
-    const alts=(j.altFt||Object.keys(j.direction||{}).map(Number)).map(Number).filter(a=>isFinite(a)).sort((a,b)=>a-b);if(!alts.length)throw new Error('no data');
-    const dirAt=a=>+j.direction[String(a)],spdAt=a=>+j.speed[String(a)];
-    const interp=(a)=>{if(a<=alts[0])return {dir:dirAt(alts[0]),spd:spdAt(alts[0])};const top=alts[alts.length-1];if(a>=top)return {dir:dirAt(top),spd:spdAt(top)};for(let i=0;i<alts.length-1;i++){if(a<=alts[i+1]){const f=(a-alts[i])/(alts[i+1]-alts[i]);const d1=dirAt(alts[i]),d2=dirAt(alts[i+1]),s1=spdAt(alts[i]),s2=spdAt(alts[i+1]);const u1=s1*Math.sin(d1*D2R),v1=s1*Math.cos(d1*D2R),u2=s2*Math.sin(d2*D2R),v2=s2*Math.cos(d2*D2R);const u=u1+(u2-u1)*f,v=v1+(v2-v1)*f;return {dir:norm(Math.atan2(u,v)*R2D),spd:Math.hypot(u,v)}}}return {dir:0,spd:0}};
-    syncWindRows();S.winds.forEach(w=>{const x=interp(w.alt);w.dir=Math.round(x.dir);w.spd=Math.round(x.spd)});save('winds');renderWinds();renderJump();
-    const when=j.validtime||j.validTime||'';$('#windSrc').textContent=`Winds aloft from markschulze.net for the DIP, ${h?`+${h} h`:'now'}${when?` (valid ${when})`:''}. Check against the met brief.`;toast('Winds imported')}
-  catch(e){$('#windSrc').textContent='Could not fetch winds aloft. This needs the page to be hosted outside claude.ai with internet access; otherwise enter the winds by hand.';toast('Winds aloft fetch failed',4000)}}
+async function importWinds(){if(!S.pi){toast('Set the DIP first; winds are fetched for its position.');return}const h=+$('#windHour').value||0,model=$('#windModel').value||'ukmo_seamless';S.set.windModel=model;save('set');$('#windSrc').textContent='Fetching winds aloft…';
+  const P=[1000,975,950,925,900,850,800,700,600,500,400,300];const vars=['wind_speed_10m','wind_direction_10m',...P.flatMap(l=>[`wind_speed_${l}hPa`,`wind_direction_${l}hPa`,`geopotential_height_${l}hPa`])].join(',');
+  try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),15000);const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${S.pi.lat.toFixed(4)}&longitude=${S.pi.lon.toFixed(4)}&hourly=${vars}&wind_speed_unit=kn&forecast_hours=${h+1}&timezone=GMT&models=${model}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();if(j.error)throw new Error(j.reason||'error');const H=j.hourly,i=h;
+    const gnd=(+S.jump.dzElev||0)*FT;const prof=[];const add=(hm,spd,dir)=>{if(hm==null||spd==null||dir==null||!isFinite(hm))return;prof.push({hm,x:spd*Math.sin(dir*D2R),y:spd*Math.cos(dir*D2R)})};
+    add(gnd+10,H.wind_speed_10m[i],H.wind_direction_10m[i]);P.forEach(l=>{const z=H[`geopotential_height_${l}hPa`]?.[i];if(z!=null&&z>gnd+10)add(z,H[`wind_speed_${l}hPa`][i],H[`wind_direction_${l}hPa`][i])});
+    prof.sort((a,b)=>a.hm-b.hm);if(prof.length<3)throw new Error('profile too short');
+    const at=hm=>{if(hm<=prof[0].hm)return prof[0];const top=prof[prof.length-1];if(hm>=top.hm)return top;for(let k=0;k<prof.length-1;k++){const a=prof[k],b=prof[k+1];if(hm<=b.hm){const f=(hm-a.hm)/(b.hm-a.hm);return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f}}}return top};
+    syncWindRows();S.winds.forEach(w=>{const q=at(w.alt*FT);w.dir=Math.round(norm(Math.atan2(q.x,q.y)*R2D));w.spd=Math.round(Math.hypot(q.x,q.y))});save('winds');renderWinds();renderJump();
+    const name=$('#windModel').selectedOptions[0].textContent;$('#windSrc').textContent=`Imported ${name} model winds via Open-Meteo for the DIP, valid ${H.time[i].slice(11,16)}Z ${H.time[i].slice(0,10)}. Interpolated to the table altitudes. Check against the met brief.`;toast('Winds imported')}
+  catch(e){$('#windSrc').textContent=`Could not fetch winds aloft (${e.name==='AbortError'?'timed out':e.message||'network blocked'}). Inside claude.ai this is blocked; on the hosted page check the signal and try another model.`;toast('Winds aloft fetch failed',4000)}}
+$('#windSchulze').onclick=()=>{if(!S.pi){toast('Set the DIP first');return}const ll=`${S.pi.lat.toFixed(5)}, ${S.pi.lon.toFixed(5)}`;(navigator.clipboard?navigator.clipboard.writeText(ll):Promise.reject()).catch(()=>{});window.open('https://markschulze.net/winds/','_blank','noopener');toast(`DIP position copied: ${ll}. Paste it into the site's location box.`,6000)};
 $('#windImport').onclick=importWinds;
 $('#windFill').onclick=()=>{for(let k=1;k<S.winds.length;k++){S.winds[k].dir=S.winds[0].dir;S.winds[k].spd=S.winds[0].spd}save('winds');renderWinds();renderJump()};
 
@@ -1245,7 +1251,7 @@ function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r
 function redrawAll(){renderJump();renderMarkers();renderXs();renderDraws();renderRng();drawGrid();if(trailLine)trailLine.setStyle({color:cssv('--self')});drawMe();updateBar();updateHound();renderPoints()}
 function syncSetup(){const s=S.set;$('#sCall').value=s.callsign||'';renderCall();$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
 const setS=(k,v,after)=>{S.set[k]=v;save('set');after&&after()};
-function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'GPS'}
+function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'JUMPMASTER'}
 $('#sCall').oninput=e=>setS('callsign',e.target.value,renderCall);
 $('#sCoord').onchange=e=>setS('coord',e.target.value,redrawAll);
 $('#sDist').onchange=e=>setS('dist',e.target.value,redrawAll);
