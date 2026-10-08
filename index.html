@@ -120,6 +120,13 @@ button,input,select{font:inherit;color:inherit}
 /* ---------- bloodhound ---------- */
 #hJump{display:contents}#hJump[hidden]{display:none}#autoJump[aria-pressed="true"]{background:var(--go);color:#141414;border-color:var(--go)}
 #hud{position:absolute;z-index:1100;background:rgba(16,16,16,.45);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
+#hud[data-dock="box"]{right:8px;border-radius:10px;border-left-width:5px;min-height:0}
+#hud[data-dock="box"] .docks,#hud[data-dock="box"] .hfoot [data-preset],#hud[data-dock="box"] .hfoot .note{display:none}
+#hud[data-dock="box"] .hhead{padding:2px 4px 2px 8px;gap:4px;border-bottom:none}#hud[data-dock="box"] .hname{font-size:13px}#hud[data-dock="box"] #hStop{width:22px;height:22px;min-height:0;padding:0;font-size:12px}
+#hud[data-dock="box"] .hbody{padding:0 6px;gap:4px;grid-template-columns:auto 1fr;min-height:0}#hud[data-dock="box"] #dial{width:44px;height:44px}
+#hud[data-dock="box"] .tiles{grid-template-columns:1fr 1fr;grid-auto-rows:auto;height:auto;gap:3px}#hud[data-dock="box"] .tile{padding:1px 5px;border-radius:6px}
+#hud[data-dock="box"] .tile small{font-size:9px}#hud[data-dock="box"] .tile b{font-size:17px}
+#hud[data-dock="box"] .hfoot{padding:3px 6px;gap:4px;border-top:none}#hud[data-dock="box"] .hfoot .btn{padding:2px 6px;font-size:11px;flex:1}
 #hud[data-dock="bottom"]{left:0;right:0;bottom:0;height:auto;max-height:180px;border-radius:12px 12px 0 0}
 #hud[data-dock="top"]{left:0;right:0;top:0;height:auto;max-height:242px;border-radius:0 0 12px 12px;padding-top:62px}
 #hud[data-dock="left"]{left:0;top:0;bottom:0;width:50%;border-radius:0 12px 12px 0}
@@ -646,11 +653,11 @@ const S={
   set:Object.assign({},DEF_SET,store.get('set',{})),
   ov:Object.assign({},DEF_OV,store.get('ov',{})),
   target:store.get('target',null),
-  hound:Object.assign({dock:'bottom',tiles:['range','brgT','eta','agl']},store.get('hound',{})),
+  hound:Object.assign({dock:'box',tiles:['range','brgT','eta','agl']},store.get('hound',{})),
   missions:store.get('missions',[]),
   mission:store.get('mission',null)
 };
-const save=k=>{if(k!=='xs')store.set(k,S[k])};store.set('xs',[]);// Red X is a quick check and is never stored
+const save=k=>{if(k!=='xs')store.set(k,S[k])};if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
 if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
@@ -1074,7 +1081,11 @@ function startJumpAs(k){if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;st
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Navigate to ${r.name}`}
+// the box sits just right of the JUMPMASTER box, same height and bottom line, filling the space to the right
+function placeHud(){const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
+  h.style.left=Math.round(st.right-mw.left+6)+'px';h.style.bottom=Math.round(mw.bottom-st.bottom)+'px';h.style.height=Math.round(st.height)+'px'}
+if(window.ResizeObserver)new ResizeObserver(placeHud).observe($('#status'));window.addEventListener('resize',placeHud);
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Navigate to ${r.name}`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
