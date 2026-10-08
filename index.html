@@ -781,7 +781,7 @@ async function adsbPoll(){clearTimeout(adsbT);if(!S.ov.adsb)return;const c=S.pi|
   try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),8000);const r=await fetch(`${ADSB_URL}?lat=${c.lat.toFixed(3)}&lon=${c.lon.toFixed(3)}&r=40`,{signal:ctl.signal});clearTimeout(t);if(!r.ok)throw new Error(r.status);const j=await r.json();
     adsbAc=(j.ac||[]).filter(a=>isFinite(a.lat)&&isFinite(a.lon)&&(a.seen_pos==null||a.seen_pos<60));adsbErr=0;drawAdsb()}
   catch(e){if(++adsbErr===3)toast('Live aircraft feed not reachable. Check internet; retrying.',4500)}
-  adsbT=setTimeout(adsbPoll,document.hidden?30000:5000)}
+  adsbT=setTimeout(adsbPoll,document.hidden?60000:10000)}
 function drawAdsb(){LY.adsb.clearLayers();adsbAc.forEach(a=>{const jmp=a.hex===S.set.jumpAc,alt=adsbAlt(a),col=jmp?'#FFD400':'#7FD3FF',toH=jmp&&J&&!J.err?` · HARP ${fd(dist(a,J.harp))}`:'';
     const html=`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28" style="transform:rotate(${a.track||0}deg);overflow:visible"><path d="M0-12 2-3 11 2 11 4 2 1 1.5 8 5 11 5 12.5 0 11-5 12.5-5 11-1.5 8-2 1-11 4-11 2-2-3Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="lbl" style="position:absolute;left:28px;top:-2px;color:${col}">${esc(adsbName(a))}<br>${alt==null?'GND':ff(alt)} · ${Math.round(a.gs||0)} kt${toH}</span></div>`;
     L.marker([a.lat,a.lon],{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html}),zIndexOffset:jmp?900:500}).on('click',()=>adsbSheet(a.hex)).addTo(LY.adsb)});g3Air()}
