@@ -372,7 +372,7 @@ table.winds td small{font-size:11px}
         <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan Jump</button><button data-jm="winds" aria-pressed="false">Winds</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump Vital Data</button></div>
 
         <div data-jm-panel="plan">
-          <button class="mhead mt" id="mHead"><span>Jump Params:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
+          <button class="mhead mt" id="mHead"><span>Plan Jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
           <div data-pp="1">
           <section class="sec">
             <h3>Sortie</h3>
@@ -459,7 +459,7 @@ table.winds td small{font-size:11px}
         </div>
 
         <div data-jm-panel="summary" hidden>
-          <button class="mhead mt" id="mHead2"><span>Jump Params:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
+          <button class="mhead mt" id="mHead2"><span>Plan Jump:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
           <div id="sumOut"></div>
         </div>
 
@@ -1114,7 +1114,7 @@ function closeRadial(){$('#radial').hidden=true}
 map.on('movestart zoomstart click',closeRadial);
 function dipRadial(){openRadial(S.pi,[
   {l:'Edit DIP',icon:'edit',f:()=>sheet({title:'Edit DIP',sub:fc(S.pi),input:{label:'Grid or lat, long',value:fc(S.pi),save:v=>{const p=parseCoord(v);if(!p){toast('Grid not recognised');return}S.pi=Object.assign({},S.pi,p);save('pi');renderJump();autoDzElev()}},buttons:[['Name',()=>sheet({title:'DIP name',input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump()}},buttons:[]})],['Move: tap on map',()=>{openTool('jump');setMode('pi','Tap the map to set the DIP');$('#tool').classList.add('min')}],['Use my position',()=>{if(!me){toast('No position yet');return}setDipAt(me)}],['DZ elevation',()=>sheet({title:'DZ elevation',sub:`${ff(+S.jump.dzElev)} AMSL${S.jump.dzSrc?` · ${S.jump.dzSrc}`:''}`,buttons:[['Refresh from terrain',()=>autoDzElev(true),'primary'],['Edit manually',()=>sheet({title:'Change DZ elevation?',sub:'This overrides the terrain value for this DIP and changes every calculation.',buttons:[['Yes, edit',()=>sheet({title:'DZ elevation',input:{label:'ft AMSL',type:'number',value:S.jump.dzElev,save:v=>{const n=parseFloat(v);if(isFinite(n)){S.jump.dzElev=n;S.jump.dzSrc='entered manually';save('jump');syncJumpInputs();renderWinds();renderJump();toast('DZ elevation set to '+ff(n))}}},buttons:[]}),'danger']]})]]})],['Delete DIP',deleteDipAsk,'danger']]})},
-  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
+  {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:patternSheet},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
@@ -1123,7 +1123,7 @@ function dipRadial(){openRadial(S.pi,[
 function harpRadial(){if(!J||J.err)return;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
   {l:'Start Jump',icon:'hound',f:()=>setTarget('c:harp')},
-  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
+  {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}])}
 /* alternate DIPs */
 function altDipSheet(){sheet({title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>swapDip(d.id)])]})}
