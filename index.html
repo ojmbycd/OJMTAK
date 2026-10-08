@@ -140,7 +140,7 @@ button,input,select{font:inherit;color:inherit}
 #hud .iconbtn{background:none;color:#eee;border-color:rgba(255,255,255,.18)}
 .hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
 #hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-#dial{width:min(26vmin,120px);height:min(26vmin,120px);justify-self:center}
+#dial{width:min(26vmin,120px);height:min(26vmin,120px);justify-self:center;overflow:visible}
 /* compact strip when docked top or bottom: small dial, four readouts in one row, about the height of the JUMPMASTER box */
 #hud[data-dock="bottom"] .hhead,#hud[data-dock="top"] .hhead{padding:3px 8px}
 #hud[data-dock="bottom"] .hbody,#hud[data-dock="top"] .hbody{padding:4px 8px;gap:6px}
@@ -155,7 +155,7 @@ button,input,select{font:inherit;color:inherit}
 #dial .ring{fill:none;stroke:rgba(255,255,255,.25);stroke-width:3}
 #dial .tick{stroke:#bbb;stroke-width:2}
 #dial .nmark{font:400 13px var(--cond);fill:#bbb;text-anchor:middle}
-#dialArrow path{fill:var(--go)}
+#dialArrow path{fill:var(--go)}#dialTgt path{fill:#fff;stroke:#141414;stroke-width:2}#dialDip{fill:none;stroke:#FF2A2A;stroke-width:3.5}
 #hud.st-outer #dialArrow path{fill:var(--amber)}
 #hud.st-inner #dialArrow path{fill:var(--stop)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:6px;height:100%;min-height:0}
@@ -319,7 +319,8 @@ table.winds td small{font-size:11px}
         <svg id="dial" viewBox="-50 -50 100 100" aria-hidden="true">
           <circle r="44" class="ring"/>
           <g id="dialN"><line class="tick" x1="0" y1="-44" x2="0" y2="-36"/><text class="nmark" y="-24">N</text></g>
-          <g id="dialArrow"><path d="M0,-36 L13,14 L0,5 L-13,14Z"/></g>
+          <g id="dialArrow"><path d="M0,-17 L11,12 L0,6 L-11,12Z"/></g>
+          <g id="dialTgt"><path id="dialHarp" d="M0,-50 L8,-42 L0,-34 L-8,-42Z"/><circle id="dialDip" cy="-42" r="6.5"/></g>
         </svg>
         <div class="tiles" id="tiles"></div>
       </div>
@@ -1100,7 +1101,8 @@ function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolv
 $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-dock]');if(d){S.hound.dock=d.dataset.dock;save('hound');renderTiles();updateHound();setTimeout(()=>map.invalidateSize(),50);return}
   const pr=e.target.closest('[data-preset]');if(pr){const P=PRESETS[pr.dataset.preset];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound();return}
   const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
-function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue();if(ht){$('#dialArrow').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialArrow').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
+// my arrow stays fixed pointing up (my heading); the target diamond moves round the ring to its bearing relative to me
+function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue(),dip=S.target==='c:pi';$('#dialHarp').style.display=dip?'none':'';$('#dialDip').style.display=dip?'':'none';$('#dialArrow').setAttribute('transform','');if(ht){$('#dialTgt').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialTgt').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
 $('#zIn').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomIn(c.positionCartographic.height*.4)}else map.zoomIn()};$('#zOut').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomOut(c.positionCartographic.height*.6)}else map.zoomOut()};
 document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
