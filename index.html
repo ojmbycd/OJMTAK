@@ -475,7 +475,8 @@ table.winds td small{font-size:11px}
           <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds</button></div>
           <div class="row mt"><button class="btn" id="windSchulze">Open winds aloft at DIP</button><button class="btn" id="windFileBtn">Load winds file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
           <p class="note" id="windSrc"></p>
-          <table class="winds"><thead><tr><th>Alt ft (m)</th><th>From °T</th><th>Kt</th><th>Value</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
+          <div class="row mt"><button class="btn" id="windSwap">Dir / Kt ⇄</button><button class="btn" id="windOrder">Alt ↑</button></div>
+          <table class="winds"><thead><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
           <div class="row mt"><button class="btn" id="windFill">Copy top row down</button></div>
           <div class="warn">Starting layers are placeholders. Enter the forecast or measured winds for the drop.</div>
           <h3>Release solution</h3>
@@ -1483,9 +1484,14 @@ $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('G
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=+S.jump.exitAlt||0;const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
 function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:270,spd:near?near.spd:10}});save('winds')}
 function windValue(spd){const cs=+S.jump.canopySpeed||0;if(!(cs>0))return '–';const r=spd/cs;return r<0.05?'Zero':r<0.375?'¼':r<0.625?'½':r<0.875?'¾':r<=1.05?'Full':'Full+'}
-function renderWinds(){syncWindRows();$('#windRows').innerHTML=S.winds.map((w,i)=>`<tr><td style="font:400 15px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="dir" value="${w.dir}"></td><td><input type="number" inputmode="decimal" data-w="${i}" data-f="spd" value="${w.spd}"></td><td class="wv" style="font:400 15px var(--cond);white-space:nowrap">${windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`).join('')}
+function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
+function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Kt / Dir ⇄':'Dir / Kt ⇄';$('#windOrder').textContent=S.set.windDesc?'Alt ↓ (high first)':'Alt ↑ (low first)';
+  $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Kt</th><th>From °T</th>':'<th>From °T</th><th>Kt</th>'}<th>Value</th><th></th>`;
+  const cell=(i,f,v)=>`<td><input type="number" inputmode="decimal" data-w="${i}" data-f="${f}" value="${v}"></td>`;
+  $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 15px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:400 15px var(--cond);white-space:nowrap">${windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('')}
+$('#windSwap').onclick=()=>{S.set.windVelFirst=!S.set.windVelFirst;save('set');renderWinds()};$('#windOrder').onclick=()=>{S.set.windDesc=!S.set.windDesc;save('set');renderWinds()};
 $('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.winds[i][e.target.dataset.f]=e.target.dataset.f==='dir'?norm(v):v;save('winds');const row=e.target.closest('tr');if(row)row.querySelector('.wv').textContent=windValue(+S.winds[i].spd);clearTimeout(jt);jt=setTimeout(renderJump,200)});
-$('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy;for(let k=i+1;k<S.winds.length;k++){S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd}save('winds');renderWinds();renderJump()});
+$('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy,o=windOrder();o.slice(o.indexOf(i)+1).forEach(k=>{S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd});save('winds');renderWinds();renderJump()});
 
 /* winds aloft import (markschulze.net) */
 async function importWinds(){if(!S.pi){toast('Set the DIP first; winds are fetched for its position.');return}const h=+$('#windHour').value||0,model=$('#windModel').value||'ukmo_seamless';S.set.windModel=model;save('set');$('#windSrc').textContent='Fetching winds aloft…';
@@ -1510,7 +1516,7 @@ function loadWindsText(txt,name){const lines=txt.split(/\r?\n/);const agl=/agl/i
   if(qnh){S.jump.qnh=Math.round(qnh);S.jump.qnhUnit='mb';S.jump.qnhUnknown=false;save('jump');syncCypInputs()}renderWinds();renderJump();
   $('#windSrc').textContent=`Loaded winds from ${name}: ${rows.length} levels (ft ${agl?'AGL, converted to AMSL':'AMSL'}), interpolated to the table altitudes${qnh?`; QNH ${Math.round(qnh)} mb`:''}. Check against the met brief.`;toast('Winds loaded from file')}
 $('#windImport').onclick=importWinds;
-$('#windFill').onclick=()=>{for(let k=1;k<S.winds.length;k++){S.winds[k].dir=S.winds[0].dir;S.winds[k].spd=S.winds[0].spd}save('winds');renderWinds();renderJump()};
+$('#windFill').onclick=()=>{const o=windOrder(),t=o[0];o.slice(1).forEach(k=>{S.winds[k].dir=S.winds[t].dir;S.winds[k].spd=S.winds[t].spd});save('winds');renderWinds();renderJump()};
 
 
 /* ================= mission packages ================= */
