@@ -181,7 +181,7 @@ button,input,select{font:inherit;color:inherit}
 .g3b{flex:1;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 15px var(--cond);backdrop-filter:blur(3px);cursor:pointer}.g3b[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .g3sw{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 14px var(--cond);backdrop-filter:blur(3px)}.g3sw input{flex:1;min-width:0;accent-color:#F4F4F4}.g3sw output{width:34px;text-align:right}
 #heatKey{position:absolute;left:50%;transform:translateX(-50%);top:72px;z-index:950;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.75);color:#fff;font:400 12px var(--cond);cursor:pointer;white-space:nowrap}#heatKey[hidden]{display:none}#heatKey span{display:inline-block;width:12px;height:10px;border-radius:2px;margin-left:4px}
-#pickCatch{position:absolute;inset:0;z-index:1000;touch-action:none}#mapwrap.picking #zoom{z-index:1260}#pickCatch[hidden]{display:none}
+#pickCatch{position:absolute;inset:0;z-index:1000;touch-action:none}.pkglist{grid-column:1/-1;flex-basis:100%;width:100%;display:flex;flex-direction:column;gap:4px;max-height:40vh;overflow:auto;margin-bottom:6px}.pkgrow{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border:1px solid var(--line);border-radius:8px;font:400 15px var(--cond)}.pkgrow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pkgx{width:26px;height:26px;flex:none;border-radius:50%;border:none;background:var(--x);color:#fff;font:700 13px/1 var(--body);cursor:pointer;padding:0}#mapwrap.picking #zoom{z-index:1260}#pickCatch[hidden]{display:none}
 #pickBar{position:absolute;top:70px;left:60px;right:8px;z-index:1250;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(16,16,16,.6);backdrop-filter:blur(6px);color:#fff;font:400 14px var(--cond)}#pickBar[hidden]{display:none}
 .pickrow{display:flex;gap:6px;align-items:center}.pickrow b{flex:1;font:500 16px var(--cond)}.pickrow button{flex:1;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 14px var(--cond);cursor:pointer}.pickrow button[aria-pressed="true"]{background:#F4F4F4;color:#141414}.pickrow button.go{background:var(--go);color:#141414;border-color:var(--go)}
 #mapwrap.g3 .leaflet-control-container,#mapwrap.g3 #map{visibility:hidden}
@@ -331,7 +331,7 @@ table.winds td small{font-size:11px}
 
       <!-- RED X -->
       <div class="panel" data-tool-panel="redx">
-        <p class="note" style="margin-top:0">Tap the map to plot a red X. Tap an X to name it, see its grid and ground altitude, or bloodhound to it.</p>
+        <p class="note" style="margin-top:0">Quick check: tap the map to drop an X and see its grid and ground altitude. Tap an X to remove it. X's are never saved and clear when you close the Marker tool.</p>
         <div class="row"><button class="btn" id="xMe">Plot at my position</button><button class="btn danger" id="xClear">Clear all</button></div>
         <h3>Plotted</h3>
         <div class="list" id="xList"></div>
@@ -634,7 +634,7 @@ const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
   markers:store.get('markers',[]),
-  xs:store.get('xs',[]),
+  xs:[],
   draws:store.get('draws',[]),
   rng:store.get('rng',[]),
   pi:store.get('pi',null),
@@ -650,7 +650,7 @@ const S={
   missions:store.get('missions',[]),
   mission:store.get('mission',null)
 };
-const save=k=>store.set(k,S[k]);
+const save=k=>{if(k!=='xs')store.set(k,S[k])};store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
 if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
@@ -732,7 +732,7 @@ let elevWarned=false;
 async function groundElevM(p){try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),5000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p.lat.toFixed(5)}&longitude=${p.lon.toFixed(5)}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();const v=j&&j.elevation&&j.elevation[0];return isFinite(v)?v:null}catch(e){return null}}
 async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
   if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Ground elevation lookup is blocked on this page. Tap a Red X to enter its altitude, or host the file to get it automatically.',6500)}save('xs');renderXs()}}
-function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[34,34],iconAnchor:[17,17],html:`<div style="position:relative;width:34px;height:34px"><svg viewBox="-17 -17 34 34" width="34" height="34" style="overflow:visible"><path d="M-11-11 11 11M11-11-11 11" stroke="${bg}" stroke-width="9" stroke-linecap="round"/><path d="M-11-11 11 11M11-11-11 11" stroke="${col}" stroke-width="5" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:34px;top:0">${lab}</span></div>`})}).on('click',()=>xActions(x.id)).addTo(LY.xs)});
+function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[34,34],iconAnchor:[17,17],html:`<div style="position:relative;width:34px;height:34px"><svg viewBox="-17 -17 34 34" width="34" height="34" style="overflow:visible"><path d="M-11-11 11 11M11-11-11 11" stroke="${bg}" stroke-width="9" stroke-linecap="round"/><path d="M-11-11 11 11M11-11-11 11" stroke="${col}" stroke-width="5" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:32px;top:1px;font-size:12px;line-height:1.2">${esc(fc(x))}<br>${x.alt!=null?`${ff(x.alt)} AMSL`:'Alt …'}</span></div>`})}).on('click',()=>{S.xs=S.xs.filter(y=>y.id!==x.id);renderXs()}).addTo(LY.xs)});
   $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>${esc(x.name||`X${i+1}`)} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
 function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;const nm=x.name||`X${i+1}`;sheet({title:nm,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:' · Alt –'),input:{label:'Name',value:nm,save:v=>{x.name=v.trim()||nm;save('xs');renderXs()}},
   buttons:[['Bloodhound',()=>setTarget('x:'+id),'primary'],['Set altitude',()=>sheet({title:`${nm} altitude`,sub:x.alt!=null?ff(x.alt):'Not set',input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},buttons:[]})],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as DIP',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('DIP set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
@@ -1230,7 +1230,7 @@ function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Re
 const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jumpmaster'};
 function openTool(t){finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
   if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base);$$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
-function closeTool(){finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
+function closeTool(){if(tool==='redx'&&S.xs.length){S.xs=[];renderXs()}finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
 $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===t)closeTool();else if(t==='jump')jmMenu();else openTool(t)});
 // JM button: choose to place a DIP, pick a saved one, or go straight to the plan
 function jmMenu(){sheet({title:'Jumpmaster',sub:S.pi?`DIP SELECTED: ${S.pi.name||'DIP'}`:'No DIP set yet',buttons:[['Place DIP',()=>{openTool('jump');setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')},'primary'],['Saved DIPs',savedDipsSheet,'primary'],['Jump plan',()=>openTool('jump')]]})}
@@ -1450,8 +1450,11 @@ function loadMission(id){const m=S.missions.find(x=>x.id===id);if(!m)return;cons
 // what a package holds, as removable entries
 function pkgItems(d){const out=[];if(d.pi)out.push({key:'pi:dip',l:`DIP ${d.pi.name||''}`.trim()});(d.xs||[]).forEach((x,i)=>out.push({key:'xs:'+x.id,l:`Red X ${x.name||i+1}`}));(d.markers||[]).forEach(m=>out.push({key:'markers:'+m.id,l:`Point ${m.name||''}`}));
   (d.draws||[]).forEach(o=>out.push({key:'draws:'+o.id,l:o.kind==='text'?`Text "${o.text}"`:o.kind==='line'?`Line ${fd(pathLen(o.pts))}`:'Freehand'}));(d.rng||[]).forEach(o=>out.push({key:'rng:'+o.id,l:o.kind==='ring'?`Range ring ×${o.n}`:`Range line ${fd(dist(o.a,o.b))}`}));(d.altDips||[]).forEach(o=>out.push({key:'altDips:'+o.id,l:`Alt DIP ${o.name}`}));return out}
-function pkgItemsSheet(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const it=pkgItems(m.data);sheet({title:`${m.name}: ${it.length} item${it.length===1?'':'s'}`,sub:it.length?'Tap an item to remove it from the package. Jump settings and winds are always included.':'No map items. Jump settings and winds are included.',buttons:[['Add or remove on map',()=>pkgEditOnMap(id),'primary'],
-  ...it.map(x=>[`✕ ${x.l}`,()=>{const [k,i]=x.key.split(':');if(k==='pi')m.data.pi=null;else m.data[k]=(m.data[k]||[]).filter(o=>o.id!==i);m.saved=Date.now();save('missions');renderMissions();pkgItemsSheet(id)}])]})}
+function pkgItemsSheet(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const it=pkgItems(m.data);sheet({title:`${m.name}: ${it.length} item${it.length===1?'':'s'}`,sub:it.length?'Use the red ✕ to take an item out. Jump settings and winds are always included.':'No map items. Jump settings and winds are included.',buttons:[['Add or remove on map',()=>pkgEditOnMap(id),'primary']]});
+  // item rows with a small red remove button each; tapping the name does nothing
+  const box=document.createElement('div');box.className='pkglist';box.innerHTML=it.map(x=>`<div class="pkgrow"><span>${esc(x.l)}</span><button class="pkgx" data-k="${esc(x.key)}" aria-label="Remove ${esc(x.l)}">✕</button></div>`).join('');
+  box.onclick=e=>{const b=e.target.closest('.pkgx');if(!b)return;const [k,i]=b.dataset.k.split(':');if(k==='pi')m.data.pi=null;else m.data[k]=(m.data[k]||[]).filter(o=>o.id!==i);m.saved=Date.now();save('missions');renderMissions();pkgItemsSheet(id)};
+  $('#actBtns').prepend(box)}
 // put the package's items on the map (alongside what is there) and reopen the selection bar with them ticked
 function pkgEditOnMap(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const d=JSON.parse(JSON.stringify(m.data));PICK_TYPES.forEach(([k])=>{(d[k]||[]).forEach(o=>{if(!(S[k]||[]).some(x=>x.id===o.id))S[k].push(o)});save(k)});if(d.pi){S.pi=d.pi;save('pi')}
   redrawAll();renderJump();closeDrawer();startPick(m.name,id,pkgItems(m.data).map(x=>x.key));if(d.pi)map.setView(LL(d.pi),Math.max(map.getZoom(),12));toast('Package items are ticked. Tap or lasso to change, then Save changes.',4500)}
@@ -1490,7 +1493,7 @@ function missionActions(id){const m=S.missions.find(x=>x.id===id);if(!m)return;c
 $('#mHead').onclick=()=>openDrawer('missions');
 $('#mSaveNew').onclick=()=>{const name=$('#mInput').value;sheet({title:'What goes in the package?',sub:'The DIP, jump settings and winds are always included.',buttons:[['Everything on the map',()=>{saveMission(name);$('#mInput').value=''},'primary'],['Choose items',()=>{closeDrawer();startPick(name)},'primary']]})};
 /* package selection: pick map items by tapping, lasso or type; the jump plan itself always goes in */
-const PICK_TYPES=[['xs','Red Xs'],['markers','Points'],['draws','Drawings'],['rng','Range tools'],['altDips','Alt DIPs']];
+const PICK_TYPES=[['markers','Points'],['draws','Drawings'],['rng','Range tools'],['altDips','Alt DIPs']];
 let pick=null;const pickLayer=L.layerGroup().addTo(map);
 function pickPts(k,o){if(k==='draws')return o.kind==='text'?[o.p]:o.pts;if(k==='rng')return o.kind==='ring'?[o.c]:[o.a,o.b];return [o]}
 function pickAll(){return (S.pi?[{k:'pi',o:S.pi,key:'pi:dip',pts:[S.pi]}]:[]).concat(PICK_TYPES.flatMap(([k])=>(S[k]||[]).map(o=>({k,o,key:k+':'+o.id,pts:pickPts(k,o)}))))}
