@@ -367,7 +367,7 @@ table.winds td small{font-size:11px}
           <section class="sec">
             <h3>Desired impact point</h3>
             <div class="pi-grid" id="piGrid">Not set</div>
-            <div class="row"><input type="text" id="piInput" placeholder="Grid (30U WB 12345 67890) or lat, long" style="flex:1;min-width:200px"><button class="btn" id="piSet">Set DIP</button></div>
+            <div class="row"><input type="text" id="piInput" placeholder="Grid (30U WB 12345 67890) or lat, long" style="flex:1;min-width:200px"><button class="btn" id="piSet">Set DIP</button><button class="btn primary" id="piTap">Tap map</button></div>
           </section>
           <section class="sec">
             <h3>Jump profile</h3>
@@ -432,7 +432,7 @@ table.winds td small{font-size:11px}
           <div data-pp="2" hidden>
           <h3>Wind layers</h3>
           <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value is the wind as a fraction of the canopy's forward speed.</p>
-          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds aloft</button></div>
+          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds</button></div>
           <div class="row mt"><button class="btn" id="windSchulze">Cross-check on markschulze.net</button></div>
           <p class="note" id="windSrc"></p>
           <table class="winds"><thead><tr><th>Alt ft (m)</th><th>From °T</th><th>Kt</th><th>Value</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
@@ -1193,7 +1193,7 @@ map.on('click',e=>{const p={lat:e.latlng.lat,lon:e.latlng.lng};
     case 'altdip':addAltDip(p);setMode('none');return;
     case 'draw-free':return;
     case 'range':rangeTap(p);return;
-    case 'pi':S.pi=p;save('pi');renderJump();autoDzElev();setMode('none');toast('DIP set');if(tool==='jump')$('#tool').classList.remove('min');return;
+    case 'pi':setDipAt(p);setMode('none');if(tool==='jump')$('#tool').classList.remove('min');return;
     case 'drop':addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value='';return;
   }
   if(S.set.sim){onFix({lat:p.lat,lon:p.lon,acc:5,alt:null,spd:0,course:me?brg(me,p):null,sim:true})}});
@@ -1337,6 +1337,10 @@ $('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;save('jump');renderJump()};
 $('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
 $('#hamoSlider').oninput=e=>{S.jump.hamoOffset=+e.target.value;save('jump');renderJump()};
+$('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
+// long-press (or right-click) anywhere on the map offers to put the DIP there
+function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
+map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>setDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=+S.jump.exitAlt||0;const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
 function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:270,spd:near?near.spd:10}});save('winds')}
