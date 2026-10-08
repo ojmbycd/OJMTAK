@@ -40,7 +40,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-#app{height:100%;display:grid;grid-template-rows:minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
+#app{height:100%;display:grid;grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr);position:relative}
 #tool,#mapwrap{min-width:0;min-height:0}
 @media (orientation:landscape) and (min-width:640px){
   #app{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) auto}
@@ -119,9 +119,9 @@ button,input,select{font:inherit;color:inherit}
 
 /* ---------- bloodhound ---------- */
 #hJump{display:contents}#hJump[hidden]{display:none}#autoJump[aria-pressed="true"]{background:var(--go);color:#141414;border-color:var(--go)}
-#hud{position:absolute;z-index:1100;background:rgba(16,16,16,.88);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
-#hud[data-dock="bottom"]{left:0;right:0;bottom:0;height:50%;border-radius:12px 12px 0 0}
-#hud[data-dock="top"]{left:0;right:0;top:0;height:50%;border-radius:0 0 12px 12px;padding-top:62px}
+#hud{position:absolute;z-index:1100;background:rgba(16,16,16,.45);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
+#hud[data-dock="bottom"]{left:0;right:0;bottom:0;height:auto;max-height:180px;border-radius:12px 12px 0 0}
+#hud[data-dock="top"]{left:0;right:0;top:0;height:auto;max-height:242px;border-radius:0 0 12px 12px;padding-top:62px}
 #hud[data-dock="left"]{left:0;top:0;bottom:0;width:50%;border-radius:0 12px 12px 0}
 #hud[data-dock="right"]{right:0;top:0;bottom:0;width:50%;border-radius:12px 0 0 12px;padding-top:62px}
 #hud.st-outer{border-left-color:var(--amber)}
@@ -134,6 +134,17 @@ button,input,select{font:inherit;color:inherit}
 .hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
 #hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
 #dial{width:min(26vmin,120px);height:min(26vmin,120px);justify-self:center}
+/* compact strip when docked top or bottom: small dial, four readouts in one row, about the height of the JUMPMASTER box */
+#hud[data-dock="bottom"] .hhead,#hud[data-dock="top"] .hhead{padding:3px 8px}
+#hud[data-dock="bottom"] .hbody,#hud[data-dock="top"] .hbody{padding:4px 8px;gap:6px}
+#hud[data-dock="bottom"] #dial,#hud[data-dock="top"] #dial{width:58px;height:58px}
+#hud[data-dock="bottom"] .tiles,#hud[data-dock="top"] .tiles{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:auto;height:auto;gap:4px}
+#hud[data-dock="bottom"] .tile,#hud[data-dock="top"] .tile{padding:3px 6px}
+#hud[data-dock="bottom"] .tile small,#hud[data-dock="top"] .tile small{font-size:10px}
+#hud[data-dock="bottom"] .tile b,#hud[data-dock="top"] .tile b{font-size:clamp(15px,4.6vw,24px)}
+#hud[data-dock="bottom"] .hfoot,#hud[data-dock="top"] .hfoot{padding:3px 8px;gap:4px}
+#hud[data-dock="bottom"] .hfoot .btn,#hud[data-dock="top"] .hfoot .btn{padding:3px 8px;font-size:13px}
+#hud[data-dock="bottom"] .hfoot .note,#hud[data-dock="top"] .hfoot .note{display:none}
 #dial .ring{fill:none;stroke:rgba(255,255,255,.25);stroke-width:3}
 #dial .tick{stroke:#bbb;stroke-width:2}
 #dial .nmark{font:400 13px var(--cond);fill:#bbb;text-anchor:middle}
@@ -141,9 +152,9 @@ button,input,select{font:inherit;color:inherit}
 #hud.st-outer #dialArrow path{fill:var(--amber)}
 #hud.st-inner #dialArrow path{fill:var(--stop)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:6px;height:100%;min-height:0}
-.tile{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:left;color:inherit;min-width:0;overflow:hidden}
+.tile{background:rgba(16,16,16,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:left;color:inherit;min-width:0;overflow:hidden}
 .tile small{font:400 12px/1.2 var(--body);color:#BDBDBD;white-space:nowrap}
-.tile b{font:400 clamp(20px,6vmin,38px)/1.05 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile b{text-shadow:0 0 3px #000,0 0 2px #000;font:400 clamp(20px,6vmin,38px)/1.05 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hfoot{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 8px;border-top:1px solid rgba(255,255,255,.12)}
 .hfoot .btn{background:rgba(255,255,255,.08);color:#eee;border-color:rgba(255,255,255,.18);padding:6px 10px;font-weight:400}
 .hfoot .note{margin:0;font-size:12px;color:#BDBDBD}
@@ -176,8 +187,8 @@ button,input,select{font:inherit;color:inherit}
 #mapwrap.tilt::after{content:'3D view · tap the north pointer to exit';position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:1150;background:rgba(16,16,16,.8);color:#ddd;font:400 13px var(--cond);padding:3px 8px;border-radius:6px;pointer-events:none}
 
 /* ---------- tool sheet ---------- */
-#tool{background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--panel2)}
+#tool{position:absolute;left:0;right:0;bottom:0;z-index:1150;background:color-mix(in srgb,var(--panel) 62%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);border-radius:12px 12px 0 0;display:flex;flex-direction:column;min-height:0}
+.thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:color-mix(in srgb,var(--panel2) 55%,transparent);border-radius:12px 12px 0 0}
 .thead b{flex:1;font:500 19px/1.1 var(--cond)}
 .tbody{max-height:42vh;overflow:auto;overscroll-behavior:contain}
 #tool.tall .tbody{max-height:50vh}
@@ -1054,7 +1065,7 @@ $('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('houn
 $('#forceJump').onclick=()=>{phase='freefall';renderPhase();renderJump();startJumpAs('canopy');if(navigator.vibrate)navigator.vibrate([300,100,300]);toast('Jump forced: Canopy Data to the DIP',4000)};
 function startJumpAs(k){if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
-function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
+function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Bloodhound · ${r.name}`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
