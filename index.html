@@ -168,6 +168,7 @@ button,input,select{font:inherit;color:inherit}
 #g3bar{display:none;position:absolute;top:70px;right:8px;z-index:1200;flex-direction:column;gap:6px;width:220px}#mapwrap.g3 #g3bar{display:flex}.g3row{display:flex;gap:6px}
 .g3b{flex:1;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 15px var(--cond);backdrop-filter:blur(3px);cursor:pointer}.g3b[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .g3sw{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 14px var(--cond);backdrop-filter:blur(3px)}.g3sw input{flex:1;min-width:0;accent-color:#F4F4F4}.g3sw output{width:34px;text-align:right}
+#heatKey{position:absolute;left:50%;transform:translateX(-50%);top:72px;z-index:950;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.75);color:#fff;font:400 12px var(--cond);cursor:pointer;white-space:nowrap}#heatKey[hidden]{display:none}#heatKey span{display:inline-block;width:12px;height:10px;border-radius:2px;margin-left:4px}
 #mapwrap.g3 .leaflet-control-container,#mapwrap.g3 #map{visibility:hidden}
 #mapwrap.tilt{overflow:hidden}#mapwrap.tilt #map.leaflet-container{overflow:visible}
 #mapwrap.tilt #map{transform:perspective(900px) rotateX(48deg) scale(1.35);transform-origin:50% 60%}
@@ -265,6 +266,7 @@ table.winds td small{font-size:11px}
   <div id="mapwrap">
     <div id="map" aria-label="Map"></div>
     <div id="globe" aria-label="3D view" hidden></div>
+    <button id="heatKey" hidden title="Hide terrain heatmap"><b>Above DZ</b><span style="background:#2858FF"></span>below<span style="background:#28C85A"></span>level<span style="background:#FFD600"></span>+100<span style="background:#FF2A2A"></span>+200 ft ✕</button>
     <div id="g3bar" aria-label="3D view controls"><div class="g3row"><button class="g3b" id="g3Dip" aria-pressed="true">DIP view</button><button class="g3b" id="g3Harp" aria-pressed="false">HARP view</button></div><label class="g3sw"><span id="g3SwL">Orbit</span><input type="range" id="g3Sw" min="0" max="360" step="1" value="0" aria-label="Swivel 360 degrees"><output id="g3SwV">0°</output></label></div>
     <nav id="quick" aria-label="Quick menu">
       <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Marker</span></button>
@@ -463,7 +465,7 @@ table.winds td small{font-size:11px}
             <h3>VDZ / HRPO check</h3>
             <p class="note" id="hrpoRule"></p>
             <p id="hrpoOut" class="hrpo">Not checked yet.</p>
-            <div class="row"><button class="btn" id="hrpoCheck">Check again</button></div>
+            <div class="row"><button class="btn" id="hrpoCheck">Check again</button><button class="btn" id="hrpoHeat">Terrain heatmap</button></div>
             <div class="fields mt"><label class="fld">VDZ elevation override<em>ft AMSL, blank uses the check or the DZ</em><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
                       </section>
           <div id="milOut"></div>
@@ -913,7 +915,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     drop(J.prp,exA,c.amb);drop(J.op,pull,'#FFFFFF');drop(S.pi,lp,'#FFFFFF');J.marks.forEach(m=>{drop(m.p,m.agl,'#BBBBBB');L.circleMarker(LL(up(m.p,m.agl)),{radius:4,color:'#141414',weight:1,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(up(m.p,m.agl)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
     L.marker(LL(up(J.prp,exA)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">Exit ${ff(+S.jump.exitAlt)}</span>`}),interactive:false}).addTo(LY.jump);
     L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
-  if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:false}).addTo(LY.jump)}
+  if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:true}).on('click',hrpoSheet).addTo(LY.jump)}
   drawPI();
   out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}<dl class="res">
     <dd class="big" data-l="HARP">${fc(J.harp)}</dd>
@@ -1288,6 +1290,25 @@ $('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.ju
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
 $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
+// terrain heatmap: ground height relative to the DZ around the HARP, PRP, first and last out, from AWS Terrarium tiles (z14, about 10 m)
+let heatOn=false;const heatLayer=L.layerGroup().addTo(map);
+function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ · ${fc(h)}`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
+function hideHeat(){heatOn=false;heatLayer.clearLayers();$('#heatKey').hidden=true}
+async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius()*1.6,c=[J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(p=>[0,90,180,270].map(b=>dest(p,b,R)));
+  const Z=14,N=2**Z,px=p=>({x:(p.lon+180)/360*N*256,y:(1-Math.log(Math.tan(p.lat*D2R)+1/Math.cos(p.lat*D2R))/Math.PI)/2*N*256});
+  const P=c.map(px),x0=Math.floor(Math.min(...P.map(p=>p.x))),x1=Math.ceil(Math.max(...P.map(p=>p.x))),y0=Math.floor(Math.min(...P.map(p=>p.y))),y1=Math.ceil(Math.max(...P.map(p=>p.y)));
+  if((x1-x0)*(y1-y0)>4e6){toast('Area too large for the heatmap');return}toast('Loading terrain…');
+  const cv=document.createElement('canvas');cv.width=x1-x0;cv.height=y1-y0;const g=cv.getContext('2d',{willReadFrequently:true});
+  try{const jobs=[];for(let ty=Math.floor(y0/256);ty<=Math.floor((y1-1)/256);ty++)for(let tx=Math.floor(x0/256);tx<=Math.floor((x1-1)/256);tx++)jobs.push(fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`).then(r=>{if(!r.ok)throw new Error(r.status);return r.blob()}).then(createImageBitmap).then(bm=>g.drawImage(bm,tx*256-x0,ty*256-y0)));await Promise.all(jobs)}
+  catch(e){toast('Terrain tiles could not load. Check internet.');return}
+  const im=g.getImageData(0,0,cv.width,cv.height),d=im.data,dz=(+S.jump.dzElev||0)*FT;
+  // colour by height above the DZ: blue below, green level, yellow +100 ft, red at +200 ft (HRPO) and above
+  const stops=[[-200,[40,90,255]],[0,[40,200,90]],[100,[255,214,0]],[200,[255,42,42]],[500,[150,0,60]]];
+  const colr=f=>{if(f<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++)if(f<=stops[i][0]){const [a,ca]=stops[i-1],[b,cb]=stops[i],t=(f-a)/(b-a);return ca.map((v,k)=>Math.round(v+(cb[k]-v)*t))}return stops[stops.length-1][1]};
+  for(let i=0;i<d.length;i+=4){const m=d[i]*256+d[i+1]+d[i+2]/256-32768,cl=colr((m-dz)/FT);d[i]=cl[0];d[i+1]=cl[1];d[i+2]=cl[2];d[i+3]=150}g.putImageData(im,0,0);
+  const ll=(x,y)=>{const n=Math.PI-2*Math.PI*y/(N*256);return [180/Math.PI*Math.atan(Math.sinh(n)),x/(N*256)*360-180]};
+  heatLayer.clearLayers();L.imageOverlay(cv.toDataURL(),[ll(x0,y1),ll(x1,y0)],{interactive:false,zIndex:250}).addTo(heatLayer);heatOn=true;$('#heatKey').hidden=false;map.fitBounds([ll(x0,y1),ll(x1,y0)])}
+$('#hrpoHeat').onclick=()=>{closeTool();showHeat()};$('#heatKey').onclick=hideHeat;
 $('#hrpoCheck').onclick=()=>{hrpoFailKey=null;checkHrpo(false)};
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);autoHrpo()}}
 setTimeout(autoHrpo,1500);
