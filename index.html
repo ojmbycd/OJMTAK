@@ -1274,7 +1274,7 @@ map.on('click',e=>{const p={lat:e.latlng.lat,lon:e.latlng.lng};
     case 'altdip':addAltDip(p);setMode('none');return;
     case 'draw-free':return;
     case 'range':rangeTap(p);return;
-    case 'pi':setDipAt(p);setMode('none');if(tool==='jump')$('#tool').classList.remove('min');return;
+    case 'pi':setMode('none');placeDipAt(p);if(tool==='jump')$('#tool').classList.remove('min');return;
     case 'drop':addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value='';return;
   }
   if(S.set.sim){onFix({lat:p.lat,lon:p.lon,acc:5,alt:null,spd:0,course:me?brg(me,p):null,sim:true})}});
@@ -1440,8 +1440,11 @@ $('#hamoSlider').oninput=e=>{S.jump.hamoOffset=+e.target.value;save('jump');rend
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
 // long-press (or right-click) anywhere on the map offers to put the DIP there
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
+// placing a DIP: set it, then ask for a name while showing the ground altitude there
+function placeDipAt(p){setDipAt(p);const g=fc(p);sheet({title:'Name this DIP',sub:`${g} · altitude: looking up…`,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump')}},buttons:[]});setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
+  groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;$('#actSub').textContent=`${g} · altitude ${m!=null?`${ff(m/FT)} AMSL`:'not available offline'}`})}
 function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
-map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>setDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
+map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>placeDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=+S.jump.exitAlt||0;const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
 function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:270,spd:near?near.spd:10}});save('winds')}
