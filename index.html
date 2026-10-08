@@ -672,7 +672,8 @@ function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}extr
 
 const LY={cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup(),adsb:L.layerGroup()};
 const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
-const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line',adsb:'Live aircraft (ADS-B)'};
+const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line'};
+// live aircraft switch hidden until a feed accepts the Cloudflare relay; add adsb:'Live aircraft (ADS-B)' back above to show it
 function applyOverlays(){Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
 
 function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
@@ -792,7 +793,7 @@ function g3Air(){if(!g3On())return;const C=Cesium;if(!G3.air){G3.air=new C.Custo
   adsbAc.forEach(a=>{const alt=adsbAlt(a),jmp=a.hex===S.set.jumpAc,col=C.Color.fromCssColorString(jmp?'#FFD400':'#7FD3FF'),hr=alt==null?C.HeightReference.CLAMP_TO_GROUND:C.HeightReference.NONE;
     E.add({position:C.Cartesian3.fromDegrees(a.lon,a.lat,alt==null?0:alt*FT),point:{pixelSize:jmp?13:9,color:col,outlineColor:C.Color.BLACK,outlineWidth:1.5,heightReference:hr,disableDepthTestDistance:Infinity},
       label:{text:`${adsbName(a)} ${alt==null?'GND':ff(alt)}`,font:'600 13px "Barlow Condensed",sans-serif',fillColor:col,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),heightReference:hr,disableDepthTestDistance:Infinity}})})}
-setTimeout(adsbSync,2000);
+if(!OV_NAMES.adsb)S.ov.adsb=false;setTimeout(adsbSync,2000);
 
 
 /* ================= JUMP CALC ================= */
