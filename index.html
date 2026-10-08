@@ -473,7 +473,7 @@ table.winds td small{font-size:11px}
           <h3>Wind layers</h3>
           <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value is the wind as a fraction of the canopy's forward speed.</p>
           <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds</button></div>
-          <div class="row mt"><button class="btn" id="windSchulze">Cross-check on markschulze.net</button></div>
+          <div class="row mt"><button class="btn" id="windSchulze">Open winds aloft at DIP</button><button class="btn" id="windFileBtn">Load winds file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
           <p class="note" id="windSrc"></p>
           <table class="winds"><thead><tr><th>Alt ft (m)</th><th>From °T</th><th>Kt</th><th>Value</th><th></th></tr></thead><tbody id="windRows"></tbody></table>
           <div class="row mt"><button class="btn" id="windFill">Copy top row down</button></div>
@@ -1497,8 +1497,18 @@ async function importWinds(){if(!S.pi){toast('Set the DIP first; winds are fetch
     const at=hm=>{if(hm<=prof[0].hm)return prof[0];const top=prof[prof.length-1];if(hm>=top.hm)return top;for(let k=0;k<prof.length-1;k++){const a=prof[k],b=prof[k+1];if(hm<=b.hm){const f=(hm-a.hm)/(b.hm-a.hm);return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f}}}return top};
     syncWindRows();S.winds.forEach(w=>{const q=at(w.alt*FT);w.dir=Math.round(norm(Math.atan2(q.x,q.y)*R2D));w.spd=Math.round(Math.hypot(q.x,q.y))});save('winds');renderWinds();renderJump();
     const name=$('#windModel').selectedOptions[0].textContent;$('#windSrc').textContent=`Imported ${name} model winds via Open-Meteo for the DIP, valid ${H.time[i].slice(11,16)}Z ${H.time[i].slice(0,10)}. Interpolated to the table altitudes. Check against the met brief.`;toast('Winds imported')}
-  catch(e){$('#windSrc').textContent=`Could not fetch winds aloft (${e.name==='AbortError'?'timed out':e.message||'network blocked'}). Inside claude.ai this is blocked; on the hosted page check the signal and try another model.`;toast('Winds aloft fetch failed',4000)}}
-$('#windSchulze').onclick=()=>{if(!S.pi){toast('Set the DIP first');return}const ll=`${S.pi.lat.toFixed(5)}, ${S.pi.lon.toFixed(5)}`;(navigator.clipboard?navigator.clipboard.writeText(ll):Promise.reject()).catch(()=>{});window.open('https://markschulze.net/winds/','_blank','noopener');toast(`DIP position copied: ${ll}. Paste it into the site's location box.`,6000)};
+  catch(e){$('#windSrc').textContent=`Could not fetch winds aloft (${e.name==='AbortError'?'timed out':e.message||'network blocked'}). Use Open winds aloft at DIP, tap Download File on that site, then Load winds file here.`;toast('Winds aloft fetch failed: load a winds file instead',5000)}}
+$('#windSchulze').onclick=()=>{if(!S.pi){toast('Set the DIP first');return}window.open(`https://markschulze.net/winds/?lat=${S.pi.lat.toFixed(5)}&lon=${S.pi.lon.toFixed(5)}`,'_blank','noopener');toast('Opened winds aloft at the DIP. Tap Download File there, then Load winds file here.',6000)};
+/* winds file from markschulze.net (Download File): tab-separated Alt ftAGL / Dir / Spd kts / Temp, plus QNH; plain alt,dir,spd tables also work */
+$('#windFileBtn').onclick=()=>$('#windFile').click();
+$('#windFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{loadWindsText(await f.text(),f.name)}catch(err){toast(`Could not read ${f.name}: ${err.message}`,5000)}};
+function loadWindsText(txt,name){const lines=txt.split(/\r?\n/);const agl=/agl/i.test(txt)||!/amsl|msl/i.test(txt),gnd=(+S.jump.dzElev||0);let qnh=null;const rows=[];
+  lines.forEach((ln,k)=>{if(/qnh/i.test(ln)){const v=parseFloat((lines[k+1]||'').trim().split(/[\s,;]+/)[0]);if(v>800&&v<1100)qnh=v}const n=ln.trim().split(/[\s,;]+/).map(Number);if(n.length>=3&&n.slice(0,3).every(isFinite)&&n[1]>=0&&n[1]<=360&&n[2]>=0&&n[2]<200&&n[0]>=0&&n[0]<60000&&!/lat|lon|qnh|qfe/i.test(lines[k-1]||''))rows.push({alt:n[0]+(agl?gnd:0),x:n[2]*Math.sin(n[1]*D2R),y:n[2]*Math.cos(n[1]*D2R)})});
+  rows.sort((a,b)=>a.alt-b.alt);if(rows.length<3)throw new Error('no wind table found');
+  const at=a=>{if(a<=rows[0].alt)return rows[0];const t=rows[rows.length-1];if(a>=t.alt)return t;for(let k=0;k<rows.length-1;k++){const p=rows[k],q=rows[k+1];if(a<=q.alt){const f=(a-p.alt)/((q.alt-p.alt)||1);return {x:p.x+(q.x-p.x)*f,y:p.y+(q.y-p.y)*f}}}return t};
+  syncWindRows();S.winds.forEach(w=>{const q=at(w.alt);w.dir=Math.round(norm(Math.atan2(q.x,q.y)*R2D));w.spd=Math.round(Math.hypot(q.x,q.y))});save('winds');
+  if(qnh){S.jump.qnh=Math.round(qnh);S.jump.qnhUnit='mb';S.jump.qnhUnknown=false;save('jump');syncCypInputs()}renderWinds();renderJump();
+  $('#windSrc').textContent=`Loaded winds from ${name}: ${rows.length} levels (ft ${agl?'AGL, converted to AMSL':'AMSL'}), interpolated to the table altitudes${qnh?`; QNH ${Math.round(qnh)} mb`:''}. Check against the met brief.`;toast('Winds loaded from file')}
 $('#windImport').onclick=importWinds;
 $('#windFill').onclick=()=>{for(let k=1;k<S.winds.length;k++){S.winds[k].dir=S.winds[0].dir;S.winds[k].spd=S.winds[0].spd}save('winds');renderWinds();renderJump()};
 
