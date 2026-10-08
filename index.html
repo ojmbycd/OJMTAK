@@ -430,15 +430,15 @@ table.winds td small{font-size:11px}
             <div class="fields">
               <label class="fld">Canopy<select id="canopySel"></select></label>
               <label class="fld">K factor<input type="number" inputmode="numeric" min="10" max="99" data-j="k"></label>
-              <label class="fld">CSC<em>kts</em><input type="number" inputmode="decimal" data-j="canopySpeed"></label>
+              <label class="fld">CSC (kts)<input type="number" inputmode="decimal" data-j="canopySpeed"></label>
             </div>
             <p class="note" id="canopyNote"></p>
           </section>
           <section class="sec">
             <h3>Jumper</h3>
             <div class="fields">
-              <label class="fld">Average jumper with rig<em>kg</em><input type="number" inputmode="decimal" data-j="jumperKg"></label>
-              <label class="fld">Equipment load<select id="loadSel"><option value="0">None</option><option value="10">Ruck, 10 kg</option><option value="20">3-day assault pack, 20 kg</option><option value="30">Bergan, 30 kg</option></select></label>
+              <label class="fld">Average AUM (kg)<input type="number" inputmode="decimal" data-j="jumperKg"></label>
+              <label class="fld" hidden>Equipment load<select id="loadSel"><option value="0">None</option><option value="10">Ruck, 10 kg</option><option value="20">3-day assault pack, 20 kg</option><option value="30">Bergan, 30 kg</option></select></label>
             </div>
           </section>
           <section class="sec">
@@ -661,6 +661,7 @@ const S={
   mission:store.get('mission',null)
 };
 const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&['range,runin,xtk,togl','dgl,togl,acspd,accse'].includes(S.hound.tiles.join())){S.hound.tiles=['amsl','togl','acspd','accse'];store.set('hound',S.hound)}
+if(+S.jump.loadKg>0){S.jump.jumperKg=(+S.jump.jumperKg||110)+(+S.jump.loadKg);S.jump.loadKg=0;store.set('jump',S.jump)}/* equipment load folded into average AUM */
 if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
@@ -913,7 +914,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
   return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,ffMarks,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
-function loadFactorFor(j){const w=+j.jumperKg||110,l=+j.loadKg||0;return Math.sqrt((w+l)/w)}
+function loadFactorFor(j){return Math.sqrt((+j.jumperKg||110)/110)}/* K scales with the square root of all-up mass against a 110 kg standard jumper */
 // convex hull of lat/lon points (monotone chain on a local flat projection)
 function hullLL(pts){const k=Math.cos(pts[0].lat*D2R),P=pts.map(p=>({p,x:p.lon*k,y:p.lat})).sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
   for(const q of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}for(const q of P.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
@@ -1291,9 +1292,9 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
     <div><span>Jump Type</span><b>${j.mode==='HAMO'?'Single Pass HAMO':j.mode}</b></div>
-    <div><span>Canopy</span><b>${j.canopy||'Custom'}</b> <span>K</span><b>${+J.K.toFixed(1)}${j.loadKg?` (${j.k} clean)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
+    <div><span>Canopy</span><b>${j.canopy||'Custom'}</b> <span>K</span><b>${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
     <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Interval</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
-    <div><span>Load</span><b>${j.jumperKg} kg + ${j.loadKg} kg</b></div>
+    <div><span>Average AUM</span><b>${j.jumperKg} kg</b></div>
     <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
     <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
     <div><span>DZ Elev</span><b>${ff(j.dzElev)}</b></div>
@@ -1408,13 +1409,13 @@ $('#cloudX').onclick=()=>{if(clTimer){clearInterval(clTimer);clTimer=null;$('#cl
 
 /* ================= canopies ================= */
 const GENERIC_CANOPIES=[{name:'HG380',k:31,spd:20.8},{name:'RA1',k:36,spd:22.6},{name:'HG380(PM)',k:39,spd:20.8},{name:'MJ (MS360)',k:45,spd:22},{name:'MJ (MP360)',k:46,spd:22},{name:'SOV3-TS (TP400)',k:46,spd:22},{name:'MMPS',k:46,spd:20.8},{name:'MC4/5',k:48,spd:20.8},{name:'MT2XX',k:48,spd:20.8},{name:'Non Standard',k:48,spd:20.8},{name:'SOV3-TS (TP460)',k:62,spd:30}];
-const loadFactor=()=>{const w=+S.jump.jumperKg||110,l=+S.jump.loadKg||0;return Math.sqrt((w+l)/w)};
+const loadFactor=()=>loadFactorFor(S.jump);
 const kToFts=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;
 const allCanopies=()=>[...GENERIC_CANOPIES,...S.canopies];
 function renderCanopySel(){const o=allCanopies().map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');$('#ffSel').value=String(+S.jump.ffRate||176);$('#ffSel').onchange=function(e){S.jump.ffRate=+e.target.value;save('jump');renderJump()};
 $('#canopySel').innerHTML=`<option value="">Custom values</option>${o}<option value="__add">Add canopy…</option>`;$('#canopySel').value=allCanopies().some(c=>c.name===S.jump.canopy)?S.jump.canopy:'';
   const r=(+S.jump.k>0)?(+S.jump.k)*1000/3600:0;const lf=loadFactor();const re=r*lf;if(document.getElementById('ffSel'))document.getElementById('ffSel').value=String(+S.jump.ffRate||176);
-$('#loadSel').value=String(S.jump.loadKg||0);$('#canopyNote').textContent=r>0?`K ${S.jump.k}${lf!==1?` (${(S.jump.k*lf).toFixed(1)} with load)`:''} · ≈ ${re.toFixed(1)} ft/s descent · CSC ${S.jump.canopySpeed} kts · values for mid-range AUM`:'Enter the K factor and CSC.'}
+$('#loadSel').value=String(S.jump.loadKg||0);$('#canopyNote').textContent=r>0?`K ${S.jump.k}${lf!==1?` (${(S.jump.k*lf).toFixed(1)} at this AUM)`:''} · ≈ ${re.toFixed(1)} ft/s descent · CSC ${S.jump.canopySpeed} kts · values for mid-range AUM`:'Enter the K factor and CSC.'}
 function applyK(){const k=+S.jump.k||46;S.jump.canopyRate=(k*1000/3600)*loadFactor();save('jump')}
 $('#canopySel').onchange=e=>{const v=e.target.value;if(v==='__add'){sheet({title:'Add canopy',sub:'Name, then K factor and forward speed in the next steps',input:{label:'Canopy name',value:'',save:n=>{if(!n.trim())return;sheet({title:n.trim(),input:{label:'K factor (e.g. 46)',type:'number',value:'',save:k=>{const kk=parseFloat(k);if(!(kk>0))return;sheet({title:n.trim(),input:{label:'CSC forward speed, kts',type:'number',value:'',save:sp=>{const ss=parseFloat(sp);if(!(ss>=0))return;const c={name:n.trim(),k:Math.round(kk),spd:ss};S.canopies.push(c);save('canopies');selectCanopy(c);toast(`${c.name} added`)}},buttons:[]})}},buttons:[]})}},buttons:[]});renderCanopySel();return}
   const c=allCanopies().find(x=>x.name===v);if(c)selectCanopy(c);else{S.jump.canopy='';save('jump');renderCanopySel()}};
