@@ -107,7 +107,7 @@ button,input,select{font:inherit;color:inherit}
 .clbl{display:inline-block;transform:translate(-50%,-50%);font:400 12px/1 var(--cond);text-shadow:0 0 3px #000,0 0 2px #000}
 .tlbl{display:inline-block;transform:translate(-50%,-50%);font:400 16px/1.2 var(--cond);white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;padding:2px 4px}
 .glbl{font:400 11px/1 var(--cond);color:var(--ink);opacity:.75;text-shadow:0 0 3px var(--mapbg),0 0 2px var(--mapbg)}
-.tag{display:inline-block;transform:translate(-50%,-50%);font:500 13px/1.15 var(--cond);white-space:nowrap;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
+.tag{display:inline-block;transform:translate(-50%,-50%);font:500 13px/1.15 var(--cond);white-space:nowrap;padding:2px 6px;color:#fff;font-variant-numeric:tabular-nums;text-align:center;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .xlbl{font:500 14px/1.15 var(--cond);color:var(--x);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);font-variant-numeric:tabular-nums}
 
 #zoom #follow{display:grid;place-items:center}
@@ -726,10 +726,10 @@ let lineDraft=null;
 function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col}">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
-      const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2},ah=dest(a,brg(a,b),dist(a,b)*.85);
+      const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
       L.marker(LL(mid),{icon:tagPin(`${fd(pathLen(pts))} · ${fb(brg(pts[0],b))} T`),interactive:false}).addTo(LY.draw);
-      L.marker(LL(ah),{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,11],html:`<svg viewBox="-11 -11 22 22" width="22" height="22" style="transform:rotate(${brg(a,b)}deg)"><path d="M0-9 7 6 0 2-7 6Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg>`}),interactive:false}).addTo(LY.draw);
-      [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:14px;height:14px;margin:6px;border-radius:50%;background:${col};border:2px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
+      L.marker(LL(arrowPt(a,b)),{icon:arrowIcon(a,b,col),interactive:false}).addTo(LY.draw);
+      [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
   sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} · ${fb(brg(d.pts[0],b))} T · from ${fc(d.pts[0])}${d.kind==='line'?' · drag the ends to move':''}`,buttons:[
@@ -759,6 +759,10 @@ $('#drawClear').onclick=()=>{if(!S.draws.length)return;sheet({title:'Clear all d
 /* ================= RANGE ================= */
 let rngA=null;
 const lineLabel=(a,b)=>`${fd(dist(a,b))}<br>${bTM(brg(a,b))}`;
+// tiny direction arrow part-way along a line
+const arrowPt=(a,b)=>dest(a,brg(a,b),dist(a,b)*.85),arrowIcon=(a,b,col)=>L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block;transform:rotate(${brg(a,b)}deg);transform-origin:50% 50%;overflow:visible"><path d="M0-5 4 3.5 0 1.5-4 3.5Z" fill="${col}" stroke="#141414" stroke-width=".8"/></svg>`});
+// tiny end circle with a finger-sized touch area
+const endDot=col=>L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html:`<div style="width:8px;height:8px;margin:10px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`});
 const RU={m:{l:'metres',a:'m',f:1,d:0},km:{l:'kilometres',a:'km',f:1000,d:2},ft:{l:'feet',a:'ft',f:FT,d:0},yd:{l:'yards',a:'yd',f:.9144,d:0},nm:{l:'nautical miles',a:'NM',f:1852,d:2}};
 const ru=r=>RU[(r&&r.u)||S.set.ringUnit]||RU.m,inU=(m,u)=>+(m/u.f).toFixed(u.d),fmtU=(m,u)=>`${inU(m,u).toLocaleString('en-GB')} ${u.a}`;
 function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--amber');
@@ -767,9 +771,9 @@ function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--ambe
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
-    const tag=L.marker(LL(mid()),{icon:tagPin(lineLabel(r.a,r.b)),interactive:false}).addTo(LY.rng);
-    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:divPin(k==='a'?'<circle r="7"/>':'<rect x="-7" y="-7" width="14" height="14"/>',ink,'',r.kind==='move'?30:22)}).addTo(LY.rng);
-      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(tagPin(lineLabel(r.a,r.b)))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
+    const tag=L.marker(LL(mid()),{icon:tagPin(lineLabel(r.a,r.b)),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,ink),interactive:false}).addTo(LY.rng);
+    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(ink)}).addTo(LY.rng);
+      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(tagPin(lineLabel(r.a,r.b)));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,ink))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
   renderRngList()}
 function rngText(r){return r.kind==='ring'?`Rings ${r.n} × ${fd(r.step)} · ${fc(r.c)}`:`${r.kind==='move'?'Moveable':'Fixed'} · ${fd(dist(r.a,r.b))} ${fb(brg(r.a,r.b))} T`}
 function renderRngList(){$('#rngList').innerHTML=S.rng.length?S.rng.map(r=>`<button class="item" data-r="${r.id}"><span class="sw" style="background:var(${r.kind==='move'||r.id===selRing?'--amber':'--ink'})"></span><span><b>${r.kind==='ring'?'Range rings':r.kind==='move'?'Moveable line':'Fixed line'}</b><small>${esc(rngText(r))}</small></span><span></span></button>`).join(''):'<p class="note">No range tools placed.</p>';const s=S.rng.find(r=>r.id===selRing);$('#ringCount').textContent=s?`${s.n} × ${fd(s.step)}`:'–'}
