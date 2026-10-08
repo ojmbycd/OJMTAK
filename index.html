@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jumpmaster TAK</title>
+<title>Jump Master Expert Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet">
@@ -164,6 +164,8 @@ button,input,select{font:inherit;color:inherit}
 #zoom button{width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:300 30px/1 var(--cond);cursor:pointer;backdrop-filter:blur(3px);position:relative;padding:0}
 #northBtn svg{width:34px;height:34px;display:block;margin:0 auto;transition:transform .2s}
 #northLbl{position:absolute;right:3px;bottom:1px;font:400 10px/1 var(--cond);color:#ddd}
+#globe{position:absolute;inset:0;z-index:850;background:#000}#globe[hidden]{display:none}#globe .cesium-viewer-bottom{left:auto;right:70px;bottom:2px;font-size:9px;opacity:.7}#globe .cesium-widget-credits{font-size:9px}
+#mapwrap.g3 .leaflet-control-container,#mapwrap.g3 #map{visibility:hidden}
 #mapwrap.tilt{overflow:hidden}#mapwrap.tilt #map.leaflet-container{overflow:visible}
 #mapwrap.tilt #map{transform:perspective(900px) rotateX(48deg) scale(1.35);transform-origin:50% 60%}
 #mapwrap.tilt::after{content:'3D view · tap the north pointer to exit';position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:1150;background:rgba(16,16,16,.8);color:#ddd;font:400 13px var(--cond);padding:3px 8px;border-radius:6px;pointer-events:none}
@@ -257,6 +259,7 @@ table.winds td small{font-size:11px}
 
   <div id="mapwrap">
     <div id="map" aria-label="Map"></div>
+    <div id="globe" aria-label="3D view" hidden></div>
     <nav id="quick" aria-label="Quick menu">
       <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Marker</span></button>
       <button class="qb" data-tool="draw" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/><path d="M14 7l3 3"/></svg><span>Draw</span></button>
@@ -679,7 +682,7 @@ function drawGrid(){LY.grid.clearLayers();const z=map.getZoom();if(z<7)return;co
 map.on('moveend zoomend',drawGrid);
 /* eye altitude: height a camera with a 60 deg field of view would need to see this much ground */
 let centreElev=null,elevKey='',elevT=null;
-function updateEyeAlt(){const c=map.getCenter(),z=map.getZoom(),h=map.getSize().y;const mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,z+8);const eye=mpp*h/(2*Math.tan(30*D2R))+(centreElev||0);
+function updateEyeAlt(){if(g3On())return;const c=map.getCenter(),z=map.getZoom(),h=map.getSize().y;const mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,z+8);const eye=mpp*h/(2*Math.tan(30*D2R))+(centreElev||0);
   $('#eyeAlt').textContent=`Elev ${centreElev==null?'–':Math.round(centreElev/FT).toLocaleString('en-GB')+' ft'} · Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`;
   // ground elevation under the map centre, looked up once the map settles
   const key=c.lat.toFixed(3)+','+c.lng.toFixed(3);if(key===elevKey)return;elevKey=key;clearTimeout(elevT);
@@ -995,7 +998,7 @@ $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-do
   const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue();if(ht){$('#dialArrow').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialArrow').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
-$('#zIn').onclick=()=>map.zoomIn();$('#zOut').onclick=()=>map.zoomOut();
+$('#zIn').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomIn(c.positionCartographic.height*.4)}else map.zoomIn()};$('#zOut').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomOut(c.positionCartographic.height*.6)}else map.zoomOut()};
 document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
 
 
@@ -1058,9 +1061,65 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const wind=makeW
 
 /* ================= map view: north up / heading up / 3D ================= */
 let viewMode='north';
-function applyView(){const w=$('#mapwrap');w.classList.toggle('tilt',viewMode==='3d');const was=view3d;view3d=viewMode==='3d';if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
-$('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast('3D view is for looking only; taps on the map are not accurate until you return to north up.');applyView()};
+function applyView(){const w=$('#mapwrap');const want3d=viewMode==='3d',tilt=want3d&&g3Failed;w.classList.toggle('tilt',tilt);const was=view3d;view3d=tilt;if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}show3d(want3d&&!g3Failed);if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
+$('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
 map.on('rotate',()=>{$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
+/* ================= true 3D view: Cesium globe with terrain, loaded the first time 3D is opened ================= */
+const CES='https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/';
+var G3=null,g3Loading=null,g3Failed=false;
+function g3On(){return !!G3&&!$('#globe').hidden}
+function loadCesium(){if(window.Cesium)return Promise.resolve();if(g3Loading)return g3Loading;window.CESIUM_BASE_URL=CES;
+  g3Loading=new Promise((ok,no)=>{const l=document.createElement('link');l.rel='stylesheet';l.href=CES+'Widgets/widgets.css';document.head.appendChild(l);const s=document.createElement('script');s.src=CES+'Cesium.js';s.onload=ok;s.onerror=()=>{g3Loading=null;s.remove();no(new Error('Cesium did not load'))};document.head.appendChild(s)});return g3Loading}
+// ground heights from the free AWS Terrain Tiles (SRTM and others, Terrarium PNG encoding, to zoom 15)
+function terrainTiles(){const C=Cesium,ZMAX=15,N=65,cache=new Map();
+  const tile=(z,x,y)=>{const k=`${z}/${x}/${y}`;if(!cache.has(k)){cache.set(k,fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${k}.png`).then(r=>{if(!r.ok)throw new Error(r.status);return r.blob()}).then(b=>createImageBitmap(b)).then(bm=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(bm,0,0);return g.getImageData(0,0,256,256).data}));if(cache.size>300)cache.delete(cache.keys().next().value)}return cache.get(k)};
+  return new C.CustomHeightmapTerrainProvider({width:N,height:N,tilingScheme:new C.WebMercatorTilingScheme(),credit:'Terrain: AWS Terrain Tiles',
+    callback:(x,y,level)=>{const z=Math.min(level,ZMAX),s=2**(level-z),tx=Math.floor(x/s),ty=Math.floor(y/s),span=256/s,ox=(x-tx*s)*span,oy=(y-ty*s)*span;
+      return tile(z,tx,ty).then(d=>{const h=new Float32Array(N*N);for(let j=0;j<N;j++)for(let i=0;i<N;i++){const u=Math.min(255,Math.round(ox+i*span/(N-1))),v=Math.min(255,Math.round(oy+j*span/(N-1))),o=(v*256+u)*4;h[j*N+i]=d[o]*256+d[o+1]+d[o+2]/256-32768}return h}).catch(()=>new Float32Array(N*N))}})}
+function initGlobe(){const C=Cesium;
+  const v=new C.Viewer($('#globe'),{baseLayer:new C.ImageryLayer(new C.UrlTemplateImageryProvider({url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maximumLevel:19,credit:'Imagery © Esri'})),
+    terrainProvider:terrainTiles(),animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,navigationHelpButton:false,fullscreenButton:false,infoBox:false,selectionIndicator:false});
+  v.scene.globe.depthTestAgainstTerrain=true;v.scene.globe.maximumScreenSpaceError=2;v.camera.percentageChanged=0.02;v.camera.changed.addEventListener(g3Eye);v.camera.moveEnd.addEventListener(g3Eye);v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0)g3Eye()});
+  G3={v,src:new C.CustomDataSource('jump'),meE:null,key:null,dzGround:null,dzKey:null};v.dataSources.add(G3.src)}
+function g3Eye(){if(!g3On())return;const C=Cesium,v=G3.v,cam=v.camera.positionCartographic;const ray=v.camera.getPickRay(new C.Cartesian2(v.canvas.clientWidth/2,v.canvas.clientHeight/2)),p=ray&&v.scene.globe.pick(ray,v.scene),elev=p?C.Cartographic.fromCartesian(p).height:null;
+  $('#eyeAlt').textContent=`Elev ${elev==null?'–':Math.round(elev/FT).toLocaleString('en-GB')+' ft'} · Eye alt ${Math.round(cam.height/FT).toLocaleString('en-GB')} ft`}
+// draw the plan in the air: run-in and HARP at exit height, freefall down to the OP, canopy trackback down to the DIP, all over real terrain
+function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.removeAll();g3Me();if(!S.pi||!J||J.err){G3.v.scene.requestRender();return}
+  const dzSet=+S.jump.dzElev||0,piKey=S.pi.lat.toFixed(5)+','+S.pi.lon.toFixed(5);
+  if(!dzSet&&G3.dzKey!==piKey){G3.dzKey=piKey;C.sampleTerrainMostDetailed(G3.v.terrainProvider,[C.Cartographic.fromDegrees(S.pi.lon,S.pi.lat)]).then(r=>{G3.dzGround=r[0].height;globeSync()}).catch(()=>{})}
+  const base=dzSet?dzSet*FT:(G3.dzKey===piKey&&G3.dzGround)||0,A=h=>base+Math.max(0,h)*FT,at=(p,h)=>C.Cartesian3.fromDegrees(p.lon,p.lat,A(h));
+  const col=s=>C.Color.fromCssColorString(s),amb=col(cssv('--amber')),go=col(cssv('--go')),st=col(cssv('--stop')),wht=C.Color.WHITE,gry=col('#CFCFCF'),red=col('#FF2A2A');
+  const line=(pos,c,w,dash)=>E.add({polyline:{positions:pos,width:w,arcType:C.ArcType.NONE,material:dash?new C.PolylineDashMaterialProperty({color:c,dashLength:14}):c}});
+  const curtain=(pos,c)=>E.add({wall:{positions:pos,material:c.withAlpha(.16),outline:false}});
+  const drop=(p,h,c)=>line([at(p,h),C.Cartesian3.fromDegrees(p.lon,p.lat,base-200)],c.withAlpha(.7),1,true);
+  const dot=(pos,c,text,size=9)=>E.add({position:pos,point:{pixelSize:size,color:c,outlineColor:C.Color.BLACK,outlineWidth:1.5,disableDepthTestDistance:Infinity},label:text?{text,font:'600 14px "Barlow Condensed",sans-serif',fillColor:c,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),disableDepthTestDistance:Infinity}:undefined});
+  const exA=(+S.jump.exitAlt)-dzSet,pull=+S.jump.openAlt,showRun=phase==='ground'||phase==='aircraft';
+  const plan=(P,tag,first)=>{const pullP=P===J?pull:+S.jump.pod2Open;
+    if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)];line(run,gry,2,true);curtain(run,gry);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
+      const stick=[at(P.gl,exA),at(P.rl,exA)];line(stick,amb,6);curtain(stick,amb);line([at(P.harp,exA),at(P.prp,exA)],amb,2,true);
+      dot(at(P.gl,exA),go,`First out${tag}`);dot(at(P.rl,exA),st,`Last out${tag}`);dot(at(P.harp,exA),hamo&&!P.ok?red:wht,`HARP${tag} ${ff(+S.jump.exitAlt)}`,11);drop(P.harp,exA,wht)}
+    // freefall: exit at the PRP, falls with the wind to the OP
+    const ffPts=P.path.slice(0,P.openIdx+1);let tot=0;const seg=ffPts.map((p,i)=>tot+=i?dist(ffPts[i-1],p):0);const ffPos=ffPts.map((p,i)=>at(p,tot?exA-(exA-pullP)*seg[i]/tot:pullP));
+    if(ffPos.length>1){line(ffPos,amb,3,true);curtain(ffPos,amb)}else line([at(P.prp,exA),at(P.op,pullP)],amb,3,true);
+    dot(at(P.prp,exA),amb,`Exit${tag}`,8);dot(at(P.op,pullP),wht,`Open${tag} ${ff(pullP)} AGL`);drop(P.op,pullP,wht)};
+  plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
+  // canopy trackback with the height bands
+  const trk=J.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);J.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});
+  line(J.ring.concat([J.ring[0]]).map(p=>C.Cartesian3.fromDegrees(p.lon,p.lat,base+15)),hamo&&!J.ok?red:amb,2);
+  E.add({position:C.Cartesian3.fromDegrees(S.pi.lon,S.pi.lat),point:{pixelSize:12,color:col(cssv('--pi')),outlineColor:C.Color.BLACK,outlineWidth:2,heightReference:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity},label:{text:S.pi.name||'DIP',font:'700 15px "Barlow Condensed",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,heightReference:C.HeightReference.CLAMP_TO_GROUND,pixelOffset:new C.Cartesian2(12,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Infinity}});
+  if(G3.key!==piKey){G3.key=piKey;g3Frame()}G3.v.scene.requestRender()}
+// camera starts side-on to the HARP-to-DIP line, so the drop reads as a height profile from aircraft to ground
+function g3Frame(){const C=Cesium,v=G3.v;if(!S.pi||!J||J.err){const c=map.getCenter();v.camera.setView({destination:C.Cartesian3.fromDegrees(c.lng,c.lat,4000),orientation:{heading:0,pitch:C.Math.toRadians(-45),roll:0}});return}
+  const base=(+S.jump.dzElev||0)*FT||G3.dzGround||0,ex=(+S.jump.exitAlt-(+S.jump.dzElev||0))*FT+base;const tp2=J.timePts.find(t=>t.t===120);const pts=[J.harp,J.op,S.pi,tp2?tp2.p:J.gl].map(p=>C.Cartesian3.fromDegrees(p.lon,p.lat,base));pts.push(C.Cartesian3.fromDegrees(J.harp.lon,J.harp.lat,ex));
+  const bs=C.BoundingSphere.fromPoints(pts);v.camera.flyToBoundingSphere(bs,{duration:0,offset:new C.HeadingPitchRange(C.Math.toRadians(norm(brg(J.harp,S.pi)-90)),C.Math.toRadians(-12),Math.max(3000,bs.radius*2.6*Math.max(1,v.canvas.clientHeight/Math.max(1,v.canvas.clientWidth))))})}
+function g3Me(){if(!g3On())return;const C=Cesium,E=G3.src.entities;if(!me){if(G3.meE){E.remove(G3.meE);G3.meE=null}return}const hasAlt=me.alt!=null&&isFinite(me.alt);const pos=C.Cartesian3.fromDegrees(me.lon,me.lat,hasAlt?me.alt:0);
+  if(!G3.meE||!E.contains(G3.meE))G3.meE=E.add({position:pos,point:{pixelSize:14,color:col3(cssv('--self')),outlineColor:C.Color.WHITE,outlineWidth:2,heightReference:hasAlt?C.HeightReference.NONE:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity}});else{G3.meE.position=pos;G3.meE.point.heightReference=hasAlt?C.HeightReference.NONE:C.HeightReference.CLAMP_TO_GROUND}
+  G3.v.scene.requestRender()}
+function g3FlyMe(){if(!g3On()||!me)return;const C=Cesium,cam=G3.v.camera,pos=C.Cartesian3.fromDegrees(me.lon,me.lat,me.alt!=null&&isFinite(me.alt)?me.alt:(G3.dzGround||0));cam.flyToBoundingSphere(new C.BoundingSphere(pos,1),{duration:1,offset:new C.HeadingPitchRange(cam.heading,C.Math.toRadians(-35),2500)})}
+const col3=s=>Cesium.Color.fromCssColorString(s);
+function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!on);if(!on){el.hidden=true;updateEyeAlt();return}el.hidden=false;
+  loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
+{const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);g3Me()}}
 
 /* ================= modes / quick menu ================= */
 function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').textContent=tip;$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
@@ -1092,7 +1151,7 @@ map.on('click',e=>{const p={lat:e.latlng.lat,lon:e.latlng.lng};
 let followHold=0,followSnapT=null;
 map.on('dragstart zoomstart',()=>{if(follow){followHold=Infinity;clearTimeout(followSnapT)}});
 map.on('dragend zoomend',()=>{if(!follow||followHold!==Infinity)return;followHold=Date.now()+1500;clearTimeout(followSnapT);followSnapT=setTimeout(()=>{followHold=0;if(follow&&me)map.panTo(LL(me),{animate:true})},1500)});
-function setFollow(v){follow=v;followHold=0;clearTimeout(followSnapT);$('#follow').setAttribute('aria-pressed',v);if(v&&me)map.setView(LL(me),Math.max(map.getZoom(),15))}
+function setFollow(v){follow=v;followHold=0;clearTimeout(followSnapT);if(v&&me&&g3On())g3FlyMe();$('#follow').setAttribute('aria-pressed',v);if(v&&me)map.setView(LL(me),Math.max(map.getZoom(),15))}
 $('#follow').onclick=()=>{if(!me){toast('No position yet. Start sensors or turn on simulation in the menu.');return}setFollow(!follow)};
 setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=resolve(S.target);if(!r)return;const v=(+S.set.simSpd||0)*KT,d=dist(me,r.p);if(d<1)return;const b=brg(me,r.p),n=dest(me,b,Math.min(d,v));onFix({lat:n.lat,lon:n.lon,acc:5,alt:null,spd:v,course:b,sim:true})},1000);
 
