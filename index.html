@@ -225,6 +225,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+#hamoBox .fields{grid-template-columns:1fr 1fr}
 #hamoNote{min-height:3.9em}
 .podh{margin:12px 0 4px;padding:4px 8px;border-left:4px solid var(--amber);font:500 16px var(--cond);color:var(--ink)}
 .plandip{margin:10px 2px 4px;font:400 17px/1.2 var(--cond);color:var(--ink)}.plandip b{font-weight:500}
@@ -417,10 +418,10 @@ table.winds td small{font-size:11px}
               <div class="fields" id="pod1Fields"></div>
               <h4>Pod 2</h4>
               <div class="fields">
-                <label class="fld">Pod 2 open (ft AGL)<select id="pod2Open"></select></label>
-                <label class="fld">Pod 2 jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
-                <label class="fld"><span style="white-space:nowrap">Pod 2 canopy assembly (ft, min 2,000)</span><input type="number" inputmode="decimal" step="500" min="2000" id="pod2Cas"></label>
-                <label class="fld"><span style="white-space:nowrap">Pod 2 landing pattern (ft, min 1,000)</span><input type="number" inputmode="decimal" step="500" min="1000" id="pod2Lp"></label>
+                <label class="fld">Open (ft AGL)<select id="pod2Open"></select></label>
+                <label class="fld">Jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
+                <label class="fld"><span style="white-space:nowrap">Top SF (ft)</span><input type="number" inputmode="decimal" step="500" min="2000" id="pod2Cas"></label>
+                <label class="fld"><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="500" min="1000" id="pod2Lp"></label>
               </div>
               <label class="fld mt"><span>Off wind line <span id="hamoCseLbl"></span></span><input type="range" id="hamoSlider" min="0" max="90" step="1"></label>
               <p class="note" id="hamoNote"></p>
@@ -1457,9 +1458,9 @@ function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.flo
 function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=Math.round(+(S.jump.hamoSpread??15));$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});{const hm=S.jump.mode==='HAMO',of=$('#openFld'),jf=$('#jumpersFld');if(!of._home){of._home=[of.parentNode,of.nextSibling];jf._home=[jf.parentNode,jf.nextSibling]}
   const cf=$('#casFld'),lf=$('#lpFld');if(!cf._home){cf._home=[cf.parentNode,cf.nextSibling];lf._home=[lf.parentNode,lf.nextSibling]}
   if(hm){$('#pod1Fields').append(of,jf,cf,lf)}else if(of.parentNode.id==='pod1Fields'){[of,jf,cf,lf].forEach(e=>e._home[0].insertBefore(e,e._home[1]))}
-  $('#sfSec').hidden=hm;$('#casLbl').textContent=(hm?'Pod 1 canopy':'Canopy')+' assembly (ft, min 2,000)';$('#lpLbl').textContent=(hm?'Pod 1 landing':'Landing')+' pattern (ft, min 1,000)';
+  $('#sfSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Canopy assembly (ft, min 2,000)';$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Landing pattern (ft, min 1,000)';
   $('#pod2Cas').value=Math.max(2000,+(S.jump.pod2Cas??2000));$('#pod2Lp').value=Math.max(1000,+(S.jump.pod2Lp??1000));
-  $('#openLbl').textContent=hm?'Pod 1 open (ft AGL)':'Opening altitude (ft AGL)';$('#jumpersLbl').textContent=hm?'Pod 1 jumpers':'Max jumpers in stick'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
+  $('#openLbl').textContent=hm?'Open (ft AGL)':'Opening altitude (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Max jumpers in stick'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
