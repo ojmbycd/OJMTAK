@@ -224,6 +224,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.podh{margin:12px 0 4px;padding:4px 8px;border-left:4px solid var(--amber);font:500 16px var(--cond);color:var(--ink)}
 .plandip{margin:10px 2px 4px;font:400 17px/1.2 var(--cond);color:var(--ink)}.plandip b{font-weight:500}
 .hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--muted,#BDBDBD)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
 #jmSeg button{padding:6px 3px;font-size:14px;line-height:1.1;white-space:normal}#jmSeg button[data-jm="summary"]{flex:1.3}
@@ -933,6 +934,20 @@ function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(first.gl,norm(h+180),gs*t)}));
   hamo={A,B,first,second,gap:sep/gs,clear,ok:A.ok&&B.ok&&clear>=0,timePts,runStart:dest(first.gl,norm(h+180),gs*600),runEnd:dest(second.rl,h,gs*60),oneMin:dest(first.gl,norm(h+180),gs*60)};}
 function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the single pass.';const h=hamo;return `Course ${fb(hamoHeading)} T · pod ${h.first.pod} exits first · HARP to HARP ${fsec(h.gap)} · ${!h.A.ok||!h.B.ok?`pod ${!h.A.ok?1:2} HARP outside its ring`:h.clear<0?'sticks overlap, open the gap':'both HARPs inside their rings'}`}
+// release solution for one pod (or the single jump)
+function calcDl(P,n){return `<dl class="res">
+    <dd class="big" data-l="HARP">${fc(P.harp)}</dd>
+    ${P.ffLegs.length?P.ffLegs.map((l,i)=>`<dd data-l="Free Fall${P.ffLegs.length>1?` leg ${i+1}`:''}">D = 3 × ${+l.A.toFixed(1)} × ${l.v} = ${Math.round(l.m)} m @ ${fb(l.d)} T</dd>`).join(''):'<dd data-l="Free Fall">under 2,000 ft of freefall, disregarded</dd>'}
+    ${P.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${P.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===P.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${P.FS} + ${l.v}) ÷ ${+P.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
+    <dd data-l="Jumper Heading">${fb(P.jumperHdgM)} M, OP to DIP</dd>
+    <dd data-l="Aircraft Course">${bTM(P.heading)}</dd>
+    <dd data-l="PCOT">${fsec(P.pcot)}: (${n} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(P.stick)} m at ${Math.round(P.gsM/KT)} kt ground speed</dd>
+    <dd data-l="Half stick">${Math.round(P.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
+    <dd data-l="PRP (canopy opens)">${fc(P.op)}</dd>
+    <dd data-l="HARP to PRP">${fd(dist(P.harp,P.op))} @ ${fb(brg(P.harp,P.op))} T, freefall drift</dd>
+    <dd data-l="HARP to DIP">${fd(dist(P.harp,S.pi))} | ${(dist(P.harp,S.pi)/1852).toFixed(2)} NM</dd>
+    <dd data-l="Ground speed on run-in">${Math.round(P.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(P.tas)} kt)</dd>
+    ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
@@ -970,19 +985,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
   if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:true}).on('click',hrpoSheet).addTo(LY.jump)}
   drawPI();
-  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}<dl class="res">
-    <dd class="big" data-l="HARP">${fc(J.harp)}</dd>
-    ${J.ffLegs.length?J.ffLegs.map((l,i)=>`<dd data-l="Free Fall${J.ffLegs.length>1?` leg ${i+1}`:''}">D = 3 × ${+l.A.toFixed(1)} × ${l.v} = ${Math.round(l.m)} m @ ${fb(l.d)} T</dd>`).join(''):'<dd data-l="Free Fall">under 2,000 ft of freefall, disregarded</dd>'}
-    ${J.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${J.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===J.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${J.FS} + ${l.v}) ÷ ${+J.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
-    <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M, OP to DIP</dd>
-    <dd data-l="Aircraft Course">${bTM(J.heading)}</dd>
-    <dd data-l="PCOT">${fsec(J.pcot)}: (${S.jump.jumpers} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(J.stick)} m at ${Math.round(J.gsM/KT)} kt ground speed</dd>
-    <dd data-l="Half stick">${Math.round(J.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
-    <dd data-l="PRP (canopy opens)">${fc(J.op)}</dd>
-    <dd data-l="HARP to PRP">${fd(dist(J.harp,J.op))} @ ${fb(brg(J.harp,J.op))} T, freefall drift</dd>
-    <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
-    <dd data-l="Ground speed on run-in">${Math.round(J.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(J.tas)} kt)</dd>
-    ${J.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>
+  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}${hamo?`<h4 class="podh">Pod 1 · opens ${ff(S.jump.openAlt)} AGL · ${S.jump.jumpers} jumpers</h4>${calcDl(J,S.jump.jumpers)}<h4 class="podh">Pod 2 · opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</h4>${calcDl(J2,S.jump.pod2Jumpers)}`:calcDl(J,S.jump.jumpers)}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
     <div class="warn">Calculated per OJM manual para 5.3 to 5.8 (D = KAV, wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
   updateHound();renderPoints()}
