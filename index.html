@@ -837,6 +837,8 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
     ffLegs=bu.map((rows,i)=>{const top=i===bu.length-1?exitAGL:Math.max(...rows.map(r=>r.a));const A_=(top-prev)/1000;prev=top;const av=avgRows(rows);return {rows,top,A:A_,v:av.v,d:av.d,m:3*A_*av.v,north:av.north}});
     if(ffLegs.length>1)notes.push(`Freefall dogleg at ${ffLegs.slice(0,-1).map(l=>ff(l.top)).join(', ')}: ${ffLegs.length} legs`);if(ffLegs.some(l=>l.north))notes.push('Freefall: northerly winds straddled, easterly values +360');
     let q=op;ffLegs.forEach(l=>{q=dest(q,l.d,l.m);ffChain.push(q)})}
+  // a mark at every 1,000 ft through freefall, placed along its leg in proportion to height (drift is linear in height within a leg)
+  const ffMarks=[];ffLegs.forEach((l,i)=>{const bot=l.top-l.A*1000;for(let a=Math.floor((l.top-1)/1000)*1000;a>bot&&a>pull;a-=1000)ffMarks.push({agl:a,p:dest(ffChain[i],l.d,l.m*(a-bot)/(l.top-bot))})});
   const prp=ffChain[ffChain.length-1],ffM=dist(op,prp),ff_={v:ffLegs[0]?ffLegs[0].v:0,d:ffLegs.length===1?ffLegs[0].d:brg(op,prp)};
   // aircraft
   const wind=makeWind(),we=wind(+j.exitAlt);const intoW=norm(Math.atan2(-we.u,-we.v)*R2D);
@@ -856,7 +858,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
-  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
+  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,ffMarks,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
 function loadFactorFor(j){const w=+j.jumperKg||110,l=+j.loadKg||0;return Math.sqrt((w+l)/w)}
 // convex hull of lat/lon points (monotone chain on a local flat projection)
 function hullLL(pts){const k=Math.cos(pts[0].lat*D2R),P=pts.map(p=>({p,x:p.lon*k,y:p.lat})).sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
@@ -883,6 +885,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   L.polyline(J.path.slice(0,J.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
   L.polyline(J.path.slice(J.openIdx).map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump);
   J.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<J.marks.length?J.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
+  (J.ffMarks||[]).forEach(m=>{L.circleMarker(LL(m.p),{radius:4,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
   const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
   if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
   L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
@@ -1140,7 +1143,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
     // freefall: exit at the HARP, falls with the wind to the PRP where the canopy opens
     const ffPts=P.path.slice(0,P.openIdx+1);let tot=0;const seg=ffPts.map((p,i)=>tot+=i?dist(ffPts[i-1],p):0);const ffPos=ffPts.map((p,i)=>at(p,tot?exA-(exA-pullP)*seg[i]/tot:pullP));
     if(ffPos.length>1){line(ffPos,amb,3,true);curtain(ffPos,amb)}else line([at(P.prp,exA),at(P.op,pullP)],amb,3,true);
-    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);drop(P.op,pullP,wht)};
+    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});drop(P.op,pullP,wht)};
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
   const trk=J.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);J.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});
