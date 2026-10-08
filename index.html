@@ -1106,7 +1106,7 @@ $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-do
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue(),dip=S.target==='c:pi';$('#dialHarp').style.display=dip?'none':'';$('#dialDip').style.display=dip?'':'none';$('#dialArrow').setAttribute('transform','');if(ht){$('#dialTgt').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialTgt').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
 $('#zIn').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomIn(c.positionCartographic.height*.4)}else map.zoomIn()};$('#zOut').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomOut(c.positionCartographic.height*.6)}else map.zoomOut()};
-document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
+document.addEventListener('click',e=>{const sj=e.target.closest('[data-start]');if(sj){e.stopPropagation();startJumpAs(sj.dataset.start);return}const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
 
 
 /* ================= jump phase detection ================= */
@@ -1144,11 +1144,11 @@ function dipRadial(){openRadial(S.pi,[
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:patternSheet},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
-  {l:'Start Jump',icon:'hound',f:startJumpChoice}])}
+  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('canopy')}])}
 
 function harpRadial(){if(!J||J.err)return;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
-  {l:'Start Jump',icon:'hound',f:()=>setTarget('c:harp')},
+  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('ac')},
   {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}])}
 /* alternate DIPs */
@@ -1304,7 +1304,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod ${hamo.first.pod} first</dd>`:''}
     <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
-  <div class="row"><button class="btn primary" data-hound="c:harp">Start Jump</button><button class="btn" data-hound="c:gl">Navigate to First out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
+  <div class="row"><button class="btn primary" data-start="ac">Start Jump</button><button class="btn" data-hound="c:gl">Navigate to First out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='winds')showPage(2);else if(k==='plan')showPage(1);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
