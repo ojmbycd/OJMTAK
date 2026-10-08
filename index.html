@@ -296,7 +296,7 @@ table.winds td small{font-size:11px}
         </svg>
         <div class="tiles" id="tiles"></div>
       </div>
-      <div class="hfoot"><button class="btn" data-preset="ac">Aircraft → HARP</button><button class="btn" data-preset="canopy">Canopy → DIP</button><span class="note" id="hNote"></span></div>
+      <div class="hfoot"><button class="btn" data-preset="ac">Jumpmaster Data</button><button class="btn" data-preset="canopy">Canopy Data</button><span class="note" id="hNote"></span></div>
     </div>
     <div id="radial" hidden></div>
     <div id="eyeAlt">Eye alt –</div>
@@ -992,13 +992,13 @@ const METRICS={
   togl:{l:'Time to first out',f:d=>{if(!J||J.err||!me.spd||me.spd<1)return '–';return fsec(dist(me,J.gl)/me.spd)}},
   grid:{l:'Target grid',f:d=>fc(d.p)}
 };
-const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Aircraft to HARP'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy back to DIP'}};
+const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
 function startJumpAs(k){const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}$('#hName').textContent=`Bloodhound · ${r.name}`;
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}{const tl=S.hound.tiles.join();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Bloodhound · ${r.name}`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
