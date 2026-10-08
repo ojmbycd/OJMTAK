@@ -987,6 +987,9 @@ const METRICS={
   grid:{l:'Target grid',f:d=>fc(d.p)}
 };
 const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Aircraft to HARP'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy back to DIP'}};
+// Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
+function startJumpAs(k){const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
+function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}$('#hName').textContent=`Bloodhound · ${r.name}`;
@@ -1039,7 +1042,7 @@ function dipRadial(){openRadial(S.pi,[
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:patternSheet},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
-  {l:'Bloodhound',icon:'hound',f:()=>setTarget('c:pi')}])}
+  {l:'Start Jump',icon:'hound',f:startJumpChoice}])}
 
 function harpRadial(){if(!J||J.err)return;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
