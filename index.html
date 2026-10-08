@@ -764,7 +764,6 @@ const ru=r=>RU[(r&&r.u)||S.set.ringUnit]||RU.m,inU=(m,u)=>+(m/u.f).toFixed(u.d),
 function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--amber');
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
-      [0,90,180,270].forEach(b=>L.polyline([LL(r.c),LL(dest(r.c,b,r.step*r.n))],{color:col,weight:1,dashArray:'3 6',interactive:false}).addTo(LY.rng));
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
