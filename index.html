@@ -118,6 +118,7 @@ button,input,select{font:inherit;color:inherit}
 #tip button{background:none;border:1px solid currentColor;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
 
 /* ---------- bloodhound ---------- */
+#hJump{display:contents}#hJump[hidden]{display:none}#autoJump[aria-pressed="true"]{background:var(--go);color:#141414;border-color:var(--go)}
 #hud{position:absolute;z-index:1100;background:rgba(16,16,16,.88);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
 #hud[data-dock="bottom"]{left:0;right:0;bottom:0;height:50%;border-radius:12px 12px 0 0}
 #hud[data-dock="top"]{left:0;right:0;top:0;height:50%;border-radius:0 0 12px 12px;padding-top:62px}
@@ -298,7 +299,7 @@ table.winds td small{font-size:11px}
         </svg>
         <div class="tiles" id="tiles"></div>
       </div>
-      <div class="hfoot"><button class="btn" data-preset="ac">Jumpmaster Data</button><button class="btn" data-preset="canopy">Canopy Data</button><span class="note" id="hNote"></span></div>
+      <div class="hfoot"><button class="btn" data-preset="ac">Jumpmaster Data</button><button class="btn" data-preset="canopy">Canopy Data</button><span id="hJump" hidden><button class="btn" id="autoJump" aria-pressed="true">Auto jump: ON</button><button class="btn danger" id="forceJump">Force jump</button></span><span class="note" id="hNote"></span></div>
     </div>
     <div id="radial" hidden></div>
     <div id="eyeAlt">Eye alt –</div>
@@ -1048,11 +1049,14 @@ const METRICS={
 };
 const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
-function startJumpAs(k){const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
+function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=`Auto jump: ${on?'ON':'OFF'}`;b.setAttribute('aria-pressed',on)}
+$('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('hound');renderAutoJump();if(S.hound.autoJump){phaseAuto=true;renderPhase();startMotion();toast('Auto jump on: switches to Canopy Data when you leave the aircraft')}else toast('Auto jump off: use Force jump when you exit')};
+$('#forceJump').onclick=()=>{phase='freefall';renderPhase();renderJump();startJumpAs('canopy');if(navigator.vibrate)navigator.vibrate([300,100,300]);toast('Jump forced: Canopy Data to the DIP',4000)};
+function startJumpAs(k){if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Bloodhound on ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}{const tl=S.hound.tiles.join();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Bloodhound · ${r.name}`}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Bloodhound · ${r.name}`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
@@ -1072,6 +1076,7 @@ document.addEventListener('click',e=>{const h=e.target.closest('[data-hound]');i
 let phase='ground',phaseAuto=true,vs=0,lastAltFix=null,lowGSince=null,shockAt=0,ffSince=null,canopySince=null,motionOn=false;
 const PH={ground:'Ground',aircraft:'Aircraft',freefall:'Freefall',canopy:'Canopy',landed:'Landed'};
 function setPhase(p,manual){if(manual){phaseAuto=false}if(p===phase){renderPhase();return}phase=p;renderPhase();renderJump();
+  if((p==='freefall'||p==='canopy')&&S.target&&S.hound.tiles.join()===PRESETS.ac.tiles.join()&&(manual||S.hound.autoJump!==false)){startJumpAs('canopy');toast('Exit detected: Canopy Data to the DIP',4000);if(navigator.vibrate)navigator.vibrate([300,100,300]);return}
   if(p==='canopy'&&phaseAuto){const P=PRESETS.canopy;S.hound.tiles=P.tiles.slice();save('hound');if(resolve('c:pi'))setTarget('c:pi');renderTiles();updateHound()}
   if(navigator.vibrate&&(p==='freefall'||p==='canopy'))navigator.vibrate([120,80,120]);toast(`Phase: ${PH[p]}`)}
 function renderPhase(){const b=$('#bPhase');b.textContent=`Phase: ${PH[phase]}`;b.dataset.auto=phaseAuto?'1':'0'}
