@@ -58,7 +58,7 @@ button,input,select{font:inherit;color:inherit}
 .qb[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
 .qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
-#status{position:absolute;right:8px;bottom:30px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
+#status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
 #status .cs{color:#8CFFC4;font-size:13px;opacity:.9}
 #status #bPos{font-size:17px;letter-spacing:.02em;white-space:nowrap}
 #status .srow{display:flex;gap:12px}
@@ -415,7 +415,7 @@ table.winds td small{font-size:11px}
             <div class="fields">
               <label class="fld">Run-in<select id="runSel"><option value="into">Into wind</option><option value="down">Downwind</option><option value="left">Crosswind, 90° left</option><option value="right">Crosswind, 90° right</option><option value="custom">Custom</option></select></label>
               <label class="fld">AC speed<em>KIAS</em><input type="number" inputmode="decimal" data-j="kias"></label>
-              <label class="fld">AC performance<em>forward throw</em><select id="acPerf"><option value="high">High, 300 m</option><option value="low">Low, 150 m</option><option value="none">None</option></select></label>
+              <label class="fld" hidden>AC performance<em>forward throw</em><select id="acPerf"><option value="high">High, 300 m</option><option value="low">Low, 150 m</option><option value="none">None</option></select></label>
               <label class="fld" id="runCustom">AC course<em>°M</em><input type="number" inputmode="decimal" data-j="headingMag"></label>
             </div>
             <p class="note" id="runNote"></p>
@@ -844,7 +844,8 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const tb=dist(pi,prp)>1?brg(pi,prp):intoW;let heading=({into:intoW,down:norm(intoW+180),left:norm(tb-90),right:norm(tb+90),custom:norm((+j.headingMag||0)+(+S.set.decl||0))})[j.runMode||'into'];if(j.mode==='HAMO'&&hamoHeading!=null)heading=hamoHeading;
   const tas=(+j.kias||0)*(1+0.02*(+j.exitAlt)/1000),tail=we.u*Math.sin(heading*D2R)+we.v*Math.cos(heading*D2R),gsM=Math.max(5,tas*KT+tail);
   // stick: parachutists cut-off time (PCOT) = (jumpers - 1) x exit interval; length = ground speed x PCOT, HARP mid-stick
-  const n=Math.max(1,+j.jumpers||1),pcot=(n-1)*Math.max(0,+j.interval||0),JD=gsM*pcot/2,FTm=({high:300,low:150,none:0})[j.acPerf||'high'];const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
+  const n=Math.max(1,+j.jumpers||1),pcot=(n-1)*Math.max(0,+j.interval||0),JD=gsM*pcot/2,FTm=0;// no forward throw: the HARP is the exit point, freefall drift from the PRP where the canopy opens
+  const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
   const gl=dest(harp,norm(heading+180),JD),rl=dest(harp,heading,JD),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*600),runEnd=dest(rl,heading,gsM*60);
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(gl,norm(heading+180),gsM*t)}));
   // trackback: canopy leaves the OP at (pull - assembly SF), turns at each dogleg, arrives over the DIP at the landing pattern SF
@@ -857,6 +858,10 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
   return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
 function loadFactorFor(j){const w=+j.jumperKg||110,l=+j.loadKg||0;return Math.sqrt((w+l)/w)}
+// convex hull of lat/lon points (monotone chain on a local flat projection)
+function hullLL(pts){const k=Math.cos(pts[0].lat*D2R),P=pts.map(p=>({p,x:p.lon*k,y:p.lat})).sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
+  for(const q of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q)}for(const q of P.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=0)up.pop();up.push(q)}
+  return lo.slice(0,-1).concat(up.slice(0,-1)).map(q=>q.p)}
 function inRing(ring,p){const lat0=p.lat*D2R;const X=q=>(q.lon-p.lon)*Math.cos(lat0),Y=q=>q.lat-p.lat;let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const xi=X(ring[i]),yi=Y(ring[i]),xj=X(ring[k]),yj=Y(ring[k]);if(((yi>0)!==(yj>0))&&(0<(xj-xi)*(0-yi)/(yj-yi)+xi))c=!c}return c}
 let hamoHeading=null,J2=null,hamo=null;
 function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;
@@ -885,12 +890,11 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
     const lbl=half?`<span class="klbl" style="color:${c.amb}">4 min</span>`:`<span class="klbl" style="color:${col}">${tp.l}</span>`;L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:lbl}),interactive:false}).addTo(LY.jump)});}
   const calc=(p,svg,col,label,key)=>L.marker(LL(p),{icon:divPin(svg,col,label,24)}).on('click',()=>calcActions('c:'+key)).addTo(LY.jump);
-  calc(J.op,'<circle r="6"/>',c.amb,'OP','open');if(J.ffM>0)calc(J.prp,'<rect x="-6" y="-6" width="12" height="12"/>',c.amb,'PRP','prp');if(showRun){calc(J.gl,'<circle r="8"/>',c.go,'First out','gl');calc(J.rl,'<circle r="8"/>',c.st,'Last out','rl')}L.marker(LL(J.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',hamo&&!J.ok?'#FF2A2A':c.ink,hamo?'HARP 1':'HARP',24)}).on('click',harpRadial).addTo(LY.jump);
+  calc(J.op,'<rect x="-6" y="-6" width="12" height="12"/>',c.amb,'PRP','open');if(showRun){calc(J.gl,'<circle r="8"/>',c.go,'First out','gl');calc(J.rl,'<circle r="8"/>',c.st,'Last out','rl')}L.marker(LL(J.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',hamo&&!J.ok?'#FF2A2A':c.ink,hamo?'HARP 1':'HARP',24)}).on('click',harpRadial).addTo(LY.jump);
   if(S.jump.harpRings&&showRun){J.timePts.forEach(tp=>{const r=J.gsM*tp.t;L.circle(LL(J.harp),{radius:r,color:tp.t===60?G:tp.t===120?Rd:c.amb,weight:1,dashArray:'4 6',fill:false,interactive:false}).addTo(LY.jump);L.marker(LL(dest(J.harp,45,r)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${tp.t===60?G:tp.t===120?Rd:c.amb}">${tp.l}</span>`}),interactive:false}).addTo(LY.jump)})}
   if(hamo&&J2){
     L.polyline(J2.path.slice(0,J2.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',interactive:false}).addTo(LY.jump);L.polyline(J2.path.slice(J2.openIdx).map(LL),{color:'#CFCFCF',weight:2,opacity:.9,interactive:false}).addTo(LY.jump);
-    calc(J2.op,'<circle r="6"/>',c.amb,'OP 2','open2');
-    L.circleMarker(LL(J2.prp),{radius:4,color:J2.ok?c.amb:Rd,weight:2,fill:false,interactive:false}).addTo(LY.jump);
+    calc(J2.op,'<rect x="-6" y="-6" width="12" height="12"/>',c.amb,'PRP 2','open2');
     if(showRun){L.marker(LL(J2.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',J2.ok?c.ink:Rd,'HARP 2',24)}).on('click',()=>openRadial(J2.harp,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:harp2')},{l:'Copy grid',icon:'save',f:()=>copy(fc(J2.harp))}])).addTo(LY.jump);calc(J2.gl,'<circle r="8"/>',c.go,'First out 2','gl2');calc(J2.rl,'<circle r="8"/>',c.st,'Last out 2','rl2');const mid={lat:(J.harp.lat+J2.harp.lat)/2,lon:(J.harp.lon+J2.harp.lon)/2};L.marker(LL(mid),{icon:tagPin(`HARP to HARP ${fsec(hamo.gap)}`),interactive:false}).addTo(LY.jump)}}
   if(view3d){const k3=FT*Math.tan(48*D2R),up=(p,h)=>dest(p,0,Math.max(0,h)*k3),dzE=+S.jump.dzElev||0,exA=(+S.jump.exitAlt)-dzE,pull=+S.jump.openAlt,cas=+S.jump.casSF||0,lp=+S.jump.lpSF||0;
     const drop=(p,h,col)=>{L.polyline([LL(p),LL(up(p,h))],{color:col,weight:1,opacity:.7,dashArray:'2 4',interactive:false}).addTo(LY.jump)};
@@ -905,7 +909,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     drop(J.prp,exA,c.amb);drop(J.op,pull,'#FFFFFF');drop(S.pi,lp,'#FFFFFF');J.marks.forEach(m=>{drop(m.p,m.agl,'#BBBBBB');L.circleMarker(LL(up(m.p,m.agl)),{radius:4,color:'#141414',weight:1,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(up(m.p,m.agl)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
     L.marker(LL(up(J.prp,exA)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">Exit ${ff(+S.jump.exitAlt)}</span>`}),interactive:false}).addTo(LY.jump);
     L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
-  if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';[J.harp,J.ffM>0?J.prp:J.op].forEach(c=>L.circle(LL(c),{radius:h.r,color:col,weight:1,dashArray:'3 5',fill:false,interactive:false}).addTo(LY.jump));L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:false}).addTo(LY.jump)}
+  if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:false}).addTo(LY.jump)}
   drawPI();
   out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}<dl class="res">
     <dd class="big" data-l="HARP">${fc(J.harp)}</dd>
@@ -914,9 +918,9 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M, OP to DIP</dd>
     <dd data-l="Aircraft Course">${bTM(J.heading)}</dd>
     <dd data-l="PCOT">${fsec(J.pcot)}: (${S.jump.jumpers} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(J.stick)} m at ${Math.round(J.gsM/KT)} kt ground speed</dd>
-    <dd data-l="FT + half stick">${J.FTm} m + ${Math.round(J.JD)} m = ${J.FTm+Math.round(J.JD)} m back along the course to first out; HARP is mid-stick, ${J.FTm} m back from the ${J.ffM>0?"PRP":"OP"}</dd>
-    <dd data-l="OP">${fc(J.op)}</dd>
-    ${J.ffM>0?`<dd data-l="PRP">${fc(J.prp)}</dd>`:''}
+    <dd data-l="Half stick">${Math.round(J.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
+    <dd data-l="PRP (canopy opens)">${fc(J.op)}</dd>
+    <dd data-l="HARP to PRP">${fd(dist(J.harp,J.op))} @ ${fb(brg(J.harp,J.op))} T, freefall drift</dd>
     <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
     <dd data-l="Ground speed on run-in">${Math.round(J.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(J.tas)} kt)</dd>
     ${J.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>
@@ -951,7 +955,7 @@ function renderMarkers(){LY.pts.clearLayers();S.markers.forEach(m=>{const t=TYPE
 function addMarker(p,type,name){const n=S.markers.filter(m=>m.type===type).length+1;const m={id:uid(),type,name:name||`${TYPES[type].n} ${n}`,lat:p.lat,lon:p.lon};S.markers.push(m);save('markers');renderMarkers();renderPoints();toast(`Added ${m.name}`);return m}
 function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Bloodhound',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as DIP',()=>{S.pi={lat:m.lat,lon:m.lon};save('pi');renderJump();toast('DIP set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
 function calcActions(key){const r=resolve(key);if(!r)return;sheet({title:r.name,sub:relSub(r.p),buttons:[['Bloodhound',()=>setTarget(key),'primary'],['Centre map',()=>map.setView(LL(r.p),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(r.p))]]})}
-function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'DIP',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'First out',p:J.gl,c:'--go'},{key:'c:rl',name:'Last out',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'OP',p:J.op,c:'--amber'},{key:'c:prp',name:'PRP',p:J.prp,c:'--amber'});return a}
+function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'DIP',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'First out',p:J.gl,c:'--go'},{key:'c:rl',name:'Last out',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'PRP',p:J.op,c:'--amber'});return a}
 function resolve(key){if(!key)return null;const [t,id]=[key.slice(0,2),key.slice(2)];
   if(t==='m:'){const m=S.markers.find(x=>x.id===id);return m?{name:m.name,p:m}:null}
   if(key==='c:pi'&&S.pi)return {name:S.pi.name||'DIP',p:S.pi};
@@ -1131,12 +1135,12 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
   const exA=(+S.jump.exitAlt)-dzSet,pull=+S.jump.openAlt,showRun=phase==='ground'||phase==='aircraft';
   const plan=(P,tag,first)=>{const pullP=P===J?pull:+S.jump.pod2Open;
     if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)],yel=col('#FFD400');line(run,yel,2.5,true);curtain(run,yel);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
-      const stick=[at(P.gl,exA),at(P.rl,exA)];line(stick,amb,6);curtain(stick,amb);line([at(P.harp,exA),at(P.prp,exA)],amb,2,true);
+      const stick=[at(P.gl,exA),at(P.rl,exA)];line(stick,amb,6);curtain(stick,amb);
       dot(at(P.gl,exA),go,`First out${tag}`);dot(at(P.rl,exA),st,`Last out${tag}`);dot(at(P.harp,exA),hamo&&!P.ok?red:wht,`HARP${tag} ${ff(+S.jump.exitAlt)}`,11);drop(P.harp,exA,wht)}
-    // freefall: exit at the PRP, falls with the wind to the OP
+    // freefall: exit at the HARP, falls with the wind to the PRP where the canopy opens
     const ffPts=P.path.slice(0,P.openIdx+1);let tot=0;const seg=ffPts.map((p,i)=>tot+=i?dist(ffPts[i-1],p):0);const ffPos=ffPts.map((p,i)=>at(p,tot?exA-(exA-pullP)*seg[i]/tot:pullP));
     if(ffPos.length>1){line(ffPos,amb,3,true);curtain(ffPos,amb)}else line([at(P.prp,exA),at(P.op,pullP)],amb,3,true);
-    dot(at(P.prp,exA),amb,`Exit${tag}`,8);dot(at(P.op,pullP),wht,`Open${tag} ${ff(pullP)} AGL`);drop(P.op,pullP,wht)};
+    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);drop(P.op,pullP,wht)};
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
   const trk=J.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);J.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});
@@ -1218,13 +1222,13 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="Free Fall">${J.ffLegs.length?J.ffLegs.map(l=>`${Math.round(l.m)} m @ ${fb(l.d)} T`).join(", then "):"disregarded"}</dd>
     <dd data-l="Canopy Drift">${J.cdLegs.map(l=>`${l.km} km @ ${fb(l.d)} T`).join(", then ")}</dd>
     <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M</dd>
-    <dd data-l="OP">${fc(J.op)}</dd>${J.ffM>0?`<dd data-l="PRP">${fc(J.prp)}</dd>`:""}
+    <dd data-l="PRP (canopy opens)">${fc(J.op)}</dd><dd data-l="HARP to PRP">${fd(dist(J.harp,J.op))}, freefall drift</dd>
     
     <dd data-l="Aircraft Course">${fb(J.heading)} T · ${({into:'into wind',down:'downwind',left:'crosswind 90° left',right:'crosswind 90° right',custom:'custom'})[j.runMode||'into']}</dd>
     <dd data-l="DIP">${fc(S.pi)}</dd>
     <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod ${hamo.first.pod} first</dd>`:''}
-    <dd data-l="Forward throw">${J.FTm} m (${({high:"high",low:"low",none:"no"})[S.jump.acPerf||"high"]} performance)</dd><dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
+    <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
   <div class="row"><button class="btn primary" data-hound="c:harp">Start Jump</button><button class="btn" data-hound="c:gl">Bloodhound First out</button><button class="btn" data-hound="c:pi">Bloodhound DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
@@ -1237,10 +1241,10 @@ const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
 // the terrain check runs on its own whenever the HARP, PRP or DZ moves; key records which plan a result belongs to
-function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.ffM>0?J.prp:J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
+function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
 let hrpoT=null,hrpoBusy=null,hrpoFailKey=null;
 function autoHrpo(){const k=hrpoKey();if(!k||(S.jump.hrpo&&S.jump.hrpo.key===k)||hrpoBusy===k||hrpoFailKey===k)return;clearTimeout(hrpoT);hrpoT=setTimeout(()=>checkHrpo(true),1200)}
-async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first');return}const key=hrpoKey();hrpoBusy=key;const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},...(J.ffM>0?[{n:'PRP',p:J.prp}]:[{n:'OP',p:J.op}]),{n:'first out',p:J.gl},{n:'last out',p:J.rl}];if(J2)centres.push({n:'HARP 2',p:J2.harp},{n:'first out 2',p:J2.gl},{n:'last out 2',p:J2.rl});
+async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first');return}const key=hrpoKey();hrpoBusy=key;const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},{n:'PRP',p:J.op},{n:'first out',p:J.gl},{n:'last out',p:J.rl}];if(J2)centres.push({n:'HARP 2',p:J2.harp},{n:'first out 2',p:J2.gl},{n:'last out 2',p:J2.rl});
   const pts=[];centres.forEach(c=>{pts.push({...c.p,c:c.n});for(const f of [.25,.5,.75,1])for(let b=0;b<360;b+=22.5)pts.push({...dest(c.p,b,R*f),c:c.n})});
   $('#hrpoOut').textContent='Checking terrain…';
   try{const el=await elevMany(pts);let mi=0;el.forEach((e,i)=>{if(e>el[mi])mi=i});const maxFt=Math.round(el[mi]/FT),dz=+S.jump.dzElev||0;const top=pts[mi];
