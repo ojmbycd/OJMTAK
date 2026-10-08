@@ -405,11 +405,11 @@ table.winds td small{font-size:11px}
             <h3>Jump profile</h3>
             <div class="seg full" id="modeSeg"><button data-mode="HAHO">HAHO</button><button data-mode="HALO">HALO</button><button data-mode="HAMO">SP HAMO</button></div>
             <div class="fields mt">
-              <label class="fld">Exit altitude <span id="exitAglHint">(ft AMSL)</span><select data-j="exitAlt"></select></label>
+              <label class="fld"><span>Exit altitude <span id="exitAglHint">(ft AMSL)</span></span><select data-j="exitAlt"></select></label>
               <label class="fld">Opening altitude (ft AGL)<select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
-            <div id="harpRingBox" class="mt"><label class="fld">HARP on ring <span id="harpBrgLbl">(auto)</span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
+            <div id="harpRingBox" class="mt"><label class="fld"><span>HARP on ring <span id="harpBrgLbl">(auto)</span></span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
             <div id="hamoBox" hidden>
               <h4>Pod 2</h4>
               <div class="fields">
@@ -457,7 +457,7 @@ table.winds td small{font-size:11px}
             <h3>Exit detail</h3>
             <div class="fields">
               <label class="fld">Max jumpers in stick<input type="number" inputmode="numeric" data-j="jumpers"></label>
-              <label class="fld">Exit interval <span id="intervalHint">(seconds)</span><input type="number" inputmode="decimal" data-j="interval"></label>
+              <label class="fld"><span>Exit interval <span id="intervalHint">(seconds)</span></span><input type="number" inputmode="decimal" data-j="interval"></label>
             </div>
           </section>
           <div class="row mt"><button class="btn primary" id="toWinds">Next: Winds →</button></div>
