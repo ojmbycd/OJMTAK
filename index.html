@@ -110,9 +110,9 @@ button,input,select{font:inherit;color:inherit}
 .tag{display:inline-block;transform:translate(-50%,-50%);font:500 13px/1.15 var(--cond);white-space:nowrap;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
 .xlbl{font:500 14px/1.15 var(--cond);color:var(--x);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);font-variant-numeric:tabular-nums}
 
-#follow{position:absolute;right:10px;bottom:14px;z-index:900;width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+#zoom #follow{display:grid;place-items:center}
 #follow svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-#follow[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+#zoom #follow[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 #tip{position:absolute;left:10px;right:68px;bottom:14px;z-index:1150;background:var(--ink);color:var(--panel);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-weight:500;font-size:15px}
 #tip span{flex:1}
 #tip button{background:none;border:1px solid currentColor;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
@@ -299,9 +299,8 @@ table.winds td small{font-size:11px}
     <div id="radial" hidden></div>
     <div id="eyeAlt">Eye alt –</div>
     <div id="cloudBar" hidden><button id="cloudPlay" aria-label="Play">▶</button><input type="range" id="cloudHour" min="0" max="12" step="1" value="0"><span id="cloudLbl">Now</span><button id="cloudX" aria-label="Hide cloud forecast">✕</button></div>
-    <div id="zoom"><button id="northBtn" aria-label="Map view: north up" title="North up · heading up · 3D"><svg id="northSvg" viewBox="-20 -20 40 40"><path d="M0-16 7 8 0 4-7 8Z" fill="#FF2A2A"/><path d="M0 4 7 8 0 16-7 8Z" fill="#F2F2F2"/></svg><span id="northLbl">N</span></button><button id="zIn" aria-label="Zoom in">+</button><button id="zOut" aria-label="Zoom out">−</button></div>
+    <div id="zoom"><button id="follow" aria-pressed="false" aria-label="Lock map on my position" title="Lock on my position"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button><button id="northBtn" aria-label="Map view: north up" title="North up · heading up · 3D"><svg id="northSvg" viewBox="-20 -20 40 40"><path d="M0-16 7 8 0 4-7 8Z" fill="#FF2A2A"/><path d="M0 4 7 8 0 16-7 8Z" fill="#F2F2F2"/></svg><span id="northLbl">N</span></button><button id="zIn" aria-label="Zoom in">+</button><button id="zOut" aria-label="Zoom out">−</button></div>
     <div id="tip" hidden><span id="tipText"></span><button id="tipBtn">Done</button></div>
-    <button id="follow" aria-pressed="false" aria-label="Lock map on my position" title="Lock on my position"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
   </div>
 
   <section id="tool" hidden>
