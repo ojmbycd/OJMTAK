@@ -657,7 +657,7 @@ const S={
   missions:store.get('missions',[]),
   mission:store.get('mission',null)
 };
-const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&S.hound.tiles.join()==='range,runin,xtk,togl'){S.hound.tiles=['dgl','togl','acspd','accse'];store.set('hound',S.hound)}
+const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&['range,runin,xtk,togl','dgl,togl,acspd,accse'].includes(S.hound.tiles.join())){S.hound.tiles=['amsl','togl','acspd','accse'];store.set('hound',S.hound)}
 if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
@@ -1077,7 +1077,7 @@ const METRICS={
   acspd:{l:'AC speed KIAS (plan)',f:d=>{const plan=Math.round(+S.jump.kias||0);if(!me.spd||me.spd<1||me.course==null)return `– (${plan})`;const altFt=me.alt!=null?me.alt/FT:+S.jump.exitAlt||0,w=makeWind()(altFt),c=me.course*D2R,ax=me.spd*Math.sin(c)-w.u,ay=me.spd*Math.cos(c)-w.v;return `${Math.round(Math.hypot(ax,ay)/KT/(1+0.02*altFt/1000))} (${plan})`}},
   accse:{l:'AC course °T (plan)',f:d=>`${me.course!=null&&me.spd>1?fb(me.course):'–'} (${J&&!J.err?fb(J.heading):'–'})`}
 };
-const PRESETS={ac:{tiles:['dgl','togl','acspd','accse'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
+const PRESETS={ac:{tiles:['amsl','togl','acspd','accse'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
 function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=`Auto jump: ${on?'ON':'OFF'}`;b.setAttribute('aria-pressed',on)}
 $('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('hound');renderAutoJump();if(S.hound.autoJump){phaseAuto=true;renderPhase();startMotion();toast('Auto jump on: switches to Canopy Data when you leave the aircraft')}else toast('Auto jump off: use Force jump when you exit')};
