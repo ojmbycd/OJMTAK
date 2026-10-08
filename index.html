@@ -165,6 +165,9 @@ button,input,select{font:inherit;color:inherit}
 #northBtn svg{width:34px;height:34px;display:block;margin:0 auto;transition:transform .2s}
 #northLbl{position:absolute;right:3px;bottom:1px;font:400 10px/1 var(--cond);color:#ddd}
 #globe{position:absolute;inset:0;z-index:850;background:#000}#globe[hidden]{display:none}#globe .cesium-viewer-bottom{left:auto;right:70px;bottom:2px;font-size:9px;opacity:.7}#globe .cesium-widget-credits{font-size:9px}
+#g3bar{display:none;position:absolute;top:70px;right:8px;z-index:1200;flex-direction:column;gap:6px;width:220px}#mapwrap.g3 #g3bar{display:flex}.g3row{display:flex;gap:6px}
+.g3b{flex:1;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 15px var(--cond);backdrop-filter:blur(3px);cursor:pointer}.g3b[aria-pressed="true"]{background:#F4F4F4;color:#141414}
+.g3sw{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:500 14px var(--cond);backdrop-filter:blur(3px)}.g3sw input{flex:1;min-width:0;accent-color:#F4F4F4}.g3sw output{width:34px;text-align:right}
 #mapwrap.g3 .leaflet-control-container,#mapwrap.g3 #map{visibility:hidden}
 #mapwrap.tilt{overflow:hidden}#mapwrap.tilt #map.leaflet-container{overflow:visible}
 #mapwrap.tilt #map{transform:perspective(900px) rotateX(48deg) scale(1.35);transform-origin:50% 60%}
@@ -260,6 +263,7 @@ table.winds td small{font-size:11px}
   <div id="mapwrap">
     <div id="map" aria-label="Map"></div>
     <div id="globe" aria-label="3D view" hidden></div>
+    <div id="g3bar" aria-label="3D view controls"><div class="g3row"><button class="g3b" id="g3Dip" aria-pressed="true">DIP view</button><button class="g3b" id="g3Harp" aria-pressed="false">HARP view</button></div><label class="g3sw"><span id="g3SwL">Orbit</span><input type="range" id="g3Sw" min="0" max="360" step="1" value="0" aria-label="Swivel 360 degrees"><output id="g3SwV">0°</output></label></div>
     <nav id="quick" aria-label="Quick menu">
       <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Marker</span></button>
       <button class="qb" data-tool="draw" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/><path d="M14 7l3 3"/></svg><span>Draw</span></button>
@@ -1081,7 +1085,7 @@ function initGlobe(){const C=Cesium;
     terrainProvider:terrainTiles(),animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,navigationHelpButton:false,fullscreenButton:false,infoBox:false,selectionIndicator:false});
   v.scene.globe.depthTestAgainstTerrain=true;v.scene.globe.maximumScreenSpaceError=2;v.camera.percentageChanged=0.02;v.camera.changed.addEventListener(g3Eye);v.camera.moveEnd.addEventListener(g3Eye);v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0)g3Eye()});
   G3={v,src:new C.CustomDataSource('jump'),meE:null,key:null,dzGround:null,dzKey:null};v.dataSources.add(G3.src)}
-function g3Eye(){if(!g3On())return;const C=Cesium,v=G3.v,cam=v.camera.positionCartographic;const ray=v.camera.getPickRay(new C.Cartesian2(v.canvas.clientWidth/2,v.canvas.clientHeight/2)),p=ray&&v.scene.globe.pick(ray,v.scene),elev=p?C.Cartographic.fromCartesian(p).height:null;
+function g3Eye(){if(!g3On())return;if(document.activeElement!==$('#g3Sw'))g3SwSync();const C=Cesium,v=G3.v,cam=v.camera.positionCartographic;const ray=v.camera.getPickRay(new C.Cartesian2(v.canvas.clientWidth/2,v.canvas.clientHeight/2)),p=ray&&v.scene.globe.pick(ray,v.scene),elev=p?C.Cartographic.fromCartesian(p).height:null;
   $('#eyeAlt').textContent=`Elev ${elev==null?'–':Math.round(elev/FT).toLocaleString('en-GB')+' ft'} · Eye alt ${Math.round(cam.height/FT).toLocaleString('en-GB')} ft`}
 // draw the plan in the air: run-in and HARP at exit height, freefall down to the OP, canopy trackback down to the DIP, all over real terrain
 function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.removeAll();g3Me();if(!S.pi||!J||J.err){G3.v.scene.requestRender();return}
@@ -1112,13 +1116,24 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
 function g3Frame(){const C=Cesium,v=G3.v,c=map.getCenter(),p=S.pi||{lat:c.lat,lon:c.lng};const base=(+S.jump.dzElev||0)*FT||G3.dzGround||0;
   const look=S.pi&&J&&!J.err?brg(S.pi,J.harp):0;
   v.camera.flyToBoundingSphere(new C.BoundingSphere(C.Cartesian3.fromDegrees(p.lon,p.lat,base),1),{duration:0,offset:new C.HeadingPitchRange(C.Math.toRadians(look),C.Math.toRadians(-30),3500)})}
+// DIP view orbits round the DIP; HARP view puts you at the HARP at exit height, looking down at the DIP, and the swivel turns you on the spot
+var g3Mode='dip';
+const g3Base=()=>(+S.jump.dzElev||0)*FT||(G3&&G3.dzGround)||0;
+function g3SetMode(m){g3Mode=m;$('#g3Dip').setAttribute('aria-pressed',m==='dip');$('#g3Harp').setAttribute('aria-pressed',m==='harp');$('#g3SwL').textContent=m==='dip'?'Orbit':'Look';g3SwSync()}
+function g3HarpView(){if(!g3On())return;if(!S.pi||!J||J.err){toast('Set the DIP and jump details first to place the HARP.');return}const C=Cesium,b=g3Base(),h=b+((+S.jump.exitAlt)-(+S.jump.dzElev||0))*FT,d=dist(J.harp,S.pi);
+  G3.v.camera.setView({destination:C.Cartesian3.fromDegrees(J.harp.lon,J.harp.lat,h),orientation:{heading:C.Math.toRadians(brg(J.harp,S.pi)),pitch:-Math.atan2(h-b,Math.max(1,d)),roll:0}});g3SetMode('harp')}
+function g3SwSync(){if(!g3On())return;const d=Math.round(norm(Cesium.Math.toDegrees(G3.v.camera.heading)))%360;$('#g3Sw').value=d;$('#g3SwV').textContent=d+'°'}
+$('#g3Dip').onclick=()=>{if(!g3On())return;g3Frame();g3SetMode('dip')};$('#g3Harp').onclick=g3HarpView;
+$('#g3Sw').oninput=e=>{if(!g3On())return;const C=Cesium,cam=G3.v.camera,hd=C.Math.toRadians(+e.target.value);$('#g3SwV').textContent=e.target.value+'°';
+  if(g3Mode==='harp'){cam.setView({orientation:{heading:hd,pitch:cam.pitch,roll:0}});return}
+  const p=S.pi||{lat:map.getCenter().lat,lon:map.getCenter().lng},tgt=C.Cartesian3.fromDegrees(p.lon,p.lat,g3Base());cam.lookAt(tgt,new C.HeadingPitchRange(hd,cam.pitch,C.Cartesian3.distance(cam.position,tgt)));cam.lookAtTransform(C.Matrix4.IDENTITY)};
 function g3Me(){if(!g3On())return;const C=Cesium,E=G3.src.entities;if(!me){if(G3.meE){E.remove(G3.meE);G3.meE=null}return}const hasAlt=me.alt!=null&&isFinite(me.alt);const pos=C.Cartesian3.fromDegrees(me.lon,me.lat,hasAlt?me.alt:0);
   if(!G3.meE||!E.contains(G3.meE))G3.meE=E.add({position:pos,point:{pixelSize:14,color:col3(cssv('--self')),outlineColor:C.Color.WHITE,outlineWidth:2,heightReference:hasAlt?C.HeightReference.NONE:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity}});else{G3.meE.position=pos;G3.meE.point.heightReference=hasAlt?C.HeightReference.NONE:C.HeightReference.CLAMP_TO_GROUND}
   G3.v.scene.requestRender()}
 function g3FlyMe(){if(!g3On()||!me)return;const C=Cesium,cam=G3.v.camera,pos=C.Cartesian3.fromDegrees(me.lon,me.lat,me.alt!=null&&isFinite(me.alt)?me.alt:(G3.dzGround||0));cam.flyToBoundingSphere(new C.BoundingSphere(pos,1),{duration:1,offset:new C.HeadingPitchRange(cam.heading,C.Math.toRadians(-35),2500)})}
 const col3=s=>Cesium.Color.fromCssColorString(s);
 function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!on);if(!on){el.hidden=true;updateEyeAlt();return}el.hidden=false;
-  loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Frame();g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
+  loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Frame();g3SetMode('dip');g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);g3Me()}}
 
 /* ================= modes / quick menu ================= */
