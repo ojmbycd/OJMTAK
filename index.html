@@ -851,12 +851,12 @@ function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the D
 function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
-  {const bad=hamo&&!J.ok;L.polygon(J.ring.map(LL),{color:bad?'#FF2A2A':c.amb,weight:1.5,fillColor:bad?'#FF2A2A':c.amb,fillOpacity:.07,interactive:false}).addTo(LY.jump)}
+  
   L.polyline(J.path.slice(0,J.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
   L.polyline(J.path.slice(J.openIdx).map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump);
   J.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<J.marks.length?J.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
   const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
-  if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#9E9E9E",weight:1.2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
+  if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
   L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
   J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;const half=tp.t===240;const dotHtml=half?`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block"><path d="M0-5A5 5 0 0 1 0 5Z" fill="${G}"/><path d="M0-5A5 5 0 0 0 0 5Z" fill="${Rd}"/><circle r="5" fill="none" stroke="#141414" stroke-width="1"/></svg>`:'';
     if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
@@ -867,7 +867,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   if(hamo&&J2){
     L.polyline(J2.path.slice(0,J2.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',interactive:false}).addTo(LY.jump);L.polyline(J2.path.slice(J2.openIdx).map(LL),{color:'#CFCFCF',weight:2,opacity:.9,interactive:false}).addTo(LY.jump);
     calc(J2.op,'<circle r="6"/>',c.amb,'OP 2','open2');
-    L.polygon(J2.ring.map(LL),{color:J2.ok?c.amb:Rd,weight:1.5,dashArray:'8 5',fillColor:J2.ok?c.amb:Rd,fillOpacity:.05,interactive:false}).addTo(LY.jump);L.circleMarker(LL(J2.prp),{radius:4,color:J2.ok?c.amb:Rd,weight:2,fill:false,interactive:false}).addTo(LY.jump);
+    L.circleMarker(LL(J2.prp),{radius:4,color:J2.ok?c.amb:Rd,weight:2,fill:false,interactive:false}).addTo(LY.jump);
     if(showRun){L.marker(LL(J2.harp),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',J2.ok?c.ink:Rd,'HARP 2',24)}).on('click',()=>openRadial(J2.harp,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:harp2')},{l:'Copy grid',icon:'save',f:()=>copy(fc(J2.harp))}])).addTo(LY.jump);calc(J2.gl,'<circle r="8"/>',c.go,'First out 2','gl2');calc(J2.rl,'<circle r="8"/>',c.st,'Last out 2','rl2');const mid={lat:(J.harp.lat+J2.harp.lat)/2,lon:(J.harp.lon+J2.harp.lon)/2};L.marker(LL(mid),{icon:tagPin(`HARP to HARP ${fsec(hamo.gap)}`),interactive:false}).addTo(LY.jump)}}
   if(view3d){const k3=FT*Math.tan(48*D2R),up=(p,h)=>dest(p,0,Math.max(0,h)*k3),dzE=+S.jump.dzElev||0,exA=(+S.jump.exitAlt)-dzE,pull=+S.jump.openAlt,cas=+S.jump.casSF||0,lp=+S.jump.lpSF||0;
     const drop=(p,h,col)=>{L.polyline([LL(p),LL(up(p,h))],{color:col,weight:1,opacity:.7,dashArray:'2 4',interactive:false}).addTo(LY.jump)};
@@ -875,7 +875,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     if(showRun){const air=(P,col,lbl)=>{L.polyline([LL(up(P.gl,exA)),LL(up(P.rl,exA))],{color:c.amb,weight:5,opacity:.9,interactive:false}).addTo(LY.jump);L.polyline([LL(up(P.harp,exA)),LL(up(P.prp,exA))],{color:c.amb,weight:2,dashArray:'4 4',interactive:false}).addTo(LY.jump);
         drop(P.harp,exA,col);drop(P.gl,exA,c.go);drop(P.rl,exA,c.st);
         L.marker(LL(up(P.harp,exA)),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',col,`${lbl} ${ff(+S.jump.exitAlt)}`,20),interactive:false}).addTo(LY.jump)};
-      L.polyline([LL(up(J.runStart,exA)),LL(up(J.runEnd,exA))],{color:'#CFCFCF',weight:2,dashArray:'10 6',interactive:false}).addTo(LY.jump);drop(J.runStart,exA,'#9E9E9E');
+      L.polyline([LL(up(J.runStart,exA)),LL(up(J.runEnd,exA))],{color:'#FFD400',weight:2,dashArray:'10 6',interactive:false}).addTo(LY.jump);drop(J.runStart,exA,'#9E9E9E');
       J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;drop(tp.p,exA,'#9E9E9E');L.circleMarker(LL(up(tp.p,exA)),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(up(tp.p,exA)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${tp.l}</span>`}),interactive:false}).addTo(LY.jump)});
       air(J,hamo&&!J.ok?Rd:c.ink,hamo?'HARP 1':'HARP');if(hamo&&J2)air(J2,J2.ok?c.ink:Rd,'HARP 2')}
     L.polyline(J.trk.map(t=>LL(up(t.p,t.h))),{color:'#FFFFFF',weight:3.5,interactive:false}).addTo(LY.jump);J.trk.forEach(t=>{if(t.h>0)drop(t.p,t.h,'#FFFFFF')});
@@ -1107,7 +1107,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
   const dot=(pos,c,text,size=9)=>E.add({position:pos,point:{pixelSize:size,color:c,outlineColor:C.Color.BLACK,outlineWidth:1.5,disableDepthTestDistance:Infinity},label:text?{text,font:'600 14px "Barlow Condensed",sans-serif',fillColor:c,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),disableDepthTestDistance:Infinity}:undefined});
   const exA=(+S.jump.exitAlt)-dzSet,pull=+S.jump.openAlt,showRun=phase==='ground'||phase==='aircraft';
   const plan=(P,tag,first)=>{const pullP=P===J?pull:+S.jump.pod2Open;
-    if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)];line(run,gry,2,true);curtain(run,gry);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
+    if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)],yel=col('#FFD400');line(run,yel,2.5,true);curtain(run,yel);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
       const stick=[at(P.gl,exA),at(P.rl,exA)];line(stick,amb,6);curtain(stick,amb);line([at(P.harp,exA),at(P.prp,exA)],amb,2,true);
       dot(at(P.gl,exA),go,`First out${tag}`);dot(at(P.rl,exA),st,`Last out${tag}`);dot(at(P.harp,exA),hamo&&!P.ok?red:wht,`HARP${tag} ${ff(+S.jump.exitAlt)}`,11);drop(P.harp,exA,wht)}
     // freefall: exit at the PRP, falls with the wind to the OP
@@ -1117,7 +1117,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
   const trk=J.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);J.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});
-  line(J.ring.concat([J.ring[0]]).map(p=>C.Cartesian3.fromDegrees(p.lon,p.lat,base+15)),hamo&&!J.ok?red:amb,2);
+  
   E.add({position:C.Cartesian3.fromDegrees(S.pi.lon,S.pi.lat),point:{pixelSize:12,color:col(cssv('--pi')),outlineColor:C.Color.BLACK,outlineWidth:2,heightReference:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity},label:{text:S.pi.name||'DIP',font:'700 15px "Barlow Condensed",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,heightReference:C.HeightReference.CLAMP_TO_GROUND,pixelOffset:new C.Cartesian2(12,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Infinity}});
   if(G3.key!==piKey){G3.key=piKey;g3Frame()}G3.v.scene.requestRender()}
 // camera opens close to the DIP, standing back from it on the far side from the HARP, so the trackback comes down towards you
