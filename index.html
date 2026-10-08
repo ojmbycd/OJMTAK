@@ -58,7 +58,7 @@ button,input,select{font:inherit;color:inherit}
 .qb[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
 .qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
-#status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
+#status{position:absolute;right:8px;bottom:30px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
 #status .cs{color:#8CFFC4;font-size:13px;opacity:.9}
 #status #bPos{font-size:17px;letter-spacing:.02em;white-space:nowrap}
 #status .srow{display:flex;gap:12px}
@@ -160,7 +160,7 @@ button,input,select{font:inherit;color:inherit}
 #radial .rb span{font:400 9px/1 var(--cond);white-space:nowrap}
 #radial .rb:active{background:#F2F2F2;color:#141414}
 #radial .ring{position:absolute;left:-92px;top:-92px;width:184px;height:184px;border-radius:50%;border:1px dashed rgba(255,255,255,.3);pointer-events:none}
-#zoom{position:absolute;left:8px;top:38%;transform:translateY(-50%);z-index:900;display:flex;flex-direction:column;gap:6px}
+#zoom{position:absolute;left:8px;top:70px;z-index:900;display:flex;flex-direction:column;gap:6px}
 #zoom button{width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(16,16,16,.35);color:#fff;font:300 30px/1 var(--cond);cursor:pointer;backdrop-filter:blur(3px);position:relative;padding:0}
 #northBtn svg{width:34px;height:34px;display:block;margin:0 auto;transition:transform .2s}
 #northLbl{position:absolute;right:3px;bottom:1px;font:400 10px/1 var(--cond);color:#ddd}
@@ -200,6 +200,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+#jmSeg button{padding:6px 3px;font-size:14px;line-height:1.1;white-space:normal}#jmSeg button[data-jm="summary"]{flex:1.3}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
 .stepper output{min-width:110px;text-align:center;font:500 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
@@ -353,7 +354,7 @@ table.winds td small{font-size:11px}
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button><button data-jm="summary" aria-pressed="false">Summary</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan Jump</button><button data-jm="winds" aria-pressed="false">Winds</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump Vital Data</button></div>
 
         <div data-jm-panel="plan">
           <button class="mhead mt" id="mHead"><span>Jump Params:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
@@ -1040,7 +1041,7 @@ function closeRadial(){$('#radial').hidden=true}
 map.on('movestart zoomstart click',closeRadial);
 function dipRadial(){openRadial(S.pi,[
   {l:'Edit DIP',icon:'edit',f:()=>sheet({title:'Edit DIP',sub:fc(S.pi),input:{label:'Grid or lat, long',value:fc(S.pi),save:v=>{const p=parseCoord(v);if(!p){toast('Grid not recognised');return}S.pi=Object.assign({},S.pi,p);save('pi');renderJump();autoDzElev()}},buttons:[['Name',()=>sheet({title:'DIP name',input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump()}},buttons:[]})],['Move: tap on map',()=>{openTool('jump');setMode('pi','Tap the map to set the DIP');$('#tool').classList.add('min')}],['Use my position',()=>{if(!me){toast('No position yet');return}S.pi={lat:me.lat,lon:me.lon};save('pi');renderJump()}],['DZ elevation',()=>sheet({title:'DZ elevation',sub:`${ff(+S.jump.dzElev)} AMSL${S.jump.dzSrc?` · ${S.jump.dzSrc}`:''}`,buttons:[['Refresh from terrain',()=>autoDzElev(true),'primary'],['Edit manually',()=>sheet({title:'Change DZ elevation?',sub:'This overrides the terrain value for this DIP and changes every calculation.',buttons:[['Yes, edit',()=>sheet({title:'DZ elevation',input:{label:'ft AMSL',type:'number',value:S.jump.dzElev,save:v=>{const n=parseFloat(v);if(isFinite(n)){S.jump.dzElev=n;S.jump.dzSrc='entered manually';save('jump');syncJumpInputs();renderWinds();renderJump();toast('DZ elevation set to '+ff(n))}}},buttons:[]}),'danger']]})]]})]]})},
-  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan');showPage(1)}},
+  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:patternSheet},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
@@ -1049,7 +1050,7 @@ function dipRadial(){openRadial(S.pi,[
 function harpRadial(){if(!J||J.err)return;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
   {l:'Start Jump',icon:'hound',f:()=>setTarget('c:harp')},
-  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan');showPage(1)}},
+  {l:'Jump params',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}])}
 /* alternate DIPs */
 function altDipSheet(){sheet({title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>swapDip(d.id)])]})}
@@ -1201,8 +1202,8 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   </dl>
   <div class="row"><button class="btn primary" data-hound="c:harp">Start Jump</button><button class="btn" data-hound="c:gl">Bloodhound First out</button><button class="btn" data-hound="c:pi">Bloodhound DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
-function showJm(k){$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==k);if(k==='summary')renderSummary()}
-document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showPage(2)}if(e.target.id==='toPlan'){showPage(1)}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
+function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='winds')showPage(2);else if(k==='plan')showPage(1);if(k==='summary')renderSummary()}
+document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
 
 
 /* ================= Military CYPRES (para 5.10, 5.11, 2.1 C and D) ================= */
