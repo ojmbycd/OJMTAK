@@ -404,14 +404,14 @@ table.winds td small{font-size:11px}
             <h3>Jump profile</h3>
             <div class="seg full" id="modeSeg"><button data-mode="HAHO">HAHO</button><button data-mode="HALO">HALO</button><button data-mode="HAMO">SP HAMO</button></div>
             <div class="fields mt">
-              <label class="fld">Exit altitude<em id="exitAglHint">ft AMSL</em><select data-j="exitAlt"></select></label>
-              <label class="fld">Opening altitude<em>ft AGL</em><select data-j="openAlt"></select></label>
+              <label class="fld">Exit altitude <span id="exitAglHint">(ft AMSL)</span><select data-j="exitAlt"></select></label>
+              <label class="fld">Opening altitude (ft AGL)<select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
             <div id="hamoBox" hidden>
               <h4>Pod 2</h4>
               <div class="fields">
-                <label class="fld">Pod 2 opening altitude<em>ft AGL</em><select id="pod2Open"></select></label>
+                <label class="fld">Pod 2 opening altitude (ft AGL)<select id="pod2Open"></select></label>
                 <label class="fld">Pod 2 jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
               </div>
               <label class="fld mt">Aircraft course offset<em>degrees either side of the run-in; both HARPs must stay inside their HARP rings</em><input type="range" id="hamoSlider" min="-60" max="60" step="1"></label>
@@ -1427,7 +1427,7 @@ $('#sortie').oninput=e=>{S.jump.sortie=e.target.value;save('jump')};
 $('#jmSeg').onclick=e=>{const b=e.target.closest('[data-jm]');if(b)showJm(b.dataset.jm)};
 function fillExitSel(){const sel=$('[data-j="exitAlt"]');if(!sel)return;let o='';for(let a=3000;a<=35000;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.min(35000,Math.max(3000,Math.round((+S.jump.exitAlt||12000)/500)*500));if(v!==S.jump.exitAlt){S.jump.exitAlt=v;save('jump')}sel.value=v}
 function fillOpenSel(){const sel=$('[data-j="openAlt"]');if(!sel)return;const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0))/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.round((+S.jump.openAlt||3500)/500)*500;v=Math.min(top,Math.max(1000,v));if(v!==S.jump.openAlt){S.jump.openAlt=v;save('jump')}sel.value=v}
-function exitHint(){const e=$('#exitAglHint');if(e)e.textContent=`ft AMSL (${((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)).toLocaleString('en-GB')} ft AGL)`}
+function exitHint(){const e=$('#exitAglHint');if(e)e.textContent='(ft AMSL)'}
 function intervalHint(){const e=$('#intervalHint');if(!e)return;const gs=J&&!J.err?J.gsM:(+S.jump.kias||0)*KT;e.textContent=`(seconds, ${Math.round((+S.jump.interval||0)*gs)} m separation)`}
 function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)-(+S.jump.casSF||0))/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;sel.innerHTML=o;let v=Math.min(top,Math.max(1000,Math.round((+S.jump.pod2Open||6000)/500)*500));S.jump.pod2Open=v;sel.value=v;$('#pod2Jumpers').value=S.jump.pod2Jumpers}
 function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=S.jump.hamoOffset||0;$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#runSel').value=S.jump.runMode||'into';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
