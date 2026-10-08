@@ -1241,7 +1241,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
     dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});drop(P.op,pullP,wht)};
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
-  const trk=J.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);J.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});
+  [J,...(hamo&&J2?[J2]:[])].forEach(P=>{const trk=P.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);P.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))})});/* each pod's canopy trackback */
   
   E.add({position:C.Cartesian3.fromDegrees(S.pi.lon,S.pi.lat),point:{pixelSize:12,color:col(cssv('--pi')),outlineColor:C.Color.BLACK,outlineWidth:2,heightReference:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity},label:{text:S.pi.name||'DIP',font:'700 15px "Barlow Condensed",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,heightReference:C.HeightReference.CLAMP_TO_GROUND,pixelOffset:new C.Cartesian2(12,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Infinity}});
   if(G3.key!==piKey){G3.key=piKey;g3Frame()}G3.v.scene.requestRender()}
