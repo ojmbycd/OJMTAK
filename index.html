@@ -224,6 +224,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+#hamoNote{min-height:3.9em}
 .podh{margin:12px 0 4px;padding:4px 8px;border-left:4px solid var(--amber);font:500 16px var(--cond);color:var(--ink)}
 .plandip{margin:10px 2px 4px;font:400 17px/1.2 var(--cond);color:var(--ink)}.plandip b{font-weight:500}
 .hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--muted,#BDBDBD)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
@@ -406,25 +407,25 @@ table.winds td small{font-size:11px}
             <div class="seg full" id="modeSeg"><button data-mode="HAHO">HAHO</button><button data-mode="HALO">HALO</button><button data-mode="HAMO">SP HAMO</button></div>
             <div class="fields mt">
               <label class="fld"><span>Exit altitude <span id="exitAglHint">(ft AMSL)</span></span><select data-j="exitAlt"></select></label>
-              <label class="fld">Opening altitude (ft AGL)<select data-j="openAlt"></select></label>
+              <label class="fld"><span id="openLbl">Opening altitude (ft AGL)</span><select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
             <div id="harpRingBox" class="mt"><label class="fld"><span>HARP on ring <span id="harpBrgLbl">(auto)</span></span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
             <div id="hamoBox" hidden>
               <h4>Pod 2</h4>
               <div class="fields">
-                <label class="fld">Pod 2 opening altitude (ft AGL)<select id="pod2Open"></select></label>
+                <label class="fld">Pod 2 open (ft AGL)<select id="pod2Open"></select></label>
                 <label class="fld">Pod 2 jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
               </div>
-              <label class="fld mt">Aircraft course offset<em>degrees either side of the run-in; both HARPs must stay inside their HARP rings</em><input type="range" id="hamoSlider" min="-60" max="60" step="1"></label>
+              <label class="fld mt"><span>Common AC course <span id="hamoCseLbl"></span></span><input type="range" id="hamoSlider" min="0" max="359" step="1"></label>
               <p class="note" id="hamoNote"></p>
             </div>
           </section>
           <section class="sec">
             <h3>Safety factors</h3>
             <div class="fields">
-              <label class="fld">Canopy assembly<em>ft off the top</em><input type="number" inputmode="decimal" step="500" data-j="casSF"></label>
-              <label class="fld">Landing pattern<em>ft off the bottom</em><input type="number" inputmode="decimal" step="500" data-j="lpSF"></label>
+              <label class="fld">Canopy assembly<em>ft off the top, minimum 2,000</em><input type="number" inputmode="decimal" step="500" min="2000" data-j="casSF"></label>
+              <label class="fld">Landing pattern<em>ft off the bottom, minimum 1,000</em><input type="number" inputmode="decimal" step="500" min="1000" data-j="lpSF"></label>
             </div>
           </section>
           <section class="sec">
@@ -664,6 +665,7 @@ const S={
 };
 const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&['range,runin,xtk,togl','dgl,togl,acspd,accse'].includes(S.hound.tiles.join())){S.hound.tiles=['amsl','togl','acspd','accse'];store.set('hound',S.hound)}
 if(+S.jump.loadKg>0){S.jump.jumperKg=(+S.jump.jumperKg||110)+(+S.jump.loadKg);S.jump.loadKg=0;store.set('jump',S.jump)}/* equipment load folded into average AUM */
+if(!(+S.jump.casSF>=2000)||!(+S.jump.lpSF>=1000)){S.jump.casSF=Math.max(2000,+S.jump.casSF||0);S.jump.lpSF=Math.max(1000,+S.jump.lpSF||0);store.set('jump',S.jump)}
 if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
@@ -875,7 +877,7 @@ function avgRows(rows){if(!rows.length)return {v:0,d:0,north:false};const ds=row
 function cdLevels(pull){const L_=[];for(let a=1000;a<=Math.min(pull,10000);a+=1000)L_.push(a);for(let a=12000;a<=pull;a+=2000)L_.push(a);return L_}
 function ffLevels(exitAGL,pull){const L_=[];for(let a=exitAGL;a>pull;a-=2000)L_.push(a);return L_}
 function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if(!pi)return {err:'Set the DIP to see the release solution.'};
-  const dz=+j.dzElev||0,exitAGL=(+j.exitAlt)-dz,pull=+j.openAlt,cas=+j.casSF||0,lp=+j.lpSF||0;
+  const dz=+j.dzElev||0,exitAGL=(+j.exitAlt)-dz,pull=+j.openAlt,cas=Math.max(2000,+j.casSF||0),lp=Math.max(1000,+j.lpSF||0);/* minimum safety factors: 2,000 ft top, 1,000 ft bottom */
   if(!(pull>0))return {err:'Opening altitude must be above the DZ.'};if(!(exitAGL>=pull))return {err:'Opening altitude must be at or below exit altitude.'};
   const K=(+j.k||46)*loadFactorFor(j),FS=+j.canopySpeed||0,A=pull/1000,SF=(cas+lp)/1000;if(!(A>SF))return {err:'Safety factors use up the whole canopy ride. Raise the opening altitude or reduce the safety factors.'};
   const notes=[];
@@ -927,7 +929,7 @@ function hullLL(pts){const k=Math.cos(pts[0].lat*D2R),P=pts.map(p=>({p,x:p.lon*k
 function inRing(ring,p){const lat0=p.lat*D2R;const X=q=>(q.lon-p.lon)*Math.cos(lat0),Y=q=>q.lat-p.lat;let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const xi=X(ring[i]),yi=Y(ring[i]),xj=X(ring[k]),yj=Y(ring[k]);if(((yi>0)!==(yj>0))&&(0<(xj-xi)*(0-yi)/(yj-yi)+xi))c=!c}return c}
 let hamoHeading=null,J2=null,hamo=null;
 function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(+S.jump.pod2Open<=+S.jump.openAlt&&$('#pod2Open'))fillPod2Sel();
-  const base=computeJump(S.pi);if(base.err)return;hamoHeading=norm(base.heading+(+S.jump.hamoOffset||0));
+  const base=computeJump(S.pi);if(base.err)return;hamoHeading=norm((+S.jump.headingMag||0)+(+S.set.decl||0));
   const A=computeJump(S.pi),B=computeJump(S.pi,{openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers});if(A.err||B.err)return;
   const h=hamoHeading,mid={lat:(A.ringC.lat+B.ringC.lat)/2,lon:(A.ringC.lon+B.ringC.lon)/2};
   const proj=c=>{const d=dist(mid,c),t=(brg(mid,c)-h)*D2R;return {along:d*Math.cos(t),off:Math.abs(d*Math.sin(t))}};
@@ -1443,15 +1445,16 @@ function exitHint(){const e=$('#exitAglHint');if(e)e.textContent='(ft AMSL)'}
 function intervalHint(){const e=$('#intervalHint');if(!e)return;const gs=J&&!J.err?J.gsM:(+S.jump.kias||0)*KT;e.textContent=`(seconds, ${Math.round((+S.jump.interval||0)*gs)} m separation)`}
 /* pod 1 always opens lower: pod 2 can only be set above pod 1's opening */
 function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)-(+S.jump.casSF||0))/500)*500),low=Math.max(1000,Math.floor((+S.jump.openAlt||0)/500)*500+500);let o='';for(let a=low;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;if(!o)o=`<option value="${low}">${low.toLocaleString('en-GB')} (lower pod 1 first)</option>`;sel.innerHTML=o;let v=Math.min(Math.max(low,top),Math.max(low,Math.round((+S.jump.pod2Open||8000)/500)*500));if(v!==+S.jump.pod2Open){S.jump.pod2Open=v;save('jump')}sel.value=v;$('#pod2Jumpers').value=S.jump.pod2Jumpers}
-function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=S.jump.hamoOffset||0;$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#runSel').value=S.jump.runMode||'into';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
+function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=Math.round(+S.jump.headingMag||0);$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i)i.value=S.jump[i.dataset.j]});$('#openLbl').textContent=S.jump.mode==='HAMO'?'Pod 1 open (ft AGL)':'Opening altitude (ft AGL)';if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';{const l=$('#hamoCseLbl');if(l)l.textContent=`(${String(Math.round(+S.jump.headingMag||0)).padStart(3,'0')}° M, both pods)`}$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
+document.addEventListener('change',e=>{const k=e.target&&e.target.dataset&&e.target.dataset.j,min=k==='casSF'?2000:k==='lpSF'?1000:0;if(min&&!(+e.target.value>=min)){S.jump[k]=min;e.target.value=min;save('jump');renderJump();toast(`${k==='casSF'?'Canopy assembly':'Landing pattern'} safety factor can't be under ${ff(min)}`)}});
 $('#harpBrg').oninput=e=>{S.jump.harpBrg=+e.target.value;save('jump');renderJump()};$('#harpAuto').onclick=()=>{S.jump.harpBrg=null;save('jump');renderJump()};
-$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;if(b.dataset.mode==='HAMO')S.jump.pod2Open=8000;S.jump.openAlt=b.dataset.mode==='HALO'?5000:b.dataset.mode==='HAMO'?6000:Math.max(1000,Math.min(11000,Math.floor(((+S.jump.exitAlt||12000)-(+S.jump.dzElev||0))/500)*500));/* HAHO opens at 11,000 ft AGL unless the exit is too low for it */save('jump');syncJumpInputs();renderJump()};
+$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;if(b.dataset.mode==='HAMO'){S.jump.pod2Open=8000;if(S.jump.runMode!=='custom'&&J&&!J.err)S.jump.headingMag=Math.round(magOf(J.heading));S.jump.runMode='custom'}S.jump.openAlt=b.dataset.mode==='HALO'?5000:b.dataset.mode==='HAMO'?6000:Math.max(1000,Math.min(11000,Math.floor(((+S.jump.exitAlt||12000)-(+S.jump.dzElev||0))/500)*500));/* HAHO opens at 11,000 ft AGL unless the exit is too low for it */save('jump');syncJumpInputs();renderJump()};
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;save('jump');renderJump()};
 $('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
-$('#hamoSlider').oninput=e=>{S.jump.hamoOffset=+e.target.value;save('jump');renderJump()};
+$('#hamoSlider').oninput=e=>{S.jump.headingMag=+e.target.value;S.jump.runMode='custom';save('jump');const i=$('[data-j="headingMag"]');if(i)i.value=S.jump.headingMag;renderJump()};
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
 // long-press (or right-click) anywhere on the map offers to put the DIP there
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
