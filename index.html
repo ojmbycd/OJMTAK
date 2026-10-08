@@ -947,12 +947,12 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
     <div class="warn">Calculated per OJM manual para 5.3 to 5.8 (D = KAV, wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
   updateHound();renderPoints()}
-function drawDipRings(pi,name){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
+function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
   [450*FT,900*FT].forEach(r=>L.circle(LL(pi),{radius:r,color:red,weight:1.5,fill:false,interactive:false}).addTo(LY.jump));
   L.circle(LL(pi),{radius:R,color:grn,weight:1.5,fill:false,interactive:false}).addTo(LY.jump);
   for(let b=0;b<360;b+=10){const big=b%30===0;L.polyline([LL(dest(pi,b,R)),LL(dest(pi,b,R+(big?34:17)))],{color:grn,weight:big?2:1,interactive:false}).addTo(LY.jump);if(big){const lp=dest(pi,b,R+72);const txt=b===0?'N':b===90?'E':b===180?'S':b===270?'W':String(b).padStart(3,'0');L.marker(LL(lp),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="clbl" style="color:${grn}">${txt}</span>`}),interactive:false}).addTo(LY.jump)}}
-  L.marker(LL(pi),{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html:`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28"><circle r="10" fill="none" stroke="${red}" stroke-width="3"/><circle r="2.5" fill="${red}"/></svg><span class="lbl" style="position:absolute;left:28px;top:7px">${esc(name)}</span></div>`})}).on('click',pi===S.pi?dipRadial:()=>openRadial(pi,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:pi2')},{l:'Remove',icon:'del',f:()=>{S.pi2=null;save('pi2');renderJump()}}])).addTo(LY.jump)}
-function drawPI(){drawDipRings(S.pi,S.pi.name||'DIP');renderAltDips();drawPattern()}
+  L.marker(LL(pi),{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html:`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28"><circle r="10" fill="none" stroke="${red}" stroke-width="3"/><circle r="2.5" fill="${red}"/></svg><span class="lbl" style="position:absolute;left:28px;top:${elev!=null?1:7}px;line-height:1.1">${esc(name)}${elev!=null?`<br><small style="font-size:11px;opacity:.85">DZ ${ff(elev)} AMSL</small>`:''}</span></div>`})}).on('click',pi===S.pi?dipRadial:()=>openRadial(pi,[{l:'Bloodhound',icon:'hound',f:()=>setTarget('c:pi2')},{l:'Remove',icon:'del',f:()=>{S.pi2=null;save('pi2');renderJump()}}])).addTo(LY.jump)}
+function drawPI(){const e=S.jump.dzElev;drawDipRings(S.pi,S.pi.name||'DIP',e!==''&&e!=null&&isFinite(+e)?+e:null);renderAltDips();drawPattern()}
 
 /* CYPRES + altimeter */
 function renderCypres(){renderMilCypres();const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
