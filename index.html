@@ -213,6 +213,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.plandip{margin:10px 2px 4px;font:400 17px/1.2 var(--cond);color:var(--ink)}.plandip b{font-weight:500}
 .hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--muted,#BDBDBD)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
 #jmSeg button{padding:6px 3px;font-size:14px;line-height:1.1;white-space:normal}#jmSeg button[data-jm="summary"]{flex:1.3}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
@@ -374,7 +375,8 @@ table.winds td small{font-size:11px}
         <div data-jm-panel="plan">
           <button class="mhead mt" id="mHead"><span>Plan Jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
           <div data-pp="1">
-          <section class="sec">
+          <p class="plandip" id="planDip"></p>
+          <section class="sec" hidden>
             <h3>Sortie</h3>
             <label class="fld">Sortie name / number<input type="text" id="sortie" placeholder="e.g. SORTIE 1 / POD1"></label>
           </section>
@@ -914,7 +916,7 @@ function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(first.gl,norm(h+180),gs*t)}));
   hamo={A,B,first,second,gap:sep/gs,clear,ok:A.ok&&B.ok&&clear>=0,timePts,runStart:dest(first.gl,norm(h+180),gs*600),runEnd:dest(second.rl,h,gs*60),oneMin:dest(first.gl,norm(h+180),gs*60)};}
 function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the single pass.';const h=hamo;return `Course ${fb(hamoHeading)} T · pod ${h.first.pod} exits first · HARP to HARP ${fsec(h.gap)} · ${!h.A.ok||!h.B.ok?`pod ${!h.A.ok?1:2} HARP outside its ring`:h.clear<0?'sticks overlap, open the gap':'both HARPs inside their rings'}`}
-function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
+function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
