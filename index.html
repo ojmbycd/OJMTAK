@@ -915,7 +915,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   // stick: parachutists cut-off time (PCOT) = (jumpers - 1) x exit interval; length = ground speed x PCOT, HARP mid-stick
   const n=Math.max(1,+j.jumpers||1),pcot=(n-1)*Math.max(0,+j.interval||0),JD=gsM*pcot/2,FTm=0;// no forward throw: the HARP is the exit point, freefall drift from the PRP where the canopy opens
   const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
-  /* last out is at the HARP: the whole stick exits before it */const gl=dest(harp,norm(heading+180),stick),rl=harp,oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*600),runEnd=dest(rl,heading,gsM*60);
+  const gl=dest(harp,norm(heading+180),JD),rl=dest(harp,heading,JD),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*600),runEnd=dest(rl,heading,gsM*60);
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(gl,norm(heading+180),gsM*t)}));
   // trackback: canopy leaves the OP at (pull - assembly SF), turns at each dogleg, arrives over the DIP at the landing pattern SF
   const marks=[],trk=[{p:op,h:pull},{p:op,h:pull-cas}];
@@ -942,7 +942,7 @@ function computeHamo(){J2=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO
   const a0=computeJump(S.pi,{...P1,harpBrg:norm(wl+sp)}),b0=computeJump(S.pi,{...P2,harpBrg:norm(wl-sp)});if(a0.err||b0.err)return;
   let h=dist(a0.harp,b0.harp)<1?into:brg(a0.harp,b0.harp);const dh=x=>Math.abs(((x-into)%360+540)%360-180);if(dh(norm(h+180))<dh(h))h=norm(h+180);hamoHeading=h;
   const o={runMode:'custom',headingMag:norm(h-(+S.set.decl||0))},A=computeJump(S.pi,{...P1,...o,harpBrg:norm(wl+sp)}),B=computeJump(S.pi,{...P2,...o,harpBrg:norm(wl-sp)});if(A.err||B.err)return;
-  A.ok=B.ok=true;A.pod=1;B.pod=2;const along=P=>{const d=dist(S.pi,P.harp),t=(brg(S.pi,P.harp)-h)*D2R;return d*Math.cos(t)-P.stick};A.along=along(A);B.along=along(B);
+  A.ok=B.ok=true;A.pod=1;B.pod=2;const along=P=>{const d=dist(S.pi,P.harp),t=(brg(S.pi,P.harp)-h)*D2R;return d*Math.cos(t)-P.JD};A.along=along(A);B.along=along(B);
   const first=A.along<=B.along?A:B,second=first===A?B:A,gs=Math.max(5,first.gsM),sep=second.along-first.along,clear=sep-first.stick;
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(first.gl,norm(h+180),gs*t)}));
   hamo={A,B,first,second,gap:sep/gs,clear,ok:clear>=0,timePts,runStart:dest(first.gl,norm(h+180),gs*600),runEnd:dest(second.rl,h,gs*60),oneMin:dest(first.gl,norm(h+180),gs*60),spread:sp,wl};
@@ -956,7 +956,7 @@ function calcDl(P,n){return `<dl class="res">
     <dd data-l="Jumper Heading">${fb(P.jumperHdgM)} M, OP to DIP</dd>
     <dd data-l="Aircraft Course">${bTM(P.heading)}</dd>
     <dd data-l="PCOT">${fsec(P.pcot)}: (${n} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(P.stick)} m at ${Math.round(P.gsM/KT)} kt ground speed</dd>
-    <dd data-l="Stick">First out ${Math.round(P.stick)} m back along the course; last out at the HARP</dd>
+    <dd data-l="Half stick">${Math.round(P.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
     <dd data-l="PRP (canopy opens)">${fc(P.op)}</dd>
     <dd data-l="HARP to PRP">${fd(dist(P.harp,P.op))} @ ${fb(brg(P.harp,P.op))} T, freefall drift</dd>
     <dd data-l="HARP to DIP">${fd(dist(P.harp,S.pi))} | ${(dist(P.harp,S.pi)/1852).toFixed(2)} NM</dd>
