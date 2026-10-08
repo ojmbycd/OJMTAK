@@ -670,9 +670,9 @@ const BASES={
 let baseLayer=null,extraLayers=[],tileOk=false,tileErr=0,tileWarned=false;
 function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}extraLayers.forEach(l=>map.removeLayer(l));extraLayers=[];S.set.base=k;save('set');$$('#baseSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===k));if(k==='none')return;const b=BASES[k];baseLayer=L.tileLayer(b.u,b.o);baseLayer.on('tileload',()=>{tileOk=true});baseLayer.on('tileerror',()=>{tileErr++;if(!tileOk&&tileErr>=3&&!tileWarned){tileWarned=true;toast('Map imagery is blocked on this page, so the MGRS grid is showing. Host this file on your own site to load imagery.',6500)}});baseLayer.addTo(map);(b.extra||[]).forEach(u=>{const l=L.tileLayer(u,{maxZoom:19,pane:'tilePane',zIndex:5});l.addTo(map);extraLayers.push(l)})}
 
-const LY={cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup()};
+const LY={cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup(),adsb:L.layerGroup()};
 const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
-const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line'};
+const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Bloodhound line',adsb:'Live aircraft (ADS-B)'};
 function applyOverlays(){Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
 
 function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
@@ -770,8 +770,30 @@ $('#rngList').onclick=e=>{const b=e.target.closest('[data-r]');if(b)rngActions(b
 
 /* ================= OVERLAYS ================= */
 function renderOvList(){$('#ovList').innerHTML=Object.entries(OV_NAMES).map(([k,n])=>`<label class="chk"><input type="checkbox" data-ov="${k}" ${S.ov[k]?'checked':''}> ${n}</label>`).join('')}
-$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='cloud')$('#cloudBar').hidden=!(e.target.checked&&CL);if(k==='grid')drawGrid()};
+$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='cloud')$('#cloudBar').hidden=!(e.target.checked&&CL);if(k==='grid')drawGrid();if(k==='adsb')adsbSync()};
 $('#baseSeg').onclick=e=>{const b=e.target.closest('[data-b]');if(b)setBase(b.dataset.b)};
+/* ================= live aircraft: adsb.lol feed through the Cloudflare relay (adsb-worker.js) ================= */
+const ADSB_URL='https://adsb-relay.sraigchuts.workers.dev/';
+let adsbT=null,adsbAc=[],adsbErr=0;
+const adsbAlt=a=>a.alt_baro==='ground'?null:(isFinite(a.alt_geom)?a.alt_geom:isFinite(a.alt_baro)?a.alt_baro:null),adsbName=a=>(a.flight||a.r||a.hex||'').trim();
+function adsbSync(){clearTimeout(adsbT);if(S.ov.adsb){adsbErr=0;adsbPoll()}else{LY.adsb.clearLayers();adsbAc=[];g3Air()}}
+async function adsbPoll(){clearTimeout(adsbT);if(!S.ov.adsb)return;const c=S.pi||me||{lat:map.getCenter().lat,lon:map.getCenter().lng};
+  try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),8000);const r=await fetch(`${ADSB_URL}?lat=${c.lat.toFixed(3)}&lon=${c.lon.toFixed(3)}&r=40`,{signal:ctl.signal});clearTimeout(t);if(!r.ok)throw new Error(r.status);const j=await r.json();
+    adsbAc=(j.ac||[]).filter(a=>isFinite(a.lat)&&isFinite(a.lon)&&(a.seen_pos==null||a.seen_pos<60));adsbErr=0;drawAdsb()}
+  catch(e){if(++adsbErr===3)toast('Live aircraft feed not reachable. Check internet; retrying.',4500)}
+  adsbT=setTimeout(adsbPoll,document.hidden?30000:5000)}
+function drawAdsb(){LY.adsb.clearLayers();adsbAc.forEach(a=>{const jmp=a.hex===S.set.jumpAc,alt=adsbAlt(a),col=jmp?'#FFD400':'#7FD3FF',toH=jmp&&J&&!J.err?` · HARP ${fd(dist(a,J.harp))}`:'';
+    const html=`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28" style="transform:rotate(${a.track||0}deg);overflow:visible"><path d="M0-12 2-3 11 2 11 4 2 1 1.5 8 5 11 5 12.5 0 11-5 12.5-5 11-1.5 8-2 1-11 4-11 2-2-3Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="lbl" style="position:absolute;left:28px;top:-2px;color:${col}">${esc(adsbName(a))}<br>${alt==null?'GND':ff(alt)} · ${Math.round(a.gs||0)} kt${toH}</span></div>`;
+    L.marker([a.lat,a.lon],{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html}),zIndexOffset:jmp?900:500}).on('click',()=>adsbSheet(a.hex)).addTo(LY.adsb)});g3Air()}
+function adsbSheet(hex){const a=adsbAc.find(x=>x.hex===hex);if(!a)return;const jmp=S.set.jumpAc===hex,alt=adsbAlt(a);let sub=`${a.t||'Type ?'} ${a.r||''} · ${alt==null?'on the ground':ff(alt)+' AMSL'} · ${Math.round(a.gs||0)} kt · ${fb(a.track||0)} T`;
+  if(J&&!J.err){const d=dist(a,J.harp),gs=(a.gs||0)*KT;sub+=` · HARP ${fd(d)}${gs>10?`, ${fsec(d/gs)}`:''}`}
+  sheet({title:adsbName(a)||'Aircraft',sub,buttons:[[jmp?'Stop tracking as jump aircraft':'Set as jump aircraft',()=>{S.set.jumpAc=jmp?null:hex;save('set');drawAdsb();toast(jmp?'Jump aircraft cleared':'Jump aircraft set')},'primary'],['Centre map',()=>map.setView([a.lat,a.lon],Math.max(map.getZoom(),11))]]})}
+function g3Air(){if(!g3On())return;const C=Cesium;if(!G3.air){G3.air=new C.CustomDataSource('air');G3.v.dataSources.add(G3.air)}const E=G3.air.entities;E.removeAll();if(!S.ov.adsb)return;
+  adsbAc.forEach(a=>{const alt=adsbAlt(a),jmp=a.hex===S.set.jumpAc,col=C.Color.fromCssColorString(jmp?'#FFD400':'#7FD3FF'),hr=alt==null?C.HeightReference.CLAMP_TO_GROUND:C.HeightReference.NONE;
+    E.add({position:C.Cartesian3.fromDegrees(a.lon,a.lat,alt==null?0:alt*FT),point:{pixelSize:jmp?13:9,color:col,outlineColor:C.Color.BLACK,outlineWidth:1.5,heightReference:hr,disableDepthTestDistance:Infinity},
+      label:{text:`${adsbName(a)} ${alt==null?'GND':ff(alt)}`,font:'600 13px "Barlow Condensed",sans-serif',fillColor:col,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),heightReference:hr,disableDepthTestDistance:Infinity}})})}
+setTimeout(adsbSync,2000);
+
 
 /* ================= JUMP CALC ================= */
 function makeWind(){const w=S.winds.filter(x=>isFinite(x.alt)&&isFinite(x.dir)&&isFinite(x.spd)).map(x=>{const t=(x.dir+180)*D2R;return {alt:+x.alt,u:x.spd*KT*Math.sin(t),v:x.spd*KT*Math.cos(t)}}).sort((a,b)=>a.alt-b.alt);return h=>{if(!w.length)return {u:0,v:0};if(h<=w[0].alt)return w[0];const top=w[w.length-1];if(h>=top.alt)return top;for(let i=0;i<w.length-1;i++){if(h<=w[i+1].alt){const a=w[i],b=w[i+1],f=(h-a.alt)/(b.alt-a.alt);return {u:a.u+(b.u-a.u)*f,v:a.v+(b.v-a.v)*f}}}return top}}
@@ -1141,7 +1163,7 @@ function g3Me(){if(!g3On())return;const C=Cesium,E=G3.src.entities;if(!me){if(G3
 function g3FlyMe(){if(!g3On()||!me)return;const C=Cesium,cam=G3.v.camera,pos=C.Cartesian3.fromDegrees(me.lon,me.lat,me.alt!=null&&isFinite(me.alt)?me.alt:(G3.dzGround||0));cam.flyToBoundingSphere(new C.BoundingSphere(pos,1),{duration:1,offset:new C.HeadingPitchRange(cam.heading,C.Math.toRadians(-35),2500)})}
 const col3=s=>Cesium.Color.fromCssColorString(s);
 function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!on);if(!on){el.hidden=true;updateEyeAlt();return}el.hidden=false;
-  loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Frame();g3SetMode('dip');g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
+  loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Air();g3Frame();g3SetMode('dip');g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);g3Me()}}
 
 /* ================= modes / quick menu ================= */
