@@ -657,7 +657,8 @@ const S={
   missions:store.get('missions',[]),
   mission:store.get('mission',null)
 };
-const save=k=>{if(k!=='xs')store.set(k,S[k])};if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
+const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&S.hound.tiles.join()==='range,runin,xtk,togl'){S.hound.tiles=['dgl','togl','acspd','accse'];store.set('hound',S.hound)}
+if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
 if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
 if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
@@ -1070,9 +1071,13 @@ const METRICS={
   xtk:{l:'Off run-in',f:d=>{if(!J||J.err)return '–';const a=J.runStart,b=J.rl;const d1=dist(a,me),t1=brg(a,me),t2=brg(a,b);const x=Math.asin(Math.sin(d1/RE)*Math.sin((t1-t2)*D2R))*RE;return `${fd(Math.abs(x))} ${x>0?'R':'L'}`}},
   runin:{l:'Run-in heading °T',f:d=>J&&!J.err?fb(J.heading):'–'},
   togl:{l:'Time to first out',f:d=>{if(!J||J.err||!me.spd||me.spd<1)return '–';return fsec(dist(me,J.gl)/me.spd)}},
-  grid:{l:'Target grid',f:d=>fc(d.p)}
+  grid:{l:'Target grid',f:d=>fc(d.p)},
+  dgl:{l:'Distance to first out',f:d=>J&&!J.err?fd(dist(me,J.gl)):'–'},
+  // GPS gives ground speed: take out the planned wind at this height, then TAS to IAS at 2% per 1,000 ft
+  acspd:{l:'AC speed KIAS (plan)',f:d=>{const plan=Math.round(+S.jump.kias||0);if(!me.spd||me.spd<1||me.course==null)return `– (${plan})`;const altFt=me.alt!=null?me.alt/FT:+S.jump.exitAlt||0,w=makeWind()(altFt),c=me.course*D2R,ax=me.spd*Math.sin(c)-w.u,ay=me.spd*Math.cos(c)-w.v;return `${Math.round(Math.hypot(ax,ay)/KT/(1+0.02*altFt/1000))} (${plan})`}},
+  accse:{l:'AC course °T (plan)',f:d=>`${me.course!=null&&me.spd>1?fb(me.course):'–'} (${J&&!J.err?fb(J.heading):'–'})`}
 };
-const PRESETS={ac:{tiles:['range','runin','xtk','togl'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
+const PRESETS={ac:{tiles:['dgl','togl','acspd','accse'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','glide'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
 function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=`Auto jump: ${on?'ON':'OFF'}`;b.setAttribute('aria-pressed',on)}
 $('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('hound');renderAutoJump();if(S.hound.autoJump){phaseAuto=true;renderPhase();startMotion();toast('Auto jump on: switches to Canopy Data when you leave the aircraft')}else toast('Auto jump off: use Force jump when you exit')};
