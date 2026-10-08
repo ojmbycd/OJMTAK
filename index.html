@@ -200,6 +200,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--muted,#BDBDBD)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
 #jmSeg button{padding:6px 3px;font-size:14px;line-height:1.1;white-space:normal}#jmSeg button[data-jm="summary"]{flex:1.3}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
@@ -461,10 +462,10 @@ table.winds td small{font-size:11px}
           <section class="sec">
             <h3>VDZ / HRPO check</h3>
             <p class="note" id="hrpoRule"></p>
-            <div class="row"><button class="btn primary" id="hrpoCheck">Check terrain around HARP and PRP</button><button class="btn" id="hrpoClear">Clear</button></div>
+            <p id="hrpoOut" class="hrpo">Not checked yet.</p>
+            <div class="row"><button class="btn" id="hrpoCheck">Check again</button></div>
             <div class="fields mt"><label class="fld">VDZ elevation override<em>ft AMSL, blank uses the check or the DZ</em><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
-            <p class="note" id="hrpoOut"></p>
-          </section>
+                      </section>
           <div id="milOut"></div>
           <h3 class="mt">Expert CYPRES offset</h3>
           <p class="note">Use when the landing area is at a different elevation from the take-off airfield.</p>
@@ -819,7 +820,8 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   // crosswind runs are square to the jumper trackback (DIP back to the release point), not to the exit-altitude wind
   const tb=dist(pi,prp)>1?brg(pi,prp):intoW;let heading=({into:intoW,down:norm(intoW+180),left:norm(tb-90),right:norm(tb+90),custom:norm((+j.headingMag||0)+(+S.set.decl||0))})[j.runMode||'into'];if(j.mode==='HAMO'&&hamoHeading!=null)heading=hamoHeading;
   const tas=(+j.kias||0)*(1+0.02*(+j.exitAlt)/1000),tail=we.u*Math.sin(heading*D2R)+we.v*Math.cos(heading*D2R),gsM=Math.max(5,tas*KT+tail);
-  const n=Math.max(1,+j.jumpers||1),JD=(n/2)*50,FTm=({high:300,low:150,none:0})[j.acPerf||'high'];const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
+  // stick: parachutists cut-off time (PCOT) = (jumpers - 1) x exit interval; length = ground speed x PCOT, HARP mid-stick
+  const n=Math.max(1,+j.jumpers||1),pcot=(n-1)*Math.max(0,+j.interval||0),JD=gsM*pcot/2,FTm=({high:300,low:150,none:0})[j.acPerf||'high'];const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
   const gl=dest(harp,norm(heading+180),JD),rl=dest(harp,heading,JD),oneMin=dest(gl,norm(heading+180),gsM*60),runStart=dest(gl,norm(heading+180),gsM*600),runEnd=dest(rl,heading,gsM*60);
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(gl,norm(heading+180),gsM*t)}));
   // trackback: canopy leaves the OP at (pull - assembly SF), turns at each dogleg, arrives over the DIP at the landing pattern SF
@@ -830,7 +832,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
-  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
+  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
 function loadFactorFor(j){const w=+j.jumperKg||110,l=+j.loadKg||0;return Math.sqrt((w+l)/w)}
 function inRing(ring,p){const lat0=p.lat*D2R;const X=q=>(q.lon-p.lon)*Math.cos(lat0),Y=q=>q.lat-p.lat;let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const xi=X(ring[i]),yi=Y(ring[i]),xj=X(ring[k]),yj=Y(ring[k]);if(((yi>0)!==(yj>0))&&(0<(xj-xi)*(0-yi)/(yj-yi)+xi))c=!c}return c}
 let hamoHeading=null,J2=null,hamo=null;
@@ -888,7 +890,8 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     ${J.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${J.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===J.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${J.FS} + ${l.v}) ÷ ${+J.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
     <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M, OP to DIP</dd>
     <dd data-l="Aircraft Course">${bTM(J.heading)}</dd>
-    <dd data-l="FT + JD">${J.FTm} m + (${S.jump.jumpers} ÷ 2) × 50 = ${J.FTm+Math.round(J.JD)} m back along the course to first out; HARP is mid-stick, ${J.FTm} m back from the ${J.ffM>0?"PRP":"OP"}</dd>
+    <dd data-l="PCOT">${fsec(J.pcot)}: (${S.jump.jumpers} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(J.stick)} m at ${Math.round(J.gsM/KT)} kt ground speed</dd>
+    <dd data-l="FT + half stick">${J.FTm} m + ${Math.round(J.JD)} m = ${J.FTm+Math.round(J.JD)} m back along the course to first out; HARP is mid-stick, ${J.FTm} m back from the ${J.ffM>0?"PRP":"OP"}</dd>
     <dd data-l="OP">${fc(J.op)}</dd>
     ${J.ffM>0?`<dd data-l="PRP">${fc(J.prp)}</dd>`:''}
     <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
@@ -1210,19 +1213,24 @@ document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds'
 const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300}};
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
-async function checkHrpo(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},...(J.ffM>0?[{n:'PRP',p:J.prp}]:[{n:'OP',p:J.op}])];if(J2)centres.push({n:'HARP 2',p:J2.harp});
+// the terrain check runs on its own whenever the HARP, PRP or DZ moves; key records which plan a result belongs to
+function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.ffM>0?J.prp:J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
+let hrpoT=null,hrpoBusy=null,hrpoFailKey=null;
+function autoHrpo(){const k=hrpoKey();if(!k||(S.jump.hrpo&&S.jump.hrpo.key===k)||hrpoBusy===k||hrpoFailKey===k)return;clearTimeout(hrpoT);hrpoT=setTimeout(()=>checkHrpo(true),1200)}
+async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first');return}const key=hrpoKey();hrpoBusy=key;const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},...(J.ffM>0?[{n:'PRP',p:J.prp}]:[{n:'OP',p:J.op}]),{n:'first out',p:J.gl},{n:'last out',p:J.rl}];if(J2)centres.push({n:'HARP 2',p:J2.harp},{n:'first out 2',p:J2.gl},{n:'last out 2',p:J2.rl});
   const pts=[];centres.forEach(c=>{pts.push({...c.p,c:c.n});for(const f of [.25,.5,.75,1])for(let b=0;b<360;b+=22.5)pts.push({...dest(c.p,b,R*f),c:c.n})});
   $('#hrpoOut').textContent='Checking terrain…';
   try{const el=await elevMany(pts);let mi=0;el.forEach((e,i)=>{if(e>el[mi])mi=i});const maxFt=Math.round(el[mi]/FT),dz=+S.jump.dzElev||0;const top=pts[mi];
-    S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now()};save('jump');renderJump();toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO found')}
-  catch(e){$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed (2.1 D.2).'}}
+    hrpoBusy=null;hrpoFailKey=null;if(key!==hrpoKey())return autoHrpo();S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now(),key};save('jump');renderJump();if(!auto||S.jump.hrpo.isHrpo)toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO',S.jump.hrpo.isHrpo?6000:3200)}
+  catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed (2.1 D.2).'}}
 function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
 function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CYP[j.cypModel||'mj1900'],dz=+j.dzElev||0,unk=!!j.qnhUnknown;
   const qnhMb=unk?1013:(j.qnhUnit==='inhg'?(+j.qnh||29.92)*33.8639:(+j.qnh||1013));const v=vdzElev();const entered=v.ft+(unk?500:0);
   const setMb=Math.round(qnhMb-entered/32.25),chk=Math.round(qnhMb-entered/30);
   const ra=entered+m.act,da=ra+m.sep,mda=da+1500,amda=mda+(unk?1000:0);const pull=+j.openAlt,ok=pull>=amda-dz;
-  const R=hrpoRadius();$('#hrpoRule').textContent=`Highest point within ${R} m of the release point (exit ${R===1000?'above':'at or below'} 13,000 ft AGL). An obstacle 200 ft or more above the DZ becomes the VDZ.`;
-  const h=j.hrpo;$('#hrpoOut').textContent=h?(h.isHrpo?`HRPO: ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`No HRPO. Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`):'Not checked yet.';
+  const R=hrpoRadius();$('#hrpoRule').textContent=`Checked automatically: highest ground within ${R} m of the HARP, PRP, first out and last out (${R===1000?'1,000 m, exit above':'500 m, exit below'} 13,000 ft AGL). Ground 200 ft or more above the DZ is an HRPO and becomes the VDZ.`;
+  const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
+  ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`;
   const row=(l,msl,agl)=>`<tr><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`;
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
     <dd class="big" data-l="CYPRES setting">${setMb} mb</dd>
@@ -1244,8 +1252,9 @@ $('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.ju
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
 $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
-$('#hrpoCheck').onclick=checkHrpo;
-$('#hrpoClear').onclick=()=>{S.jump.hrpo=null;save('jump');renderJump()};
+$('#hrpoCheck').onclick=()=>{hrpoFailKey=null;checkHrpo(false)};
+{const rj=renderJump;renderJump=function(){rj.apply(this,arguments);autoHrpo()}}
+setTimeout(autoHrpo,1500);
 function syncCypInputs(){$('#cypModel').value=S.jump.cypModel||'mj1900';$('#qnhUnit').value=S.jump.qnhUnit||'mb';$('#qnhVal').value=S.jump.qnh;$('#qnhUnknown').checked=!!S.jump.qnhUnknown;$('#vdzManual').value=S.jump.vdzManual??''}
 
 
