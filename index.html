@@ -409,6 +409,7 @@ table.winds td small{font-size:11px}
               <label class="fld">Opening altitude (ft AGL)<select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
+            <div id="harpRingBox" class="mt"><label class="fld">HARP on ring <span id="harpBrgLbl">(auto)</span><input type="range" id="harpBrg" min="0" max="355" step="5" value="0"></label><div class="row"><button class="btn" id="harpAuto">Auto</button></div></div>
             <div id="hamoBox" hidden>
               <h4>Pod 2</h4>
               <div class="fields">
@@ -885,7 +886,9 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   if(nL>1)notes.push(`Canopy dogleg at ${cdLegs.slice(0,-1).map(l=>ff(l.top)).join(', ')}: ${nL} legs, SF split ${cdLegs.map(l=>l.sf).join(' / ')} bottom to top`);
   if(cdLegs.some(l=>l.north))notes.push('Canopy: northerly winds straddled, easterly values +360');
   if(cdLegs.some(l=>l.A<=l.sf))notes.push('Canopy: a leg is shorter than its safety factor and adds no glide');
-  const cdPts=[pi];{let q=pi;cdLegs.forEach(l=>{l.start=q;q=dest(q,l.d,l.m);l.end=q;cdPts.push(q)})}const op=cdPts[cdPts.length-1];
+  const cdPts=[pi];{let q=pi;cdLegs.forEach(l=>{l.start=q;q=dest(q,l.d,l.m);l.end=q;cdPts.push(q)})}let op=cdPts[cdPts.length-1];
+  /* HARP on ring: a chosen bearing from the DIP puts the PRP at full canopy range in that direction (same reach as the HARP ring) */
+  const custom=j.harpBrg!=null&&j.mode!=='HAMO';if(custom){const b=+j.harpBrg,c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});op=dest(pi,b,r);cdPts.length=0;cdPts.push(pi,op)}
   const cdNm=Math.round(cdLegs.reduce((a,l)=>a+l.nm,0)*10)/10,cdKm=Math.round(cdLegs.reduce((a,l)=>a+l.km,0)*10)/10,cdM=dist(pi,op);const cd={v:cdLegs[0].v,d:nL===1?cdLegs[0].d:brg(pi,op)};
   // freefall drift, also split into legs
   const ffA=(exitAGL-pull)/1000;let ffLegs=[],ffChain=[op];
@@ -910,6 +913,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const marks=[],trk=[{p:op,h:pull},{p:op,h:pull-cas}];
   for(let i=nL-1;i>=0;i--){const l=cdLegs[i];const hi=i===nL-1?pull-cas:l.top,lo=i===0?lp:l.bot;if(hi>lo){const lb=brg(l.end,l.start),ld=dist(l.end,l.start);for(let a=Math.floor((hi-1)/1000)*1000;a>lo&&a>0;a-=1000){const f=(hi-a)/(hi-lo),p=dest(l.end,lb,ld*f),x=wind(dz+a);marks.push({agl:a,p,spd:Math.hypot(x.u,x.v)/KT,dir:norm(Math.atan2(x.u,x.v)*R2D)})}}trk.push({p:l.start,h:i===0?lp:l.bot})}
   trk.push({p:pi,h:0});
+  if(custom){trk.length=0;trk.push({p:op,h:pull},{p:op,h:pull-cas},{p:pi,h:lp},{p:pi,h:0});marks.length=0;const hi=pull-cas,bb=brg(op,pi),dd=dist(op,pi);for(let a=Math.floor((hi-1)/1000)*1000;a>lp&&a>0;a-=1000){const x=wind(dz+a);marks.push({agl:a,p:dest(op,bb,dd*(hi-a)/Math.max(1,hi-lp)),spd:Math.hypot(x.u,x.v)/KT,dir:norm(Math.atan2(x.u,x.v)*R2D)})}}
   // HARP ring: the modified D = KAV run in every direction across all canopy legs, then shifted by freefall drift
   const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
@@ -950,12 +954,14 @@ function calcDl(P,n){return `<dl class="res">
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
+  $('#harpRingBox').hidden=S.jump.mode==='HAMO';{const ab=Math.round(brg(S.pi,J.op)/5)*5%360;$('#harpBrgLbl').textContent=S.jump.harpBrg==null?`(auto, ${fb(ab)} T from DIP)`:`(${fb(+S.jump.harpBrg)} T from DIP)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
   L.polyline(J.path.slice(0,J.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
   L.polyline(J.path.slice(J.openIdx).map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump);
   J.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<J.marks.length?J.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);{const wb=brg(tail,m.p);L.marker(LL(dest(tail,wb,dist(tail,m.p)*.6)),{icon:L.divIcon({className:'pin',iconSize:[10,10],iconAnchor:[5,5],html:`<svg viewBox="-5 -5 10 10" width="10" height="10" style="display:block;transform:rotate(${wb}deg);overflow:visible"><path d="M0-4.5 3.5 3.5 0 1.8-3.5 3.5Z" fill="#FF8C1A" stroke="#141414" stroke-width=".6"/></svg>`}),interactive:false}).addTo(LY.jump)}L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
   (J.ffMarks||[]).forEach(m=>{L.circleMarker(LL(m.p),{radius:4,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
+  if(!hamo)L.polygon(J.ring.map(LL),{color:cssv('--amber'),weight:1.5,dashArray:'8 6',fill:false,interactive:false}).addTo(LY.jump);
   const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
   if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
   L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
@@ -1438,6 +1444,7 @@ function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windMod
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
+$('#harpBrg').oninput=e=>{S.jump.harpBrg=+e.target.value;save('jump');renderJump()};$('#harpAuto').onclick=()=>{S.jump.harpBrg=null;save('jump');renderJump()};
 $('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;if(b.dataset.mode==='HAMO')S.jump.pod2Open=8000;S.jump.openAlt=b.dataset.mode==='HALO'?5000:b.dataset.mode==='HAMO'?6000:Math.max(1000,Math.min(11000,Math.floor(((+S.jump.exitAlt||12000)-(+S.jump.dzElev||0))/500)*500));/* HAHO opens at 11,000 ft AGL unless the exit is too low for it */save('jump');syncJumpInputs();renderJump()};
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;save('jump');renderJump()};
 $('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
