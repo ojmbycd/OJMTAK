@@ -409,7 +409,7 @@ table.winds td small{font-size:11px}
               <label class="fld">Opening altitude (ft AGL)<select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
-            <div id="harpRingBox" class="mt"><label class="fld">HARP on ring <span id="harpBrgLbl">(auto)</span><input type="range" id="harpBrg" min="0" max="355" step="5" value="0"></label><div class="row"><button class="btn" id="harpAuto">Auto</button></div></div>
+            <div id="harpRingBox" class="mt"><label class="fld">HARP on ring <span id="harpBrgLbl">(auto)</span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
             <div id="hamoBox" hidden>
               <h4>Pod 2</h4>
               <div class="fields">
@@ -954,7 +954,8 @@ function calcDl(P,n){return `<dl class="res">
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
-  $('#harpRingBox').hidden=S.jump.mode==='HAMO';{const ab=Math.round(brg(S.pi,J.op)/5)*5%360;$('#harpBrgLbl').textContent=S.jump.harpBrg==null?`(auto, ${fb(ab)} T from DIP)`:`(${fb(+S.jump.harpBrg)} T from DIP)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
+  $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line: where the with-wind HARP falls, seen looking upwind from the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
+  $('#harpBrgLbl').textContent=off===0?'(on mean wind line)':Math.abs(off)===180?'(180°, opposite the wind line)':`(${Math.abs(off)}° ${off>0?'R':'L'} of mean wind line)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
   L.polyline(J.path.slice(0,J.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
