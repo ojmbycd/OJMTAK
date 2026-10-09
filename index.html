@@ -225,6 +225,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.gsout{margin-top:8px;padding:8px 10px;border-left:4px solid var(--go);border-radius:6px;background:color-mix(in srgb,var(--panel2) 60%,transparent)}.gsout b{display:block;font:500 18px var(--cond);color:var(--ink)}.gsout small{display:block;margin-top:2px;font:400 13px/1.3 var(--cond);color:var(--mute)}
 #hamoBox .fields{grid-template-columns:1fr 1fr}
 #hamoNote{min-height:3.9em}
 .podh{margin:12px 0 4px;padding:4px 8px;border-left:4px solid var(--amber);font:500 16px var(--cond);color:var(--ink)}
@@ -459,6 +460,7 @@ table.winds td small{font-size:11px}
               <label class="fld" id="runCustom"><span style="white-space:nowrap">AC course (°M)</span><input type="number" inputmode="decimal" data-j="headingMag"></label>
             </div>
             <p class="note" id="runNote"></p>
+            <div class="gsout" id="gsOut"></div>
           </section>
           <section class="sec">
             <h3>Exit detail</h3>
@@ -912,7 +914,8 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const wind=makeWind(),we=wind(+j.exitAlt);const intoW=norm(Math.atan2(-we.u,-we.v)*R2D);
   // crosswind runs are square to the jumper trackback (DIP back to the release point), not to the exit-altitude wind
   const tb=dist(pi,prp)>1?brg(pi,prp):intoW;let heading=({into:intoW,down:norm(intoW+180),left:norm(tb-90),right:norm(tb+90),custom:norm((+j.headingMag||0)+(+S.set.decl||0))})[j.runMode||'into'];if(j.mode==='HAMO'&&hamoHeading!=null)heading=hamoHeading;
-  const tas=(+j.kias||0)*(1+0.02*(+j.exitAlt)/1000),tail=we.u*Math.sin(heading*D2R)+we.v*Math.cos(heading*D2R),gsM=Math.max(5,tas*KT+tail);
+  /* GPS ground speed on the run-in: KIAS to TAS (+2% per 1,000 ft), crab into the crosswind, then add the head/tailwind along the course */
+  const tas=(+j.kias||0)*(1+0.02*(+j.exitAlt)/1000),tail=we.u*Math.sin(heading*D2R)+we.v*Math.cos(heading*D2R),cross=we.u*Math.cos(heading*D2R)-we.v*Math.sin(heading*D2R),gsM=Math.max(5,Math.sqrt(Math.max(0,(tas*KT)**2-cross*cross))+tail);
   // stick: parachutists cut-off time (PCOT) = (jumpers - 1) x exit interval; length = ground speed x PCOT, HARP mid-stick
   const n=Math.max(1,+j.jumpers||1),pcot=(n-1)*Math.max(0,+j.interval||0),JD=gsM*pcot/2,FTm=0;// no forward throw: the HARP is the exit point, freefall drift from the PRP where the canopy opens
   const harp=dest(prp,norm(heading+180),FTm);const stick=2*JD;
@@ -927,7 +930,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
-  return {pi,K,FS,A,SF,cd,cdLegs,ffLegs,ffMarks,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
+  return {cross,pi,K,FS,A,SF,cd,cdLegs,ffLegs,ffMarks,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(brg(op,pi)),descFts}}
 function loadFactorFor(j){return Math.sqrt((+j.jumperKg||110)/110)}/* K scales with the square root of all-up mass against a 110 kg standard jumper */
 // convex hull of lat/lon points (monotone chain on a local flat projection)
 function hullLL(pts){const k=Math.cos(pts[0].lat*D2R),P=pts.map(p=>({p,x:p.lon*k,y:p.lat})).sort((a,b)=>a.x-b.x||a.y-b.y),cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
@@ -967,6 +970,8 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line, left/right as seen under canopy looking back at the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
   $('#harpBrgLbl').textContent=off===0?'(on mean wind line)':Math.abs(off)===180?'(180°, opposite the wind line)':`(${Math.abs(off)}° ${off>0?'L':'R'} of mean wind line)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
+  {/* expected GPS ground speed for the AC settings */const g=$('#gsOut');if(g){const tl=J.tail/KT,cr=J.cross/KT,crab=Math.asin(Math.max(-1,Math.min(1,J.cross/(J.tas*KT||1))))*R2D;
+    g.innerHTML=`<b>GPS ground speed on run-in ≈ ${Math.round(J.gsM/KT)} kt</b><small>${+S.jump.kias||0} KIAS = ${Math.round(J.tas)} kt TAS at ${ff(+S.jump.exitAlt)} · ${Math.round(Math.abs(tl))<1?'no head/tailwind':`${Math.round(Math.abs(tl))} kt ${tl>=0?'tailwind':'headwind'}`} · ${Math.round(Math.abs(cr))<1?'no crosswind':`${Math.round(Math.abs(cr))} kt crosswind from the ${cr>0?'left':'right'}, crab ${Math.round(Math.abs(crab))}° ${cr>0?'left':'right'}`} · course ${fb(J.heading)} T</small>`}}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
   /* freefall (amber dashes) and canopy trackback (white) with height dots, wind lines and 2K/3K phase lines; drawn the same for each pod */
