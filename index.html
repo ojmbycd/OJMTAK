@@ -415,6 +415,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <div class="panel" data-tool-panel="draw">
         <div class="seg full" id="drawSeg"><button data-dm="line" aria-pressed="true">Lines</button><button data-dm="free" aria-pressed="false">Freehand</button><button data-dm="text" aria-pressed="false">Text</button></div>
         <p class="drawtip" id="drawTip"></p>
+        <div id="drawTextBox" hidden><label class="fld"><span id="drawTextGrid">Text</span><input type="text" id="drawTextIn" style="width:100%" placeholder="Type the label"></label><div class="row mt fullbtns"><button class="btn primary" id="drawTextSave">Save</button><button class="btn danger" id="drawTextClr">Clear</button></div></div>
         <p class="note" id="drawNote"></p>
         <div class="swatches" id="swatches"></div>
         <div class="row mt fullbtns"><button class="btn primary" id="drawFinish">Finish line</button><button class="btn" id="drawUndo">Undo last</button><button class="btn danger" id="drawClear">Clear all</button></div>
@@ -606,7 +607,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -913,7 +914,13 @@ function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const d
       const ex=v=>{const c=colOf(d.color),w=Math.max(2,Math.min(8,d.w||2));return `<svg viewBox="0 0 160 16" preserveAspectRatio="none"><line x1="6" y1="8" x2="154" y2="8" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${v==='dash'?`stroke-dasharray="${w*3} ${w*2}"`:v==='dot'?`stroke-dasharray="0.1 ${w*2.2}"`:''}/></svg>`};
       const paint=()=>{const cur=d.style==='dot'?'dot':d.dash?'dash':'solid';g.innerHTML=[['Solid','solid'],['Dashed','dash'],['Dotted','dot']].map(([n,v])=>`<button class="btn${cur===v?' on':''}" data-st="${v}"><span>${n}</span>${ex(v)}</button>`).join('')};paint();
       g.onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;d.style=b.dataset.st;d.dash=d.style!=='solid';save('draws');renderDraws();paint()};$('#actBtns').appendChild(g)}},del],d.kind==='line'?'Line':'Freehand')}
-function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{clear:true,label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
+/* in the Draw panel the text box opens right there in the panel; elsewhere it is a pop-up */
+let drawTextAt=null;
+function drawTextDone(){drawTextAt=null;$('#drawTextBox').hidden=true;tmpLayer.clearLayers()}
+$('#drawTextSave').onclick=()=>{const v=$('#drawTextIn').value.trim();if(v&&drawTextAt){S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p:drawTextAt,text:v});save('draws');renderDraws()}drawTextDone()};
+$('#drawTextClr').onclick=()=>{$('#drawTextIn').value='';$('#drawTextIn').focus()};
+$('#drawTextIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#drawTextSave').click()});
+function drawTextTap(p){if(tool==='draw'){drawTextAt=p;$('#drawTextBox').hidden=false;$('#drawTextGrid').textContent=`Text at ${fc(p)}`;const i=$('#drawTextIn');i.value='';setTimeout(()=>i.focus(),50);tmpLayer.clearLayers();L.circleMarker(LL(p),{radius:5,color:'#fff',weight:2,fillColor:colOf(S.set.drawColor),fillOpacity:1,interactive:false}).addTo(tmpLayer);return}sheet({title:'Add text label',sub:fc(p),input:{clear:true,label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
 function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=colOf(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
@@ -924,7 +931,7 @@ mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.
 mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
 const freeEnd=()=>{if(!free)return;const pts=free.map(p=>({lat:p.lat,lon:p.lon}));free=null;tmpLayer.clearLayers();if(pts.length>2){S.draws.push({id:uid(),kind:'free',color:S.set.drawColor,pts});save('draws');renderDraws()}};
 mc.addEventListener('pointerup',freeEnd);mc.addEventListener('pointercancel',freeEnd);
-function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. For distance and direction use Measure. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" title="${n}" aria-pressed="${S.set.drawColor===v}" style="background:${v}"></button>`).join('')}
+function syncDraw(){if(S.set.drawMode!=='text'&&drawTextAt)drawTextDone();$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. For distance and direction use Measure. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" title="${n}" aria-pressed="${S.set.drawColor===v}" style="background:${v}"></button>`).join('')}
 $('#drawSeg').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;finishLine();S.set.drawMode=b.dataset.dm;save('set');syncDraw();enterToolMode('draw')};
 $('#swatches').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
 $('#drawFinish').onclick=finishLine;
