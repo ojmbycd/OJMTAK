@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1360,7 +1360,8 @@ function dipRadial(){openRadial(S.pi,[
   {l:'Landing',icon:'pattern',f:patternSheet},
   {l:S.jump.calcOff?'Calculate':'Uncalculate',icon:S.jump.calcOff?'params':'uncalc',f:()=>{S.jump.calcOff=!S.jump.calcOff;save('jump');renderJump()}},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
-  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('canopy')}])}
+  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('canopy')},
+  {l:'Delete',icon:'trash',cls:'danger',f:()=>sheet({title:`Delete ${S.pi.name||'DIP'}?`,sub:'Removes the DIP and its plan from the map. Saved missions and saved DIPs are not affected.',buttons:[['Delete DIP',()=>{if(S.target&&/^c:/.test(S.target))setTarget(null);S.pi=null;save('pi');S.pattern.mv=null;save('pattern');renderJump();renderPoints()},'danger']]})}])}
 
 function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${fc(J.harp)}`;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
