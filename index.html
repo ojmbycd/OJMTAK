@@ -1383,6 +1383,10 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CY
     ${row('Minimum deployment (+1,500)',ff(mda),unk?'':ff(mda-dz))}
     ${unk?row('Adjusted minimum deployment (+1,000)',ff(amda),ff(amda-dz)):''}
     </tbody></table>
+    <h3 class="mt">Decision altitude by CYPRES model</h3>
+    <table class="winds"><thead><tr><th>CYPRES</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
+    ${Object.entries(CYP).map(([k,c])=>{const d=entered+c.act+c.sep;return `<tr${k===(j.cypModel||'mj1900')?' style="font-weight:600"':''}><td>${c.n}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('')}
+    </tbody></table>
     <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(pull+1000)} · deployment ${ff(pull)} · decision ${ff(da-dz)} AGL</dd></dl>
     <div class="warn" style="border-left-color:${ok?'var(--go)':'var(--stop)'}">${ok?`Planned opening ${ff(pull)} AGL is at or above the minimum planned deployment altitude of ${ff(amda-dz)} AGL.`:`Planned opening ${ff(pull)} AGL is BELOW the minimum planned deployment altitude of ${ff(amda-dz)} AGL. Raise the pull altitude.`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing (5.10 A.4).</p></section>`}
