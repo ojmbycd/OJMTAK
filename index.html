@@ -623,7 +623,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1227,11 +1227,11 @@ function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(A.gl,norm(h+180),gs*t)}));const last=order[order.length-1];
   const waits=clears.map(c=>c/gs);/* last out to the next pod's first out, seconds at run-in speed: needs 30 s */
   hamo={A,B,C:three?Z:null,order,first:A,second:B,gap:seps[0]/gs,gaps:seps.map(x=>x/gs),waits,clear:Math.min(...clears),clears,ok:waits.every(t=>t>=30)&&order.every(P=>P.ok),timePts,runStart:dest(A.gl,norm(h+180),gs*600),runEnd:dest(last.rl,h,gs*60),oneMin:dest(A.gl,norm(h+180),gs*60),spread:sp,wl};
-  S.jump.headingMag=Math.round(o.headingMag);S.jump.runMode='custom';const l=$('#hamoCseLbl');if(l)l.textContent=sp?`(Pod 1 ${sp}° L · Pod ${three?3:2} ${sp}° R)`:'(on wind line)';/* left/right as seen under canopy looking back at the DIP */const ci=$('[data-j="headingMag"]');if(ci&&document.activeElement!==ci)ci.value=S.jump.headingMag}
+  S.jump.headingMag=Math.round(o.headingMag);S.jump.runMode='custom';const l=$('#hamoCseLbl');if(l)l.textContent='';/* left/right as seen under canopy looking back at the DIP */const ci=$('[data-j="headingMag"]');if(ci&&document.activeElement!==ci)ci.value=S.jump.headingMag}
 /* the POD HAMO summary under the dial: top SFs, jumpers, time between pods, off wind line, course, and any problem */
 function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the POD HAMO.';const h=hamo,n=h.order.length,bad=h.order.find(P=>!P.ok),K=['casSF','pod2Cas','pod3Cas'].slice(0,n),jm=[S.jump.jumpers,S.jump.pod2Jumpers,S.jump.pod3Jumpers].slice(0,n);
   const status=bad?`⚠ Pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'is outside its ring'}`:h.waits.some(t=>t<30)?'⚠ Under 30 s between pods: move the dial':`✓ All ${n} HARPs inside their rings`;
-  return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} (last out to next first out)\nOff wind line: ${Math.round(+(S.jump.hamoSpread??15))}°\nAC course: ${fb(hamoHeading)} T\n${status}`}
+  return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} (last out to next first out)\nOff wind line: ${(()=>{const sp=Math.round(+(S.jump.hamoSpread??15));return sp?`Pod 1 ${sp}° L · Pod ${n} ${sp}° R`:'on the wind line'})()}\nAC course: ${fb(hamoHeading)} T\n${status}`}
 // release solution for one pod (or the single jump)
 function calcDl(P,n){return `<dl class="res">
     <dd class="big" data-l="HARP">${fc(P.harp)}</dd>
