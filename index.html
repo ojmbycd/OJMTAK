@@ -57,14 +57,14 @@ button,input,select{font:inherit;color:inherit}
 .qb[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
 .qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
-#status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
-#status .cs{color:#8CFFC4;font-size:13px;opacity:.9}
-#status #bPos{font-size:17px;letter-spacing:.02em;white-space:nowrap}
-#status .srow{display:flex;gap:12px}
+#status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:5px 8px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
+#status .cs{color:#8CFFC4;font-size:9.5px;opacity:.85;margin-bottom:2px}
+#status #bPos{font-size:13px;letter-spacing:.01em;white-space:nowrap}
+#status .sg{display:grid;grid-template-columns:auto auto;column-gap:8px;row-gap:0;align-items:baseline;font-size:13px;line-height:1.3}#status .sg .k{color:#A9BDAF;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}#status .sg>span:empty::before,#status #bAcc:empty::before{content:'–'}
 #status .srow span:empty::before{content:'–'}
-#status .phase{display:block;margin-top:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#F2F2F2;font:400 13px/1.2 var(--cond);padding:3px 8px;cursor:pointer}
+#status .phase{display:block;margin-top:4px;font-size:11.5px!important;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#F2F2F2;font:400 13px/1.2 var(--cond);padding:3px 8px;cursor:pointer}
 #status .phase[data-auto="1"]::after{content:' · auto';color:#BDBDBD}
-#status .btn{margin-top:6px;font:400 14px var(--body);padding:5px 10px;background:#F4F4F4;color:#141414;border-color:#F4F4F4}
+#status .btn{margin-top:4px;font:400 12px var(--body);padding:4px 9px;background:#F4F4F4;color:#141414;border-color:#F4F4F4}
 @media (max-width:380px){.qb{width:44px;height:44px}.qb svg{width:26px;height:26px}}
 
 /* ---------- map ---------- */
@@ -244,8 +244,9 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
 .stepper output{min-width:110px;text-align:center;font:500 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
-.swatches{display:flex;gap:8px}
-.swatch{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.drawtip{margin:8px 0 2px;font-weight:600;color:var(--amber)}.drawtip:empty{display:none}
+.swatches{display:flex;gap:7px;flex-wrap:wrap}
+.swatch{width:32px;height:32px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 .swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
 .big-out{font:500 30px/1.1 var(--cond);font-variant-numeric:tabular-nums;margin:4px 0}
 .mhead{display:flex;align-items:center;gap:8px;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--ink);font:400 17px/1.2 var(--cond);text-align:left}
@@ -347,9 +348,15 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     </nav>
     <div id="status">
       <div class="cs"><span id="bCall">JUMP MASTER EXPERT TOOL</span> <span id="bSrc"></span></div>
-      <div id="bPos">No fix</div>
-      <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span><span id="bVs"></span></div>
-      <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span><span id="bAge"></span></div>
+      <div class="sg">
+        <span class="k">Grid</span><span id="bPos">No fix</span>
+        <span class="k">Alt</span><span id="bAlt"></span>
+        <span class="k">Above DZ</span><span id="bAgl"></span>
+        <span class="k">Vert spd</span><span id="bVs"></span>
+        <span class="k">Heading</span><span id="bHdg"></span>
+        <span class="k">Gnd spd</span><span id="bSpd"></span>
+        <span class="k">GPS</span><span><span id="bAcc"></span> <span id="bAge"></span></span>
+      </div>
       <button id="bPhase" class="phase">Phase: Ground</button>
       <button id="btnSensors" class="btn primary">Start sensors</button>
     </div>
@@ -392,6 +399,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <!-- DRAW -->
       <div class="panel" data-tool-panel="draw">
         <div class="seg full" id="drawSeg"><button data-dm="line" aria-pressed="true">Lines</button><button data-dm="free" aria-pressed="false">Freehand</button><button data-dm="text" aria-pressed="false">Text</button></div>
+        <p class="drawtip" id="drawTip"></p>
         <p class="note" id="drawNote"></p>
         <div class="swatches" id="swatches"></div>
         <div class="row mt"><button class="btn primary" id="drawFinish">Finish line</button><button class="btn" id="drawUndo">Undo last</button><button class="btn danger" id="drawClear">Clear all</button></div>
@@ -581,7 +589,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 01:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 01:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -743,7 +751,11 @@ const TYPES={
   hazard:{n:'Hazard',c:'--amber',svg:'<path d="M0-12 12 10H-12Z"/>'},
   wp:{n:'Waypoint',c:'--ink',svg:'<rect x="-8" y="-8" width="16" height="16"/>'}
 };
-const COLORS=[['--x','Red'],['--amber','Amber'],['--self','Cyan'],['--go','Green'],['--ink','Ink']];
+const COLORS=[['#FF0000','Red'],['#FF7A00','Orange'],['#FFE600','Yellow'],['#00C853','Green'],['#00E5FF','Cyan'],['#0047FF','Blue'],['#8E00FF','Purple'],['#FF00C8','Magenta'],['#FFFFFF','White'],['#000000','Black']];
+/* drawing colours are plain hex; older drawings stored a theme colour name */
+if(!S.set.drawColor||S.set.drawColor.startsWith('--')){S.set.drawColor='#FF0000';save('set')}
+const colOf=c=>!c?'#FF0000':c.startsWith('--')?cssv(c):c;
+function pickColour(cur,done){const i=document.createElement('input');i.type='color';i.value=/^#[0-9a-f]{6}$/i.test(colOf(cur))?colOf(cur):'#ff0000';i.style.cssText='position:fixed;left:-99px;top:0;opacity:0';document.body.appendChild(i);i.addEventListener('change',()=>{done(i.value.toUpperCase());i.remove()});i.addEventListener('blur',()=>setTimeout(()=>i.remove(),500));i.click()}
 const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
 
 /* ================= formatting ================= */
@@ -828,7 +840,7 @@ $('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))ret
 
 /* ================= DRAW ================= */
 let lineDraft=null;
-function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col}">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
+function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col}">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
@@ -838,7 +850,7 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=cssv(
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
   sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} · ${fb(brg(d.pts[0],b))} T · from ${fc(d.pts[0])}${d.kind==='line'?' · drag the ends to move':''}`,buttons:[
-    ['Colour',()=>sheet({title:'Line colour',buttons:COLORS.map(([v,n])=>[n,upd(()=>{d.color=v}),d.color===v?'primary':''])})],
+    ['Colour',()=>sheet({title:'Line colour',buttons:[...COLORS.map(([v,n])=>[n,upd(()=>{d.color=v}),d.color===v?'primary':'']),['Colour chart…',()=>pickColour(d.color,c=>upd(()=>{d.color=c})())]]})],
     ['Thickness',()=>sheet({title:'Line thickness',buttons:[['Thin',2],['Medium',4],['Thick',7]].map(([n,w])=>[n,upd(()=>{d.w=w}),(d.w||2)===w?'primary':''])})],
     [d.dash?'Make solid':'Make dashed',upd(()=>{d.dash=!d.dash})],
     ['Reverse direction',upd(()=>{d.pts.reverse()})],
@@ -846,17 +858,17 @@ function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.ki
 function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
-function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=cssv(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
+function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=colOf(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
 function finishLine(){if(lineDraft&&lineDraft.length>1){S.draws.push({id:uid(),kind:'line',color:S.set.drawColor,pts:lineDraft});save('draws');renderDraws()}lineDraft=null;tmpLayer.clearLayers();if(mode==='draw-line')$('#tipText').textContent='Tap the map to start a line'}
 /* freehand */
 const mc=map.getContainer();let free=null,freeLast=null;
-mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.leaflet-marker-icon'))return;e.preventDefault();try{mc.setPointerCapture(e.pointerId)}catch(x){}const ll=map.mouseEventToLatLng(e);free=[{lat:ll.lat,lon:ll.lng}];freeLast=[e.clientX,e.clientY];tmpLayer.clearLayers();free.line=L.polyline([ll],{color:cssv(S.set.drawColor),weight:4,interactive:false}).addTo(tmpLayer)});
+mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.leaflet-marker-icon'))return;e.preventDefault();try{mc.setPointerCapture(e.pointerId)}catch(x){}const ll=map.mouseEventToLatLng(e);free=[{lat:ll.lat,lon:ll.lng}];freeLast=[e.clientX,e.clientY];tmpLayer.clearLayers();free.line=L.polyline([ll],{color:colOf(S.set.drawColor),weight:4,interactive:false}).addTo(tmpLayer)});
 mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
 const freeEnd=()=>{if(!free)return;const pts=free.map(p=>({lat:p.lat,lon:p.lon}));free=null;tmpLayer.clearLayers();if(pts.length>2){S.draws.push({id:uid(),kind:'free',color:S.set.drawColor,pts});save('draws');renderDraws()}};
 mc.addEventListener('pointerup',freeEnd);mc.addEventListener('pointercancel',freeEnd);
-function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. Each line shows its length and direction. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" aria-pressed="${S.set.drawColor===v}" style="background:var(${v})"></button>`).join('')}
+function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. Each line shows its length and direction. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" title="${n}" aria-pressed="${S.set.drawColor===v}" style="background:${v}"></button>`).join('')+`<button class="swatch pick" data-pick="1" aria-label="Colour chart" title="Colour chart" aria-pressed="${!COLORS.some(c=>c[0]===S.set.drawColor)}" style="background:${COLORS.some(c=>c[0]===S.set.drawColor)?'conic-gradient(red,yellow,lime,cyan,blue,magenta,red)':colOf(S.set.drawColor)}"></button>`}
 $('#drawSeg').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;finishLine();S.set.drawMode=b.dataset.dm;save('set');syncDraw();enterToolMode('draw')};
-$('#swatches').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
+$('#swatches').onclick=e=>{if(e.target.closest('[data-pick]')){pickColour(S.set.drawColor,c=>{S.set.drawColor=c;save('set');syncDraw();renderDraft()});return}const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
 $('#drawFinish').onclick=finishLine;
 $('#drawUndo').onclick=()=>{if(lineDraft&&lineDraft.length){lineDraft.pop();renderDraft();return}S.draws.pop();save('draws');renderDraws()};
 $('#drawClear').onclick=()=>{if(!S.draws.length)return;sheet({title:'Clear all drawings?',buttons:[['Clear all',()=>{S.draws=[];save('draws');renderDraws()},'danger']]})};
@@ -1157,8 +1169,9 @@ const altHist=[];function vsNow(){if(altHist.length<2)return null;const a=altHis
 function onFix(f){const prev=me;f.t=Date.now();me=f;phaseFromFix(f);if(f.alt!=null){altHist.push({t:f.t,a:f.alt});while(altHist.length>2&&f.t-altHist[0].t>4000)altHist.shift()}
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
   drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow&&Date.now()>followHold)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
-function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0))+' AGL':'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}{const v=vsNow();$('#bVs').textContent=v==null||Math.abs(v)<2?'':`${v<0?'↓':'↑'} ${Math.round(Math.abs(v))} ft/s`}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
+function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null&&S.jump.dzElev!=null&&S.jump.dzElev!==''?ff(me.alt/FT-(+S.jump.dzElev||0)):'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}{const v=vsNow();$('#bVs').textContent=v==null||Math.abs(v)<2?'':`${v<0?'↓':'↑'} ${Math.round(Math.abs(v))} ft/s`}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
 let geoWatch=null,orientOn=false;
+new MutationObserver(()=>{if(mode&&mode.startsWith('draw-')&&$('#drawTip'))$('#drawTip').textContent=$('#tipText').textContent}).observe($('#tipText'),{childList:true,characterData:true,subtree:true});
 /* fix age and offline tag, refreshed every second: a stale fix turns red */
 setInterval(()=>{const g=$('#bAge');if(!g)return;const off=!navigator.onLine;if(!me||me.sim){g.textContent=off?'offline':'';g.style.color='#FFB020';return}const s_=Math.round((Date.now()-me.t)/1000);g.textContent=(s_<=1?'live':`${s_} s ago`)+(off?' · offline':'');g.style.color=s_>5?'#FF5A4F':off?'#FFB020':'#4DFF9A'},1000);
 async function startSensors(){
@@ -1423,7 +1436,8 @@ function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!o
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);drawProj();g3Me()}}
 
 /* ================= modes / quick menu ================= */
-function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').textContent=tip;$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
+/* while drawing, the tap instructions show in the Draw panel instead of over the map */
+function setMode(m,tip){mode=m;const inPanel=m.startsWith('draw-')&&tool==='draw';$('#tip').hidden=m==='none'||inPanel;if(tip)$('#tipText').textContent=tip;if($('#drawTip'))$('#drawTip').textContent=inPanel?$('#tipText').textContent:'';$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
   const freeOn=m==='draw-free';if(freeOn){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}
   if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
 $('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','draw-text','range'].includes(mode))closeTool();else setMode('none')};
