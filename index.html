@@ -897,7 +897,7 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   if(!(pull>0))return {err:'Opening altitude must be above the DZ.'};if(!(exitAGL>=pull))return {err:'Opening altitude must be at or below exit altitude.'};
   const K=(+j.k||46)*loadFactorFor(j),FS=+j.canopySpeed||0,A=pull/1000,SF=(cas+lp)/1000;if(!(A>SF))return {err:'Safety factors use up the whole canopy ride. Raise the opening altitude or reduce the safety factors.'};
   const notes=[];
-  // canopy drift, split into dogleg legs (para 5.8). Rows are worked from the top down.
+  // canopy drift, split into dogleg legs. Rows are worked from the top down.
   const cdC=cleanRows(windRows(cdLevels(pull)).reverse());if(cdC.removed.length)notes.push(`Canopy: erroneous wind removed at ${cdC.removed.map(a=>ff(a)).join(', ')}`);
   const cdBU=splitLegs(cdC.rows).reverse(),nL=cdBU.length;let prevTop=0;
   const cdLegs=cdBU.map((rows,i)=>{const top=i===nL-1?pull:Math.max(...rows.map(r=>r.a));const A_=(top-prevTop)/1000,bot=prevTop;prevTop=top;const sf=nL===1?(cas+lp)/1000:i===nL-1?cas/1000:i===0?lp/1000:0;const av=avgRows(rows);const nm=A_>sf?trunc1((A_-sf)*(FS+av.v)/K):0;const km=trunc1(nm*1.85);return {rows,top,bot,A:A_,sf,v:av.v,d:av.d,nm,km,m:km*1000,north:av.north}});
@@ -1026,7 +1026,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   drawPI();
   out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}${hamo?`<h4 class="podh">Pod 1 · opens ${ff(S.jump.openAlt)} AGL · ${S.jump.jumpers} jumpers</h4>${calcDl(J,S.jump.jumpers)}<h4 class="podh">Pod 2 · opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</h4>${calcDl(J2,S.jump.pod2Jumpers)}`:calcDl(J,S.jump.jumpers)}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
-    <div class="warn">Calculated by the D = KAV method (wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
+    <div class="warn">Calculated by the D = KAV method (wind phenomena, truncation as specified). HARP shown at mid-stick. Check against current met before use.</div>`;
   updateHound();renderPoints()}
 function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
   [450*FT,900*FT].forEach(r=>L.circle(LL(pi),{radius:r,color:red,weight:1.5,fill:false,interactive:false}).addTo(LY.jump));
@@ -1369,7 +1369,7 @@ function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
 
 
-/* ================= Military CYPRES (para 5.10, 5.11, 2.1 C and D) ================= */
+/* ================= Military CYPRES ================= */
 const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300}};
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
@@ -1382,7 +1382,7 @@ async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first
   $('#hrpoOut').textContent='Checking terrain…';
   try{const el=await elevMany(pts);let mi=0;el.forEach((e,i)=>{if(e>el[mi])mi=i});const maxFt=Math.round(el[mi]/FT),dz=+S.jump.dzElev||0;const top=pts[mi];
     hrpoBusy=null;hrpoFailKey=null;if(key!==hrpoKey())return autoHrpo();S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now(),key};save('jump');renderJump();if(!auto||S.jump.hrpo.isHrpo)toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO',S.jump.hrpo.isHrpo?6000:3200)}
-  catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed (2.1 D.2).'}}
+  catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed.'}}
 function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
 function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CYP[j.cypModel||'mj1900'],dz=+j.dzElev||0,unk=!!j.qnhUnknown;
   const qnhMb=unk?1013:(j.qnhUnit==='inhg'?(+j.qnh||29.92)*33.8639:(+j.qnh||1013));const v=vdzElev();const entered=v.ft+(unk?500:0);
@@ -1410,7 +1410,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CY
     </tbody></table>
     <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(pull+1000)} · deployment ${ff(pull)} · decision ${ff(da-dz)} AGL</dd></dl>
     <div class="warn" style="border-left-color:${ok?'var(--go)':'var(--stop)'}">${ok?`Planned opening ${ff(pull)} AGL is at or above the minimum planned deployment altitude of ${ff(amda-dz)} AGL.`:`Planned opening ${ff(pull)} AGL is BELOW the minimum planned deployment altitude of ${ff(amda-dz)} AGL. Raise the pull altitude.`}</div>
-    <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing (5.10 A.4).</p></section>`}
+    <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
 $('#cypModel').onchange=e=>{S.jump.cypModel=e.target.value;save('jump');renderMilCypres()};
 $('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;save('jump');renderMilCypres()}};
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
