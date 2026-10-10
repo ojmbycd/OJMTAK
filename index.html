@@ -639,7 +639,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1196,7 +1196,9 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   /* ATAK JumpMaster plugin method (matched to its own plans): the canopy flies one drive heading the whole way down, downwind of the average wind from the ground up to the opening
      (or the chosen HARP bearing reversed). Each 1,000 ft layer between the pattern and the top of the assembly SF adds that layer's wind drift (wind at the layer top) plus canopy drive:
      drift = wind kts x 1852 x layer/1,000 ft / K, drive = canopy speed x 1852 x layer / K. Worked back from the DIP. */
-  const Wc=makeWind();let driveH;if(custom)driveH=norm(+j.harpBrg+180);else{/* downwind of the wind averaged evenly through the height from the ground to the opening (fits the plugin to within about 0.3 degrees) */let su=0,sv=0;const n=Math.max(1,Math.round(pull/50));for(let i=0;i<=n;i++){const x=Wc(dz+pull*i/n),w=i===0||i===n?.5:1;su+=w*x.u;sv+=w*x.v}driveH=norm(Math.atan2(su,sv)*R2D)}
+  /* the plugin works from the wind table it is given: one row per 1,000 ft above the DIP, whole degrees and knots. Build the same rows so the canopy sums match it exactly */
+  const Wraw=makeWind(),RW={};const Wc=h=>{const a=Math.round((h-dz)/1000)*1000;if(!RW[a]){const x=Wraw(dz+a),v=Math.round(Math.hypot(x.u,x.v)/KT),d=Math.round(norm(Math.atan2(-x.u,-x.v)*R2D)),t=(d+180)*D2R;RW[a]={u:v*KT*Math.sin(t),v:v*KT*Math.cos(t)}}if(Math.abs(h-dz-a)<1)return RW[a];
+    const lo=Math.floor((h-dz)/1000)*1000,f=(h-dz-lo)/1000,A=Wc(dz+lo),B=Wc(dz+lo+1000);return {u:A.u+(B.u-A.u)*f,v:A.v+(B.v-A.v)*f}};let driveH;if(custom)driveH=norm(+j.harpBrg+180);else{/* downwind of the wind averaged evenly through the height from the ground to the opening (fits the plugin to within about 0.3 degrees) */let su=0,sv=0;const n=Math.max(1,Math.round(pull/50));for(let i=0;i<=n;i++){const x=Wc(dz+pull*i/n),w=i===0||i===n?.5:1;su+=w*x.u;sv+=w*x.v}driveH=norm(Math.atan2(su,sv)*R2D)}
   const chain=[];{let q=pi,lo=lp;const top=pull-cas;while(lo<top-0.5){const hi=Math.min(top,Math.floor(lo/1000)*1000+1000),hh=(hi-lo)/1000,x=Wc(dz+Math.ceil(hi/1000)*1000),v=Math.hypot(x.u,x.v)/KT,up=norm(Math.atan2(-x.u,-x.v)*R2D);q=dest(q,up,v*1852*hh/K);q=dest(q,norm(driveH+180),FS*1852*hh/K);chain.push({p:q,h:hi});lo=hi}}
   if(chain.length){op=chain[chain.length-1].p;cdPts.length=0;cdPts.push(pi,...chain.map(c=>c.p))}
   const cdNm=Math.round(cdLegs.reduce((a,l)=>a+l.nm,0)*10)/10,cdKm=Math.round(cdLegs.reduce((a,l)=>a+l.km,0)*10)/10,cdM=dist(pi,op);const cd={v:cdLegs[0].v,d:brg(pi,op)};
