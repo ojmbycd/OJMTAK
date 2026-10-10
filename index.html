@@ -617,7 +617,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1271,9 +1271,9 @@ function renderJump(){heatSync();exitHint();LY.jump.clearLayers();
       const at=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return {p:dest(T[i-1].p,brg(T[i-1].p,T[i].p),dist(T[i-1].p,T[i].p)*f),h:T[i-1].h+(T[i].h-T[i-1].h)*f,b:brg(T[i].p,T[i-1].p)}}return null};
       for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;L.polyline([LL(dest(q.p,norm(q.b+90),450)),LL(dest(q.p,norm(q.b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump);}}
   };drawTrack(J);if(hamo){if(J2)drawTrack(J2);if(J3)drawTrack(J3)}
-  if(!hamo)L.polygon(J.ring.map(LL),{color:'#FFFFFF',weight:1.2,opacity:.9,fill:false,interactive:false}).addTo(LY.jump);
+  if(!hamo&&!jumpActive)L.polygon(J.ring.map(LL),{color:'#FFFFFF',weight:1.2,opacity:.9,fill:false,interactive:false}).addTo(LY.jump);
   /* POD HAMO: each pod's HARP ring, pod 1 solid, pod 2 dashed, pod 3 dotted, red if that pod's HARP is not good */
-  if(hamo)[J,J2,J3].filter(Boolean).forEach((P,i)=>L.polygon(P.ring.map(LL),{color:P.ok?'#FFFFFF':'#FF2A2A',weight:1.2,opacity:.9,dashArray:i===1?'6 5':i===2?'1.5 5':null,fill:false,interactive:false}).addTo(LY.jump));
+  if(hamo&&!jumpActive)[J,J2,J3].filter(Boolean).forEach((P,i)=>L.polygon(P.ring.map(LL),{color:P.ok?'#FFFFFF':'#FF2A2A',weight:1.2,opacity:.9,dashArray:i===1?'6 5':i===2?'1.5 5':null,fill:false,interactive:false}).addTo(LY.jump));
     const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
   if(showRun){L.polyline(runPts(J).map(LL),{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
   L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);runTag(J.runEnd,hamo?hamoHeading:J.heading,'+1 min',c.amb);
@@ -1425,9 +1425,11 @@ function ajCheck(){if(ajArmed||S.hound.autoJump===false||!S.target||S.hound.tile
 function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=!on?'Auto jump: OFF':ajArmed?'Auto jump: ON':'Auto jump: ARMS AT 2 MIN';b.setAttribute('aria-pressed',on&&ajArmed);b.dataset.state=on&&!ajArmed?'wait':''}
 $('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('hound');renderAutoJump();if(S.hound.autoJump){phaseAuto=true;renderPhase();startMotion();toast('Auto jump on: arms 2 minutes from first out, then switches to Canopy Data when you exit')}else toast('Auto jump off: use Force jump when you exit')};
 $('#forceJump').onclick=()=>{phase='freefall';renderPhase();renderJump();startJumpAs('canopy');if(navigator.vibrate)navigator.vibrate([300,100,300]);toast('Jump forced: Canopy Data to the DIP',4000)};
-function startJumpAs(k){if(k==='ac'){ajArmed=false}if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound()}
+/* once a jump is started the HARP rings are hidden; they come back when navigation stops */
+var jumpActive=false;
+function startJumpAs(k){jumpActive=true;if(k==='ac'){ajArmed=false}if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else{jumpActive=false;toast(`${P.note}: set the DIP first`)}renderJump();updateHound()}
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
-function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
+function setTarget(key){if(!key&&jumpActive){jumpActive=false;setTimeout(renderJump,0)}S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 // the box sits just right of the JUMPMASTER box, same height and bottom line, filling the space to the right
 var projLayer=null;
