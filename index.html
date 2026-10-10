@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jump Master Expert Tool</title>
+<meta name="apple-mobile-web-app-title" content="Jump Master Expert Tool">
+<meta name="application-name" content="Jump Master Expert Tool">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet">
@@ -309,7 +311,7 @@ table.winds td small{font-size:11px}
       <button class="qb lab" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></button>
     </nav>
     <div id="status">
-      <div class="cs"><span id="bCall">JUMPMASTER</span> <span id="bSrc"></span></div>
+      <div class="cs"><span id="bCall">JUMP MASTER EXPERT TOOL</span> <span id="bSrc"></span></div>
       <div id="bPos">No fix</div>
       <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span></div>
       <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span></div>
@@ -583,7 +585,7 @@ table.winds td small{font-size:11px}
 
       <div class="panel" data-dpage="settings" hidden>
         <h3>Callsign</h3>
-        <div class="fields"><label class="fld">Shown in the GPS box<input type="text" id="sCall" placeholder="JUMPMASTER"></label></div>
+        <div class="fields"><label class="fld">Shown in the GPS box<input type="text" id="sCall" placeholder="JUMP MASTER EXPERT TOOL"></label></div>
         <h3>Units and coordinates</h3>
         <div class="fields">
           <label class="fld">Coordinates<select id="sCoord"><option value="mgrs">MGRS</option><option value="ll">Lat, long</option></select></label>
@@ -658,7 +660,7 @@ function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?
 const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[{alt:200,dir:230,spd:8},{alt:2000,dir:240,spd:14},{alt:5000,dir:250,spd:20},{alt:10000,dir:260,spd:28},{alt:15000,dir:265,spd:34}];
 const DEF_OV={cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
-const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMPMASTER',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMP MASTER EXPERT TOOL',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
@@ -683,7 +685,8 @@ const save=k=>{if(k!=='xs')store.set(k,S[k])};if(S.hound.tiles&&['range,runin,xt
 if(+S.jump.loadKg>0){S.jump.jumperKg=(+S.jump.jumperKg||110)+(+S.jump.loadKg);S.jump.loadKg=0;store.set('jump',S.jump)}/* equipment load folded into average AUM */
 if(!(+S.jump.casSF>=2000)||!(+S.jump.lpSF>=1000)){S.jump.casSF=Math.max(2000,+S.jump.casSF||0);S.jump.lpSF=Math.max(1000,+S.jump.lpSF||0);store.set('jump',S.jump)}
 if(!S.hound.boxV){S.hound.dock='box';S.hound.boxV=1;store.set('hound',S.hound)}store.set('xs',[]);// Red X is a quick check and is never stored
-if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMPMASTER';store.set('set',S.set)}
+if(!S.set.callsign||/^(air ?rep|air ?wo)$/i.test(S.set.callsign.trim())){S.set.callsign='JUMP MASTER EXPERT TOOL';store.set('set',S.set)}
+if(S.set.callsign==='JUMPMASTER'){S.set.callsign='JUMP MASTER EXPERT TOOL';store.set('set',S.set)}
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
 if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
 if(S.jump.v===2){if(+S.jump.k===61&&!S.jump.canopy){S.jump.k=46;S.jump.canopySpeed=22;S.jump.canopy='MJ (MP360)'}S.jump.v=3;store.set('jump',S.jump)}
@@ -1302,7 +1305,7 @@ function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').
   if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
 $('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','draw-text','range'].includes(mode))closeTool();else setMode('none')};
 function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Red X');else if(t==='draw')setMode({line:'draw-line',free:'draw-free',text:'draw-text'}[S.set.drawMode],{line:'Tap the map to start a line',free:'Drag on the map to draw',text:'Tap the map where the text should go'}[S.set.drawMode]);else if(t==='range')setMode('range',rngTip());else setMode('none')}
-const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jumpmaster'};
+const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jump Master Expert Tool'};
 function openTool(t){finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
   if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base);$$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
 function closeTool(){if(tool==='redx'&&S.xs.length){S.xs=[];renderXs()}finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
@@ -1647,7 +1650,7 @@ function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r
 function redrawAll(){renderJump();renderMarkers();renderXs();renderDraws();renderRng();drawGrid();if(trailLine)trailLine.setStyle({color:cssv('--self')});drawMe();updateBar();updateHound();renderPoints()}
 function syncSetup(){const s=S.set;$('#sCall').value=s.callsign||'';renderCall();$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
 const setS=(k,v,after)=>{S.set[k]=v;save('set');after&&after()};
-function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'JUMPMASTER'}
+function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'JUMP MASTER EXPERT TOOL'}
 $('#sCall').oninput=e=>setS('callsign',e.target.value,renderCall);
 $('#sCoord').onchange=e=>setS('coord',e.target.value,redrawAll);
 $('#sDist').onchange=e=>setS('dist',e.target.value,redrawAll);
