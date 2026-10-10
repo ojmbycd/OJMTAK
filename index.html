@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 08:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1001,8 +1001,7 @@ function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del=
       {l:'Add ring',icon:'plus',f:()=>{r.n=Math.min(r.n+1,40);save('rng');renderRng();rngActions(id)}},
       {l:'Remove ring',icon:'minus',f:()=>{r.n=Math.max(1,r.n-1);save('rng');renderRng();rngActions(id)}},
       {l:'Navigate',icon:'hound',f:()=>setTarget('r:'+id)},del],`${r.n} × ${fmtU(r.step,ru(r))}`,outer);return}
-  openRadial({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2},[{l:'Copy',icon:'save',f:()=>copy(`${fc(r.a)} to ${fc(r.b)}: ${fd(dist(r.a,r.b))} ${bTM(brg(r.a,r.b))}`)},
-    {l:r.kind==='move'?'Make fixed':'Make moveable',icon:'swap',f:()=>{r.kind=r.kind==='move'?'perm':'move';save('rng');renderRng();rngActions(id)}},
+  openRadial({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2},[{l:r.kind==='move'?'Make fixed':'Make moveable',icon:'swap',f:()=>{r.kind=r.kind==='move'?'perm':'move';save('rng');renderRng();rngActions(id)}},
     {l:'Navigate to end',icon:'hound',f:()=>setTarget('r:'+id)},del],r.kind==='move'?'Moveable line':'Fixed line',[r.a,r.b])}
 function delRng(id){S.rng=S.rng.filter(x=>x.id!==id);if(selRing===id)selRing=null;if(S.target==='r:'+id)setTarget(null);save('rng');renderRng()}
 function rangeTap(p){const m=S.set.rngMode;if(m==='ring'){if(Date.now()-shapeDragAt<500)return;const r={id:uid(),kind:'ring',c:p,step:+S.set.ringStep||450*FT,u:S.set.ringUnit||'ft',n:1};S.rng.push(r);selRing=r.id;save('rng');renderRng();rngActions(r.id);return}
