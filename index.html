@@ -58,6 +58,7 @@ button,input,select{font:inherit;color:inherit}
 .qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
 .qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
 #status{position:absolute;left:8px;bottom:36px;z-index:900;background:rgba(16,16,16,.78);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:5px 8px;color:#4DFF9A;font:400 15px/1.25 var(--cond);font-variant-numeric:tabular-nums;max-width:min(72vw,320px)}
+#status .csl{color:#A9BDAF;font-size:9px;text-transform:uppercase;letter-spacing:.02em;line-height:1.1}
 #status .cs{color:#8CFFC4;font-size:9.5px;opacity:.85;margin-bottom:2px}
 #status #bPos{font-size:13px;letter-spacing:.01em;white-space:nowrap}
 #status .sg{display:grid;grid-template-columns:auto auto;column-gap:8px;row-gap:0;align-items:baseline;font-size:13px;line-height:1.3}#status .sg .k{color:#A9BDAF;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}#status .sg>span:empty::before,#status #bAcc:empty::before{content:'–'}
@@ -347,6 +348,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <button class="qb lab" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></button>
     </nav>
     <div id="status">
+      <div class="csl">My callsign</div>
       <div class="cs"><span id="bCall">JUMP MASTER EXPERT TOOL</span> <span id="bSrc"></span></div>
       <div class="sg">
         <span class="k">My grid</span><span id="bPos">No fix</span>
@@ -587,7 +589,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
