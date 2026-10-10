@@ -227,6 +227,8 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.vsum{margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}.vsum .sh{padding:6px 10px;font:500 14px var(--cond);background:color-mix(in srgb,var(--panel2) 70%,transparent);color:var(--ink)}.vsum .sr{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-top:1px solid var(--line);font:400 14px var(--cond)}.vsum .sr b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.vsum .sr.ok span{color:var(--go)}.vsum .sr.bad{background:color-mix(in srgb,var(--stop) 18%,transparent)}.vsum .sr.bad span{color:var(--stop);font-weight:600}
+#milOut tr.key td{font-weight:600}
 .gsout{margin-top:8px;padding:8px 10px;border-left:4px solid var(--go);border-radius:6px;background:color-mix(in srgb,var(--panel2) 60%,transparent)}.gsout b{display:block;font:500 18px var(--cond);color:var(--ink)}.gsout small{display:block;margin-top:2px;font:400 13px/1.3 var(--cond);color:var(--mute)}
 #hamoBox .fields{grid-template-columns:1fr 1fr}
 #hamoNote{min-height:3.9em}
@@ -498,7 +500,7 @@ table.winds td small{font-size:11px}
           <section class="sec">
             <h3>Military CYPRES setting</h3>
             <div class="fields">
-              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option></select></label>
+              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option><option value="mix1500">Mixed: Non Standard 1000 + MJ 1500</option><option value="mix1900">Mixed: Non Standard 1000 + MJ 1900</option></select></label>
               <label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
               <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
             </div>
@@ -1342,6 +1344,20 @@ $('#follow').onclick=()=>{if(!me){toast('No position yet. Start sensors or turn 
 setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=resolve(S.target);if(!r)return;const v=(+S.set.simSpd||0)*KT,d=dist(me,r.p);if(d<1)return;const b=brg(me,r.p),n=dest(me,b,Math.min(d,v));onFix({lat:n.lat,lon:n.lon,acc:5,alt:null,spd:v,course:b,sim:true})},1000);
 
 
+/* Jump Vital Data: altimeters, heights AGL and checks, worked as on the manifest & pilot brief sheet */
+function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[])];
+  c.sets.forEach(t=>{const x=c.mixed?' ('+t.T+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
+  const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
+  return `<div class="vsum"><div class="sh">Altimeters</div>
+    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}
+    ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
+    ${r('STRATOS',c.offset!=null?`${sgnFt(-c.offset)} / ${c.qfeDz} mb`:'–')}
+    ${r('CYPRES setting',`${c.cypMb} mb`)}
+    <div class="sh">Heights AGL (highest first) · rounded up to nearest 100 in brackets</div>
+    ${hts.map(([k,v])=>r(k,`${ff(v)} (${Math.ceil(v/100)*100})`)).join('')}
+    <div class="sh">Checks</div>
+    <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
+    <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
@@ -1353,7 +1369,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
     <div><span>DZ Elev</span><b>${ff(j.dzElev)}</b></div>
     <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${Math.round(J.tas)} kt</b> <span>GS on run-in</span><b>${Math.round(J.gsM/KT)} kt</b></div>
-  </div>
+  </div>${vitalAlt()}
   <dl class="res">
     <dd data-l="Free Fall">${J.ffLegs.length?J.ffLegs.map(l=>`${Math.round(l.m)} m @ ${fb(l.d)} T`).join(", then "):"disregarded"}</dd>
     <dd data-l="Canopy Drift">${J.cdLegs.map(l=>`${l.km} km @ ${fb(l.d)} T`).join(", then ")}</dd>
@@ -1373,7 +1389,21 @@ document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds'
 
 
 /* ================= Military CYPRES ================= */
-const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300}};
+const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000,dep:1500,min:5000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000,dep:1500,min:5000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300,dep:1700,min:4000}};
+const CYP_SEL={mj1900:['mj1900'],mj1500:['mj1500'],pns1000:['pns1000'],mix1500:['pns1000','mj1500'],mix1900:['pns1000','mj1900']};
+/* altitude maths (same as the manifest & pilot brief sheet):
+   setting in inHg (unknown = 29.92); pressure altitude = elevation + (29.92 - setting) x 1000; station pressure = 1013.25 x (1 - 6.8756e-6 x PA)^5.2559, rounded down to whole mb.
+   CYPRES input = higher of VDZ / DZ (+500 ft if the setting is unknown). Ladder: RAA = input + activation, decision = RAA + separation,
+   minimum deployment = decision + 1,700 (Non Standard) or 1,500 (MJ), adjusted = +1,000 if unknown. AGL heights subtract the DZ, not the VDZ. */
+function cypCalc(){const j=S.jump,dz=+j.dzElev||0,unk=!!j.qnhUnknown,v=vdzElev(),base=Math.max(v.ft,dz);
+  const altUsed=unk?29.92:(j.qnhUnit==='inhg'?(+j.qnh||29.92):(+j.qnh||1013.25)/33.8639);
+  const stnP=e=>1013.25*Math.pow(1-6.8756e-6*(e+(29.92-altUsed)*1000),5.2559);
+  const cypFt=base+(unk?500:0),cypMb=Math.floor(stnP(cypFt)),daf=j.toElev===''||j.toElev==null?null:+j.toElev,offset=daf!=null&&isFinite(daf)?daf-dz:null,qfeDz=Math.floor(stnP(dz));
+  const sets=(CYP_SEL[j.cypModel]||CYP_SEL.mj1900).map(k=>{const t=CYP[k],raa=cypFt+t.act,da=raa+t.sep,md=da+t.dep,amd=md+(unk?1000:0);return {k,T:t.n,act:t.act,sep:t.sep,dep:t.dep,min:t.min,raa,da,md,amd,raaAgl:raa-dz,daAgl:da-dz,amdAgl:amd-dz}});
+  const hi=sets.reduce((a,b)=>b.amdAgl>a.amdAgl?b:a),floor=sets.reduce((a,b)=>b.min>a.min?b:a),minDep=Math.max(hi.amdAgl,floor.min),minWhy=hi.amdAgl>=floor.min?`the worked-out minimum deployment${sets.length>1?' for '+hi.T:''}`:`the fixed minimum for ${floor.T}`;
+  const opens=[+j.openAlt,...(j.mode==='HAMO'?[+j.pod2Open]:[])],lowOpen=Math.min(...opens),highOpen=Math.max(...opens),despAgl=(+j.exitAlt)-dz;
+  return {dz,unk,v,base,altUsed,cypFt,cypMb,daf,offset,qfeDz,sets,mixed:sets.length>1,minDep,minWhy,lowOpen,highOpen,despAgl,depOk:lowOpen>=minDep,sepOk:despAgl>=highOpen+1000}}
+const sgnFt=n=>n==null?'–':`${n>0?'+':n<0?'−':'±'}${Math.abs(Math.round(n)).toLocaleString('en-GB')} ft`;
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
 // the terrain check runs on its own whenever the HARP, PRP or DZ moves; key records which plan a result belongs to
@@ -1387,32 +1417,29 @@ async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first
     hrpoBusy=null;hrpoFailKey=null;if(key!==hrpoKey())return autoHrpo();S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now(),key};save('jump');renderJump();if(!auto||S.jump.hrpo.isHrpo)toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO',S.jump.hrpo.isHrpo?6000:3200)}
   catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed.'}}
 function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
-function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,m=CYP[j.cypModel||'mj1900'],dz=+j.dzElev||0,unk=!!j.qnhUnknown;
-  const qnhMb=unk?1013:(j.qnhUnit==='inhg'?(+j.qnh||29.92)*33.8639:(+j.qnh||1013));const v=vdzElev();const entered=v.ft+(unk?500:0);
-  const setMb=Math.round(qnhMb-entered/32.25),chk=Math.round(qnhMb-entered/30);
-  const ra=entered+m.act,da=ra+m.sep,mda=da+1500,amda=mda+(unk?1000:0);const pull=+j.openAlt,ok=pull>=amda-dz;
+function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,c=cypCalc(),dz=c.dz,unk=c.unk;
   const R=hrpoRadius();$('#hrpoRule').textContent=`Checked automatically: highest ground within ${R} m of the HARP, PRP, first out and last out (${R===1000?'1,000 m, exit above':'500 m, exit below'} 13,000 ft AGL). Ground 200 ft or more above the DZ is an HRPO and becomes the VDZ.`;
   const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
   ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`;
-  const row=(l,msl,agl)=>`<tr><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`;
+  const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
+  const ladder=t=>`<table class="winds mt"><thead><tr><th>${t.T}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
+    ${row(`Adjusted minimum deployment${unk?' (+1,000, setting unknown)':''}`,ff(t.amd),ff(t.amdAgl),'key')}
+    ${row(`Minimum deployment (+${t.dep.toLocaleString('en-GB')})`,ff(t.md),'')}
+    ${row(`Decision (+${t.sep.toLocaleString('en-GB')})`,ff(t.da),ff(t.daAgl),'key')}
+    ${row(`Reserve activation (+${t.act.toLocaleString('en-GB')})`,ff(t.raa),ff(t.raaAgl),'key')}
+    ${row(`CYPRES whiz wheel input${unk?' (+500)':' (not used, setting known)'}`,ff(c.cypFt),'')}
+    ${row(`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</tbody></table>`;
+  const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${t.n}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
-    <dd class="big" data-l="CYPRES setting">${setMb} mb</dd>
-    <dd data-l="Working">${Math.round(qnhMb)} − ${entered.toLocaleString('en-GB')} ÷ 32.25 = ${setMb} mb (30 ft per mb sanity check: ${chk} mb)</dd>
-    <dd data-l="Zero reference">${ff(v.ft)} AMSL, ${v.src}${unk?', +500 ft as setting unknown':''}</dd></dl>
-    <h3>Key altitude ladder</h3>
-    <table class="winds"><thead><tr><th>${m.n}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
-    ${row('CYPRES elevation',ff(entered),'')}
-    ${row(`Reserve activation (+${m.act.toLocaleString('en-GB')})`,ff(ra),ff(ra-dz))}
-    ${row(`Decision (+${m.sep.toLocaleString('en-GB')})`,ff(da),ff(da-dz))}
-    ${row('Minimum deployment (+1,500)',ff(mda),unk?'':ff(mda-dz))}
-    ${unk?row('Adjusted minimum deployment (+1,000)',ff(amda),ff(amda-dz)):''}
-    </tbody></table>
+    <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd>
+    <dd data-l="Working">${unk?'Setting unknown: 29.92 inHg / 1013.2 mb used':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`} at ${c.v.src==='DZ elevation'?'DZ':'VDZ'} ${ff(c.base)}${unk?' + 500':''} = ${ff(c.cypFt)} MSL (pressure altitude ${ff(pa)}) gives ${(1013.25*Math.pow(1-6.8756e-6*pa,5.2559)).toFixed(1)} mb, rounded down to ${c.cypMb} mb</dd>
+    <dd data-l="Zero reference">${ff(c.base)} AMSL, ${c.v.src}${unk?', +500 ft as setting unknown':''}</dd></dl>
+    <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
     <h3 class="mt">Decision altitude by CYPRES model</h3>
-    <table class="winds"><thead><tr><th>CYPRES</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
-    ${Object.entries(CYP).map(([k,c])=>{const d=entered+c.act+c.sep;return `<tr${k===(j.cypModel||'mj1900')?' style="font-weight:600"':''}><td>${c.n}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('')}
-    </tbody></table>
-    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(pull+1000)} · deployment ${ff(pull)} · decision ${ff(da-dz)} AGL</dd></dl>
-    <div class="warn" style="border-left-color:${ok?'var(--go)':'var(--stop)'}">${ok?`Planned opening ${ff(pull)} AGL is at or above the minimum planned deployment altitude of ${ff(amda-dz)} AGL.`:`Planned opening ${ff(pull)} AGL is BELOW the minimum planned deployment altitude of ${ff(amda-dz)} AGL. Raise the pull altitude.`}</div>
+    <table class="winds"><thead><tr><th>CYPRES</th><th>MSL</th><th>AGL</th></tr></thead><tbody>${decAll}</tbody></table>
+    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+t.T+')':'')).join(' / ')} AGL</dd></dl>
+    <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
+    <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
 $('#cypModel').onchange=e=>{S.jump.cypModel=e.target.value;save('jump');renderMilCypres()};
 $('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;save('jump');renderMilCypres()}};
