@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -688,6 +688,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
   </div>
 </div>
 
+<input type="file" id="dipFile" accept=".json,.kml,.gpx,.cot,.xml,.csv,.txt,application/json,application/vnd.google-earth.kml+xml,text/plain,text/csv" hidden>
 <div id="act" hidden>
   <div class="box" role="dialog" aria-modal="true" aria-labelledby="actTitle">
     <button class="iconbtn" id="actX" aria-label="Close">✕</button>
@@ -1018,10 +1019,10 @@ async function ringHrpo(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const 
 function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>delRng(id)};
   if(r.kind==='ring'){selRing=id;renderRng();const outer=Array.from({length:49},(_,i)=>dest(r.c,i*7.5,r.n*r.step));
     openRadial(r.c,[{l:'Interval',icon:'params',f:()=>sheet({title:'Ring interval',sub:`${r.n} ring${r.n===1?'':'s'} × ${fmtU(r.step,ru(r))} · outer ${fmtU(r.n*r.step,ru(r))}`,input:{label:`Ring interval, ${ru(r).l}`,type:'number',value:inU(r.step,ru(r)),save:v=>{const n=parseFloat(v);if(n>0){r.step=n*ru(r).f;save('rng');renderRng()}}},buttons:[]})},
-      {l:`Units ${ru(r).a}`,icon:'alt',f:()=>sheet({title:'Ring units',buttons:Object.entries(RU).map(([k,u])=>[u.l[0].toUpperCase()+u.l.slice(1),()=>{r.u=k;S.set.ringUnit=k;save('set');save('rng');renderRng();syncRng()},ru(r)===u?'primary':''])})},
+      {l:`Units ${ru(r).a}`,icon:'ruler',f:()=>sheet({title:'Ring units',buttons:Object.entries(RU).map(([k,u])=>[u.l[0].toUpperCase()+u.l.slice(1),()=>{r.u=k;S.set.ringUnit=k;save('set');save('rng');renderRng();syncRng()},ru(r)===u?'primary':''])})},
       {l:'Add ring',icon:'plus',f:()=>{r.n=Math.min(r.n+1,40);save('rng');renderRng();rngActions(id)}},
       {l:'Remove ring',icon:'minus',f:()=>{r.n=Math.max(1,r.n-1);save('rng');renderRng();rngActions(id)}},
-      {l:'HRPO check',icon:'pattern',f:()=>ringHrpo(id)},
+      {l:'HRPO check',icon:'mountain',f:()=>ringHrpo(id)},
       {l:'Navigate',icon:'hound',f:()=>setTarget('r:'+id)},del],`${r.n} × ${fmtU(r.step,ru(r))}`,outer);return}
   openRadial({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2},[{l:r.kind==='move'?'Make fixed':'Make moveable',icon:'swap',f:()=>{r.kind=r.kind==='move'?'perm':'move';save('rng');renderRng();rngActions(id)}},
     {l:'Reverse',icon:'swap',f:()=>{[r.a,r.b]=[r.b,r.a];save('rng');renderRng();rngActions(id)}},
@@ -1415,7 +1416,7 @@ $('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected autom
 
 async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Could not get the DZ height (no signal?). Enter it in the planner.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
 /* ================= DIP radial menu ================= */
-const RI={plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
+const RI={mountain:'<path d="M2 20 9 7l4 6 3-4 6 11Z"/>',ruler:'<path d="M3 15 15 3l6 6L9 21Z"/><path d="M7 11l2 2M10 8l2 2M13 5l2 2M6 14l1.5 1.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
 /* options for a point, line or label: a circle of buttons around it; whatever is picked opens in the docked panel with the map centred on the item */
 let radialCtx=null;var lineMovedAt=0;
 /* the item whose menu is open gets a white glow so you can see it is the right one; it stays while its settings are open */
@@ -1607,9 +1608,26 @@ $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===
 function jmMenu(){const pop=$('#jmPop');if(!pop.hidden){pop.hidden=true;return}closeDrawer();const b=$('.qb[data-tool="jump"]').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();pop.style.top=Math.round(b.bottom-mw.top+6)+'px';pop.style.right=Math.max(4,Math.round(mw.right-b.right))+'px';pop.hidden=false}
 $('#jmPop').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#jmPop').hidden=true;if(b.dataset.jm==='saved')savedDipsSheet();else{if(tool)closeTool();setMode('pi','Tap the ground to set the DIP')}};
 document.addEventListener('pointerdown',e=>{const pop=$('#jmPop');if(!pop.hidden&&!e.target.closest('#jmPop')&&!e.target.closest('.qb[data-tool="jump"]'))pop.hidden=true},true);
-function savedDipsSheet(){const L_=S.savedDips;sheet({title:'Saved DIPs',sub:L_.length?'Tap one to use it.':'None saved yet. Set a DIP, then save it here.',buttons:[
-  ...(S.pi?[['Save current DIP',()=>sheet({title:'Save DIP',sub:fc(S.pi),input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.savedDips.push({id:Date.now(),name:v.trim()||'DIP',lat:S.pi.lat,lon:S.pi.lon,dzElev:+S.jump.dzElev||null});save('savedDips');toast('DIP saved')}},buttons:[]}),'primary']]:[]),
-  ...L_.map(d=>[d.name,()=>sheet({title:d.name,sub:fc(d)+(d.dzElev!=null?` · DZ ${ff(d.dzElev)} AMSL`:''),buttons:[['Use this DIP',()=>{S.pi={name:d.name,lat:d.lat,lon:d.lon};save('pi');if(d.dzElev!=null){S.jump.dzElev=d.dzElev;S.jump.dzSrc='saved DIP';save('jump');syncJumpInputs();renderWinds()}else autoDzElev();renderJump();map.setView(LL(d),Math.max(map.getZoom(),13));openTool('jump');toast(`DIP: ${d.name}`)},'primary'],['Delete',()=>{S.savedDips=S.savedDips.filter(x=>x.id!==d.id);save('savedDips');savedDipsSheet()},'danger']]})])]})}
+/* Saved DIPs: save the current DIP, load one from the saved list, or bring DIPs in from / send them to the phone's Files */
+function useSavedDip(d){S.pi={name:d.name,lat:d.lat,lon:d.lon};save('pi');if(d.dzElev!=null){S.jump.dzElev=d.dzElev;S.jump.dzSrc='saved DIP';save('jump');syncJumpInputs();renderWinds()}else autoDzElev();renderJump();map.setView(LL(d),Math.max(map.getZoom(),13));openTool('jump');toast(`DIP: ${d.name}`)}
+function savedDipsSheet(){const n=S.savedDips.length;sheet({side:true,title:'Saved DIPs',sub:n?`${n} saved on this phone.`:'None saved yet.',buttons:[
+  ['Save current DIP',()=>{if(!S.pi){toast('Place a DIP first.');return}sheet({side:true,title:'Save DIP',sub:fc(S.pi),input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.savedDips.push({id:Date.now(),name:v.trim()||'DIP',lat:S.pi.lat,lon:S.pi.lon,dzElev:+S.jump.dzElev||null});save('savedDips');toast('DIP saved');savedDipsSheet()}},buttons:[]})},'primary'],
+  ['Load DIPs',loadDipsSheet],
+  ['Load from Files',()=>$('#dipFile').click()],
+  ['Save to Files',()=>{if(!n){toast('No saved DIPs to export.');return}shareFile(new Blob([JSON.stringify({app:'Jump Master Expert Tool',dips:S.savedDips.map(d=>({name:d.name,lat:+d.lat.toFixed(6),lon:+d.lon.toFixed(6),dzElev:d.dzElev??null,grid:fc(d)}))},null,1)],{type:'application/json'}),'saved-dips.json','Saved DIPs')}]]})}
+function loadDipsSheet(){const L_=S.savedDips;sheet({side:true,title:'Load DIP',sub:L_.length?'Tap one to use it.':'No saved DIPs. Save the current DIP or load them from Files.',buttons:L_.map(d=>[d.name,()=>sheet({side:true,title:d.name,sub:fc(d)+(d.dzElev!=null?` · DZ ${ff(d.dzElev)} AMSL`:''),buttons:[['Use this DIP',()=>useSavedDip(d),'primary'],['Delete',()=>{S.savedDips=S.savedDips.filter(x=>x.id!==d.id);save('savedDips');loadDipsSheet()},'danger']]})])})}
+/* read DIPs from a file: this app's export (.json), KML, GPX, ATAK CoT, or CSV/text lines of "name, grid" or "name, lat, lon" */
+function parseDipFile(txt,fname){const out=[],add=(name,lat,lon,dz)=>{if(isFinite(lat)&&isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({id:Date.now()+out.length,name:(name||'DIP').trim().slice(0,40)||'DIP',lat:+lat,lon:+lon,dzElev:dz!=null&&isFinite(dz)?+dz:null})};
+  const t=txt.trim();
+  if(t.startsWith('{')||t.startsWith('[')){try{const j=JSON.parse(t),arr=Array.isArray(j)?j:(j.dips||j.savedDips||[]);arr.forEach(d=>add(d.name,d.lat,d.lon??d.lng,d.dzElev))}catch(_){}return out}
+  if(/<(kml|gpx|event|Placemark|wpt)\b/i.test(t)){const x=new DOMParser().parseFromString(t,'application/xml');
+    x.querySelectorAll('Placemark').forEach(p=>{const c=(p.querySelector('coordinates')||{}).textContent;if(c){const [lo,la]=c.trim().split(/\s+/)[0].split(',').map(Number);add((p.querySelector('name')||{}).textContent,la,lo)}});
+    x.querySelectorAll('wpt').forEach(w=>add((w.querySelector('name')||{}).textContent,+w.getAttribute('lat'),+w.getAttribute('lon')));
+    x.querySelectorAll('event').forEach(e=>{const pt=e.querySelector('point');if(pt)add((e.querySelector('contact')||{getAttribute:()=>null}).getAttribute('callsign')||e.getAttribute('uid'),+pt.getAttribute('lat'),+pt.getAttribute('lon'),pt.getAttribute('hae')!=null?null:null)});return out}
+  t.split(/\r?\n/).forEach(line=>{const l=line.trim();if(!l||/^name\b/i.test(l))return;const parts=l.split(/[,;\t]/).map(x=>x.trim()).filter(Boolean);
+    const nums=parts.filter(x=>/^-?\d+(\.\d+)?$/.test(x));if(nums.length>=2){const name=parts.find(x=>!/^-?\d+(\.\d+)?$/.test(x));add(name,+nums[0],+nums[1],nums[2]!=null?+nums[2]:null);return}
+    for(let k=0;k<parts.length;k++){const p=parseCoord(parts[k]);if(p){add(parts.filter((_,m)=>m!==k).join(' ')||fname.replace(/\.[^.]+$/,''),p.lat,p.lon);return}}});return out}
+$('#dipFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let ds=[];try{ds=parseDipFile(await f.text(),f.name)}catch(_){}if(!ds.length){toast('No DIPs found in that file.');return}S.savedDips.push(...ds);save('savedDips');toast(`${ds.length} DIP${ds.length===1?'':'s'} loaded from ${f.name}`);loadDipsSheet()};
 $('#toolClose').onclick=e=>{e.stopPropagation();closeTool()};
 $('#thead').onclick=()=>{if($('#tool').classList.contains('dock'))return;$('#tool').classList.toggle('min');$('#toolMin').textContent=$('#tool').classList.contains('min')?'▴':'▾';setTimeout(()=>map.invalidateSize(),50)};
 
