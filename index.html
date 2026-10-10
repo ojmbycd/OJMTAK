@@ -32,7 +32,12 @@
   --amber:#FF6A3F; --self:#FF7A5E; --pi:#FF3328; --go:#FF8A6A; --stop:#FF2318; --x:#FF2A1F;
   --grid:rgba(255,75,62,.35); --mapbg:#0D0303; color-scheme:dark;
 }
-:root{box-sizing:border-box;height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{box-sizing:border-box;height:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+/* Landscape on an upright phone turns the app 90°: the camera notch (top of the phone) is then on the app's left and the home bar on its right */
+body.rot #app{padding-left:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-bottom,0px)}
+body.rot.dopen #app,body.rot.topen #app,body.rot.aopen #app{padding-right:0}
+body.rot #drawer .dbox,body.rot #tool.dock,body.rot #act.side .box{padding-top:0!important;padding-bottom:0!important;padding-right:env(safe-area-inset-bottom,0px)!important}
+body.rot #act.side .box{padding-top:14px!important;padding-left:14px!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
@@ -590,7 +595,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
