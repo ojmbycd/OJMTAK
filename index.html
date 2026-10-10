@@ -198,7 +198,7 @@ button,input,select{font:inherit;color:inherit}
 /* DIP name: small, fixed size, centred directly below the DIP (6 o'clock); stays when zoomed out */
 .dipname{position:absolute;left:50%;top:27px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.dipname small{display:block;font-size:9px;font-weight:400;opacity:.85}
 /* wind speeds only from 30,000 ft eye altitude down */
-.leaflet-container.hi30k .wlbl,.leaflet-container.hi30k .warr{display:none}
+.leaflet-container.hi30k .wlbl,.leaflet-container.hi30k .warr,.leaflet-container.hi30k .holdlbl{display:none}
 /* DZ items (DIP name, DZ height, compass ring numbers) only from 15,000 ft eye altitude down */
 .leaflet-container.hi5k .clbl,.leaflet-container.hi5k .dipname{display:none}
 /* landing pattern turn heights: small but crisp (thin outline, no soft glow) */
@@ -635,7 +635,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1321,7 +1321,7 @@ function renderJump(){autoDecl();heatSync();exitHint();LY.jump.clearLayers();
   };drawTrack(J);if(hamo){if(J2)drawTrack(J2);if(J3)drawTrack(J3)}
   /* overlay: the canopy heading to hold from the PRP, as a thin red dotted line run out the PRP-to-DIP distance (the canopy drifts off it with the wind but holds this heading) */
   if(S.ov.jhdg)[J,J2,J3].filter(P=>P&&!P.err&&P.driveH!=null&&(P===J||hamo)).forEach(P=>{const a=P.op,b=dest(a,P.driveH,dist(a,S.pi));L.polyline([LL(a),LL(b)],{color:'#FF2A2A',weight:1,dashArray:'2 5',interactive:false}).addTo(LY.jump);
-    const mid=dest(a,P.driveH,dist(a,S.pi)*.5);L.marker(LL(mid),{icon:lineTag(a,b,`Hold ${String(Math.round(P.jumperHdgM)).padStart(3,'0')}° M`,'#FF2A2A',1),interactive:false}).addTo(LY.jump)});
+    const mid=dest(a,P.driveH,dist(a,S.pi)*.5);L.marker(LL(mid),{icon:lineTag(a,b,`<span class="holdlbl">Hold ${String(Math.round(P.jumperHdgM)).padStart(3,'0')}° M</span>`,'#FF2A2A',1),interactive:false}).addTo(LY.jump)});
   /* POD HAMO: each pod's 2K and 3K phase lines are joined to the next pod's by a bowed line curving round the DIP */
   if(hamo&&J2)[2000,3000].forEach(h=>{const ms=[J,J2,J3].filter(Boolean).map(P=>(P.marks||[]).find(m=>m.agl===h)).filter(Boolean).map(m=>({p:m.p,b:brg(S.pi,m.p),d:dist(S.pi,m.p)}));if(ms.length<2)return;
     const ref=ms[0].b;ms.forEach(m=>{m.r=((m.b-ref+540)%360)-180});ms.sort((a,b)=>a.r-b.r);
