@@ -620,7 +620,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 11:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 11:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1543,7 +1543,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
     if(ws>0.3){const from=norm(Math.atan2(-w.u,-w.v)*R2D),tail=dest(S.pi,from,1000*FT),tip=dest(S.pi,from,450*FT),hd=norm(from+180);
       L.polyline([LL(tail),LL(tip)],{color:oc,weight:2,interactive:false}).addTo(LY.jump);
       L.polyline([LL(dest(tip,norm(hd+155),22)),LL(tip),LL(dest(tip,norm(hd-155),22))],{color:oc,weight:2,interactive:false}).addTo(LY.jump);
-      L.marker(LL(dest(dest(S.pi,from,700*FT),norm(from+90),25)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${oc};font-size:12px;left:2px;top:-6px">${Math.round(ws/KT)} kt</span>`}),interactive:false}).addTo(LY.jump)}
+      L.marker(LL(dest(S.pi,from,725*FT)),{icon:lineTag(tail,tip,`${Math.round(ws/KT)} kt`,oc,2),interactive:false}).addTo(LY.jump)}
     if(warn)L.marker(LL(fromSY(s0,off*3)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#FFB020">${esc(warn)}</span>`}),interactive:false}).addTo(LY.jump)}}
 
 
