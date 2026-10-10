@@ -268,6 +268,7 @@ table.winds{width:100%;border-collapse:collapse;font-size:14px}
 table.winds input{padding:2px 6px;font-size:14px;min-width:0;width:100%;height:30px;min-height:0}
 .wtop{display:grid;grid-template-columns:1fr auto auto;gap:6px}.wtop select{min-width:0}
 .wbtns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.wbtns .btn{padding:4px 8px;font-size:12px;border-radius:7px}
+table.winds tr.wsw th{padding:0 3px 4px}table.winds tr.wsw .btn{padding:3px 8px;font-size:12px;border-radius:7px;width:100%}
 table.winds th{font:500 12px var(--body);color:var(--mute);text-align:left;padding:0 3px 3px}
 table.winds td{padding:2px 3px}
 table.winds td:last-child{width:30px}table.winds td:last-child .iconbtn{width:26px;height:26px;font-size:13px}
@@ -464,9 +465,9 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
           <section class="sec" id="windSec">
             <h3>Winds</h3>
             <div class="wtop"><select id="windModel"><option value="ecmwf_ifs025">ECMWF</option><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><select id="windHour"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><button class="btn primary" id="windImport">Import</button></div>
-            <div class="wbtns"><button class="btn" id="windSchulze">Winds aloft site</button><button class="btn" id="windFileBtn">Load file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden><button class="btn" id="windSwap">Dir/Kt</button><button class="btn" id="windOrder">Alt ↑</button></div>
+            <div class="wbtns"><button class="btn" id="windSchulze">Winds aloft site</button><button class="btn" id="windFileBtn">Load file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
             <p class="note" id="windSrc"></p>
-            <table class="winds"><thead><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
+            <table class="winds"><thead><tr class="wsw"><th><button class="btn" id="windOrder">Alt ↑</button></th><th colspan="2"><button class="btn" id="windSwap">Dir/Kt</button></th><th colspan="2"></th></tr><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
             <p class="note">From °T (where the wind blows from), speed in kt. Value: 0–2 Zero, 3–7 ¼, 8–12 ½, 13–17 ¾, 18–22 FV, 23+ FV+.</p>
           </section>
           <section class="sec" id="harpSec">
@@ -580,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 21:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
