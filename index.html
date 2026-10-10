@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -688,7 +688,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     <button class="iconbtn" id="actX" aria-label="Close">✕</button>
     <h4 id="actTitle"></h4>
     <p id="actSub"></p>
-    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn" id="actClr" hidden>Clear</button><button class="btn primary" id="actSave">Save</button></div></label></div>
+    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn" id="actClr" hidden>Clear</button><button class="btn" id="actCancel" hidden>Cancel</button><button class="btn primary" id="actSave">Save</button></div></label></div>
     <div class="acts" id="actBtns"></div>
   </div>
 </div>
@@ -844,7 +844,7 @@ function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].fin
   const done=leave=>{if(!$('#drawer').hidden&&seq===dSeq){if(leave)closeDrawer();else goPage(dParent)}};
   $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
   const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
-function popSheet({title,sub,input,buttons,side}){if(side&&radialCtx&&Date.now()-radialCtx.t<1500){const rp=radialCtx.p;setTimeout(()=>map.panTo(LL(rp)),150)}$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actClr').hidden=!input.clear;$('#actClr').onclick=e=>{e.preventDefault();i.value='';i.focus()};$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+function popSheet({title,sub,input,buttons,side}){if(side&&radialCtx&&Date.now()-radialCtx.t<1500){const rp=radialCtx.p;setTimeout(()=>map.panTo(LL(rp)),150)}$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actClr').hidden=!input.clear;$('#actCancel').hidden=!input.cancel;$('#actCancel').onclick=e=>{e.preventDefault();closeSheet();input.cancel()};$('#actClr').onclick=e=>{e.preventDefault();i.value='';i.focus()};$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true;if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});$('#actX').onclick=closeSheet;
@@ -889,11 +889,11 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 /* turn a text label to any angle: slide to preview on the map, Save to keep */
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
-  sheet({side:true,title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}],['Cancel',()=>{d.rot=was;renderDraws()}]]});
+  sheet({side:true,title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()},cancel:()=>{d.rot=was;renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}]]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;renderDraws()}}
 /* line thickness on a slider, previewed on the map as you slide */
 function lineThick(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=d.w||2;
-  sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()}},buttons:[['Cancel',()=>{d.w=was;renderDraws()}]]});
+  sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()},cancel:()=>{d.w=was;renderDraws()}},buttons:[]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=10;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;renderDraws()}}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()}};
   /* colour: the same small circles as the Draw panel; tap to try colours, the panel stays open until the X */
