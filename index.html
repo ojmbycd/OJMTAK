@@ -873,7 +873,7 @@ if(!OV_NAMES.adsb)S.ov.adsb=false;setTimeout(adsbSync,2000);
 
 /* ================= JUMP CALC ================= */
 function makeWind(){const w=S.winds.filter(x=>isFinite(x.alt)&&isFinite(x.dir)&&isFinite(x.spd)).map(x=>{const t=(x.dir+180)*D2R;return {alt:+x.alt,u:x.spd*KT*Math.sin(t),v:x.spd*KT*Math.cos(t)}}).sort((a,b)=>a.alt-b.alt);return h=>{if(!w.length)return {u:0,v:0};if(h<=w[0].alt)return w[0];const top=w[w.length-1];if(h>=top.alt)return top;for(let i=0;i<w.length-1;i++){if(h<=w[i+1].alt){const a=w[i],b=w[i+1],f=(h-a.alt)/(b.alt-a.alt);return {u:a.u+(b.u-a.u)*f,v:a.v+(b.v-a.v)*f}}}return top}}
-/* ===== OJM manual method (para 5.3 to 5.8): D = KAV ===== */
+/* ===== D = KAV method ===== */
 const trunc1=x=>Math.trunc(x*10)/10;
 function windRows(levelsAGL){const w=makeWind(),dz=+S.jump.dzElev||0;return levelsAGL.map(a=>{const x=w(dz+a);return {a,v:Math.hypot(x.u,x.v)/KT,d:norm(Math.atan2(-x.u,-x.v)*R2D)}})}
 const angDiff=(a,b)=>{const d=Math.abs(norm(a)-norm(b));return d>180?360-d:d};
@@ -1026,7 +1026,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   drawPI();
   out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}${hamo?`<h4 class="podh">Pod 1 · opens ${ff(S.jump.openAlt)} AGL · ${S.jump.jumpers} jumpers</h4>${calcDl(J,S.jump.jumpers)}<h4 class="podh">Pod 2 · opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</h4>${calcDl(J2,S.jump.pod2Jumpers)}`:calcDl(J,S.jump.jumpers)}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
-    <div class="warn">Calculated per OJM manual para 5.3 to 5.8 (D = KAV, wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
+    <div class="warn">Calculated by the D = KAV method ( wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
   updateHound();renderPoints()}
 function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
   [450*FT,900*FT].forEach(r=>L.circle(LL(pi),{radius:r,color:red,weight:1.5,fill:false,interactive:false}).addTo(LY.jump));
