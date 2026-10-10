@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -985,15 +985,26 @@ function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--ambe
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.circle(LL(r.c),{radius:r.step*i,color:'#000',opacity:0,weight:20,fill:false,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Range rings'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
-    const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);const hit=L.polyline([LL(r.a),LL(r.b)],{color:'#000',opacity:0,weight:20,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
+    const lc=r.color?colOf(r.color):ink,lw=r.w||2,ld=r.style==='dot'?`0.1 ${lw*2.2}`:r.style==='dash'?`${lw*3} ${lw*2}`:r.style==='solid'?null:r.kind==='move'?'8 6':null;
+    const pl=L.polyline([LL(r.a),LL(r.b)],{color:lc,weight:lw,dashArray:ld,lineCap:'round',bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);const hit=L.polyline([LL(r.a),LL(r.b)],{color:'#000',opacity:0,weight:20,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
-    const tag=L.marker(LL(mid()),{icon:lineTag(r.a,r.b,lineLabel(r.a,r.b),ink),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,ink),interactive:false}).addTo(LY.rng);
-    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(ink),pickId:'r:'+r.id,pickName:'Measure line'}).addTo(LY.rng);
-      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);hit.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(lineTag(r.a,r.b,lineLabel(r.a,r.b),ink));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,ink))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
+    const tag=L.marker(LL(mid()),{icon:lineTag(r.a,r.b,lineLabel(r.a,r.b),lc,lw),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,lc),interactive:false}).addTo(LY.rng);
+    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(lc),pickId:'r:'+r.id,pickName:'Measure line'}).addTo(LY.rng);
+      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);hit.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(lineTag(r.a,r.b,lineLabel(r.a,r.b),lc,lw));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,lc))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
   renderRngList()}
 function rngText(r){return r.kind==='ring'?`Rings ${r.n} × ${fd(r.step)} · ${fc(r.c)}`:`${r.kind==='move'?'Moveable':'Fixed'} · ${fd(dist(r.a,r.b))} ${fb(brg(r.a,r.b))} T`}
 function renderRngList(){$('#rngList').innerHTML=S.rng.length?S.rng.map(r=>`<button class="item" data-r="${r.id}"><span class="sw" style="background:var(${r.kind==='move'||r.id===selRing?'--amber':'--ink'})"></span><span><b>${r.kind==='ring'?'Range rings':r.kind==='move'?'Moveable line':'Fixed line'}</b><small>${esc(rngText(r))}</small></span><span></span></button>`).join(''):'<p class="note">No range tools placed.</p>';const s=S.rng.find(r=>r.id===selRing);$('#ringCount').textContent=s?`${s.n} × ${fd(s.step)}`:'–'}
 /* range rings and measure lines: the same circle menu as drawings */
+/* shared settings panels: colour circles, thickness slider, style examples; apply() saves and redraws */
+function colourPanel(o,title,apply){popSheet({side:true,title,buttons:[]});const g=document.createElement('div');g.className='swatches';g.style.gridColumn='1/-1';
+  const paint=()=>{g.innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" title="${n}" aria-label="${n}" aria-pressed="${colOf(o.color)===v}" style="background:${v}"></button>`).join('')};paint();
+  g.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;o.color=b.dataset.c;apply();paint()};$('#actBtns').appendChild(g)}
+function thickPanel(o,apply){const was=o.w||2;sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{o.w=Math.max(1,Math.round(+v));apply()},cancel:()=>{o.w=was;apply()}},buttons:[]});
+  const i=$('#actIn'),lb=$('#actInLabel');i.min=1;i.max=10;i.step=1;i.value=was;i.oninput=()=>{o.w=+i.value;lb.textContent=`Thickness ${i.value}`;apply()}}
+function stylePanel(o,cur,apply){popSheet({side:true,title:'Line style',buttons:[]});const g=document.createElement('div');g.className='stylelist';
+  const ex=v=>{const c=colOf(o.color),w=Math.max(2,Math.min(8,o.w||2));return `<svg viewBox="0 0 160 16" preserveAspectRatio="none"><line x1="6" y1="8" x2="154" y2="8" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${v==='dash'?`stroke-dasharray="${w*3} ${w*2}"`:v==='dot'?`stroke-dasharray="0.1 ${w*2.2}"`:''}/></svg>`};
+  const paint=()=>{const c=cur();g.innerHTML=[['Solid','solid'],['Dashed','dash'],['Dotted','dot']].map(([n,v])=>`<button class="btn${c===v?' on':''}" data-st="${v}"><span>${n}</span>${ex(v)}</button>`).join('')};paint();
+  g.onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;o.style=b.dataset.st;apply();paint()};$('#actBtns').appendChild(g)}
 function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>delRng(id)};
   if(r.kind==='ring'){selRing=id;renderRng();const outer=Array.from({length:49},(_,i)=>dest(r.c,i*7.5,r.n*r.step));
     openRadial(r.c,[{l:'Interval',icon:'params',f:()=>sheet({title:'Ring interval',sub:`${r.n} ring${r.n===1?'':'s'} × ${fmtU(r.step,ru(r))} · outer ${fmtU(r.n*r.step,ru(r))}`,input:{label:`Ring interval, ${ru(r).l}`,type:'number',value:inU(r.step,ru(r)),save:v=>{const n=parseFloat(v);if(n>0){r.step=n*ru(r).f;save('rng');renderRng()}}},buttons:[]})},
@@ -1002,6 +1013,10 @@ function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del=
       {l:'Remove ring',icon:'minus',f:()=>{r.n=Math.max(1,r.n-1);save('rng');renderRng();rngActions(id)}},
       {l:'Navigate',icon:'hound',f:()=>setTarget('r:'+id)},del],`${r.n} × ${fmtU(r.step,ru(r))}`,outer);return}
   openRadial({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2},[{l:r.kind==='move'?'Make fixed':'Make moveable',icon:'swap',f:()=>{r.kind=r.kind==='move'?'perm':'move';save('rng');renderRng();rngActions(id)}},
+    {l:'Reverse',icon:'swap',f:()=>{[r.a,r.b]=[r.b,r.a];save('rng');renderRng();rngActions(id)}},
+    {l:'Colour',icon:'palette',f:()=>{if(!r.color)r.color='#FF0000';colourPanel(r,'Line colour',()=>{save('rng');renderRng()})}},
+    {l:'Thickness',icon:'thick',f:()=>thickPanel(r,()=>{save('rng');renderRng()})},
+    {l:'Style',icon:'dash',f:()=>stylePanel(r,()=>r.style||(r.kind==='move'?'dash':'solid'),()=>{save('rng');renderRng()})},
     {l:'Navigate to end',icon:'hound',f:()=>setTarget('r:'+id)},del],r.kind==='move'?'Moveable line':'Fixed line',[r.a,r.b])}
 function delRng(id){S.rng=S.rng.filter(x=>x.id!==id);if(selRing===id)selRing=null;if(S.target==='r:'+id)setTarget(null);save('rng');renderRng()}
 function rangeTap(p){const m=S.set.rngMode;if(m==='ring'){if(Date.now()-shapeDragAt<500)return;const r={id:uid(),kind:'ring',c:p,step:+S.set.ringStep||450*FT,u:S.set.ringUnit||'ft',n:1};S.rng.push(r);selRing=r.id;save('rng');renderRng();rngActions(r.id);return}
