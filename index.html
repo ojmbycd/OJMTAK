@@ -1358,10 +1358,10 @@ const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000},mj1500:{n:'MJ (1500 35A)
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
 async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
 // the terrain check runs on its own whenever the HARP, PRP or DZ moves; key records which plan a result belongs to
-function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
+function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.op)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
 let hrpoT=null,hrpoBusy=null,hrpoFailKey=null;
 function autoHrpo(){const k=hrpoKey();if(!k||(S.jump.hrpo&&S.jump.hrpo.key===k)||hrpoBusy===k||hrpoFailKey===k)return;clearTimeout(hrpoT);hrpoT=setTimeout(()=>checkHrpo(true),1200)}
-async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first');return}const key=hrpoKey();hrpoBusy=key;const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},{n:'PRP',p:J.op},{n:'first out',p:J.gl},{n:'last out',p:J.rl}];if(J2)centres.push({n:'HARP 2',p:J2.harp},{n:'first out 2',p:J2.gl},{n:'last out 2',p:J2.rl});
+async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first');return}const key=hrpoKey();hrpoBusy=key;const R=hrpoRadius(),centres=[{n:'HARP',p:J.harp},{n:'PRP',p:J.op},{n:'first out',p:J.gl},{n:'last out',p:J.rl}];if(J2)centres.push({n:'HARP 2',p:J2.harp},{n:'PRP 2',p:J2.op},{n:'first out 2',p:J2.gl},{n:'last out 2',p:J2.rl});
   const pts=[];centres.forEach(c=>{pts.push({...c.p,c:c.n});for(const f of [.25,.5,.75,1])for(let b=0;b<360;b+=22.5)pts.push({...dest(c.p,b,R*f),c:c.n})});
   $('#hrpoOut').textContent='Checking terrain…';
   try{const el=await elevMany(pts);let mi=0;el.forEach((e,i)=>{if(e>el[mi])mi=i});const maxFt=Math.round(el[mi]/FT),dz=+S.jump.dzElev||0;const top=pts[mi];
@@ -1416,6 +1416,7 @@ async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}cons
   const stops=[[-200,[40,90,255]],[0,[40,200,90]],[100,[255,214,0]],[200,[255,42,42]],[500,[150,0,60]]];
   const colr=f=>{if(f<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++)if(f<=stops[i][0]){const [a,ca]=stops[i-1],[b,cb]=stops[i],t=(f-a)/(b-a);return ca.map((v,k)=>Math.round(v+(cb[k]-v)*t))}return stops[stops.length-1][1]};
   for(let i=0;i<d.length;i+=4){const m=d[i]*256+d[i+1]+d[i+2]/256-32768,cl=colr((m-dz)/FT);d[i]=cl[0];d[i+1]=cl[1];d[i+2]=cl[2];d[i+3]=150}g.putImageData(im,0,0);
+  {const Rr=hrpoRadius(),H=hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:72},(_,i)=>dest(c,i*5,Rr))));g.globalCompositeOperation='destination-in';g.beginPath();H.forEach((q,i)=>{const P=px(q);i?g.lineTo(P.x-x0,P.y-y0):g.moveTo(P.x-x0,P.y-y0)});g.closePath();g.fillStyle='#000';g.fill();g.globalCompositeOperation='source-over'}/* nothing coloured outside the check outline */
   const ll=(x,y)=>{const n=Math.PI-2*Math.PI*y/(N*256);return [180/Math.PI*Math.atan(Math.sinh(n)),x/(N*256)*360-180]};
   heatLayer.clearLayers();L.imageOverlay(cv.toDataURL(),[ll(x0,y1),ll(x1,y0)],{interactive:false,zIndex:250}).addTo(heatLayer);heatOn=true;$('#heatKey').hidden=false;map.fitBounds([ll(x0,y1),ll(x1,y0)])}
 $('#hrpoHeat').onclick=()=>{closeTool();showHeat()};$('#heatKey').onclick=hideHeat;
