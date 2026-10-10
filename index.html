@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -906,8 +906,7 @@ function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const d
     {l:d.label?'Edit text on line':'Text on line',icon:'text',f:()=>popSheet({side:true,title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})},
     {l:'Colour',icon:'palette',f:colour},
     {l:'Thickness',icon:'thick',f:()=>lineThick(id)},
-    {l:d.dash?'Make solid':'Make dashed',icon:'dash',f:()=>{d.dash=!d.dash;save('draws');renderDraws();drawActions(id)}},
-    {l:'Reverse',icon:'swap',f:()=>{d.pts.reverse();save('draws');renderDraws();drawActions(id)}},del],d.kind==='line'?'Line':'Freehand')}
+    {l:d.dash?'Make solid':'Make dashed',icon:'dash',f:()=>{d.dash=!d.dash;save('draws');renderDraws();drawActions(id)}},del],d.kind==='line'?'Line':'Freehand')}
 function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
