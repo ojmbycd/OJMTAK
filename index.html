@@ -581,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1027,6 +1027,8 @@ function calcDl(P,n){return `<dl class="res">
     <dd data-l="HARP to DIP">${fd(dist(P.harp,S.pi))} | ${(dist(P.harp,S.pi)/1852).toFixed(2)} NM</dd>
     <dd data-l="Ground speed on run-in">${Math.round(P.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(P.tas)} kt)</dd>
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
+/* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
+const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
 function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(S.jump.calcOff&&!J.err){J={err:'Uncalculated: tap the DIP and choose Calculate to show the plan again.'};hamo=null;J2=null}
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
@@ -1051,7 +1053,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   /* SP HAMO: both pods' HARP rings, pod 1 solid and pod 2 dashed, red if that pod's HARP falls outside its ring */
   if(hamo&&J2)[J,J2].forEach((P,i)=>L.polygon(P.ring.map(LL),{color:P.ok?'#FFFFFF':'#FF2A2A',weight:1.2,opacity:.9,dashArray:i?'6 5':null,fill:false,interactive:false}).addTo(LY.jump));
     const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
-  if(showRun){L.polyline([LL(J.runStart),LL(J.runEnd)],{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
+  if(showRun){L.polyline(runPts(J).map(LL),{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
   L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
   J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;const half=tp.t===240;const dotHtml=half?`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block"><path d="M0-5A5 5 0 0 1 0 5Z" fill="${G}"/><path d="M0-5A5 5 0 0 0 0 5Z" fill="${Rd}"/><circle r="5" fill="none" stroke="#141414" stroke-width="1"/></svg>`:'';
     if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
@@ -1069,7 +1071,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     if(showRun){const air=(P,col,lbl)=>{L.polyline([LL(up(P.gl,exA)),LL(up(P.rl,exA))],{color:c.amb,weight:5,opacity:.9,interactive:false}).addTo(LY.jump);L.polyline([LL(up(P.harp,exA)),LL(up(P.prp,exA))],{color:c.amb,weight:2,dashArray:'4 4',interactive:false}).addTo(LY.jump);
         drop(P.harp,exA,col);drop(P.gl,exA,c.go);drop(P.rl,exA,c.st);
         L.marker(LL(up(P.harp,exA)),{icon:divPin('<path d="M0-11 11 0 0 11-11 0Z"/>',col,`${lbl} ${ff(+S.jump.exitAlt)}`,20),interactive:false}).addTo(LY.jump)};
-      L.polyline([LL(up(J.runStart,exA)),LL(up(J.runEnd,exA))],{color:'#FFD400',weight:2,dashArray:'10 6',interactive:false}).addTo(LY.jump);drop(J.runStart,exA,'#9E9E9E');
+      L.polyline(runPts(J).map(p=>LL(up(p,exA))),{color:'#FFD400',weight:2,dashArray:'10 6',interactive:false}).addTo(LY.jump);drop(J.runStart,exA,'#9E9E9E');
       J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;drop(tp.p,exA,'#9E9E9E');L.circleMarker(LL(up(tp.p,exA)),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(up(tp.p,exA)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${tp.l}</span>`}),interactive:false}).addTo(LY.jump)});
       air(J,hamo&&!J.ok?Rd:c.ink,hamo?'HARP 1':'HARP');if(hamo&&J2)air(J2,J2.ok?c.ink:Rd,'HARP 2')}
     L.polyline(J.trk.map(t=>LL(up(t.p,t.h))),{color:'#FFFFFF',weight:3.5,interactive:false}).addTo(LY.jump);J.trk.forEach(t=>{if(t.h>0)drop(t.p,t.h,'#FFFFFF')});
@@ -1374,7 +1376,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
   const dot=(pos,c,text,size=9)=>E.add({position:pos,point:{pixelSize:size,color:c,outlineColor:C.Color.BLACK,outlineWidth:1.5,disableDepthTestDistance:Infinity},label:text?{text,font:'600 14px Arial,sans-serif',fillColor:c,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),disableDepthTestDistance:Infinity}:undefined});
   const exA=(+S.jump.exitAlt)-dzSet,pull=+S.jump.openAlt,showRun=phase==='ground'||phase==='aircraft';
   const plan=(P,tag,first)=>{const pullP=P===J?pull:+S.jump.pod2Open;
-    if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)],yel=col('#FFD400');line(run,yel,2.5,true);curtain(run,yel);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
+    if(showRun){if(first){const run=runPts(P).map(p=>at(p,exA)),yel=col('#FFD400');line(run,yel,2.5,true);curtain(run,yel);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
       const stick=[at(P.gl,exA),at(P.rl,exA)];line(stick,amb,6);curtain(stick,amb);
       dot(at(P.gl,exA),go,`First out${tag}`);dot(at(P.rl,exA),st,`Last out${tag}`);dot(at(P.harp,exA),hamo&&!P.ok?red:wht,`HARP${tag} ${ff(+S.jump.exitAlt)}`,11);drop(P.harp,exA,wht)}
     // freefall: exit at the HARP, falls with the wind to the PRP where the canopy opens
