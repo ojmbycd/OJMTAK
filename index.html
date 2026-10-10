@@ -490,7 +490,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
                 <label class="fld">Open (ft AGL)<select id="pod2Open"></select></label>
                 <label class="fld">Jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
                 <label class="fld"><span style="white-space:nowrap">Top SF (ft)</span><input type="number" inputmode="decimal" step="100" min="2000" id="pod2Cas"></label>
-                <label class="fld"><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod2Lp"></label>
+                <label class="fld" hidden><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod2Lp"></label>
               </div>
               <div id="pod3Box" hidden>
               <h4>Pod 3</h4>
@@ -498,11 +498,12 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
                 <label class="fld">Open (ft AGL)<select id="pod3Open"></select></label>
                 <label class="fld">Jumpers<input type="number" inputmode="numeric" id="pod3Jumpers"></label>
                 <label class="fld"><span style="white-space:nowrap">Top SF (ft)</span><input type="number" inputmode="decimal" step="100" min="2000" id="pod3Cas"></label>
-                <label class="fld"><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod3Lp"></label>
+                <label class="fld" hidden><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod3Lp"></label>
               </div>
               </div>
+              <p class="note" style="margin:6px 0 0">Up to 15 jumpers per pod. Bottom SF is fixed at 1,000 ft.</p>
               <label class="fld mt"><span>Off wind line <span id="hamoCseLbl"></span></span><input type="range" id="hamoSlider" min="0" max="90" step="1"></label>
-              <p class="note" id="hamoNote"></p>
+              <p class="note" id="hamoNote" style="white-space:pre-line;line-height:1.5"></p>
             </div>
           </section>
           <section class="sec" id="windSec">
@@ -622,7 +623,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1194,7 +1195,8 @@ function hamoAutoSF(){const j=S.jump,F=['casSF','pod2Cas',...(pods3()?['pod3Cas'
         for(let pass=0;pass<2;pass++)F.forEach(k=>{while(j[k]-100>=2000){j[k]-=100;if(!good()){j[k]+=100;break}}});r={vals:F.map(k=>j[k]),ok:true};break}}
     if(autoCache.size>400)autoCache.clear();autoCache.set(key,r)}
   if(!autoCache.has(key)){if(autoCache.size>400)autoCache.clear();autoCache.set(key,r)}
-  const man=j.sfMan||{};j.sfMin={};F.forEach((k,i)=>{j.sfMin[k]=r.vals[i];j[k]=Math.max(r.vals[i],+man[k]||0)});computeHamo();j.autoSFok=r.ok;return r}
+  const man=j.sfMan||{};j.sfMin={};F.forEach((k,i)=>{j.sfMin[k]=r.vals[i];j[k]=Math.max(r.vals[i],+man[k]||0)});computeHamo();
+  /* a typed top SF that now breaks the 30 s rule (e.g. after the plan changed) is dropped back to the worked-out value */if(r.ok&&!(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))){j.sfMan={};F.forEach((k,i)=>j[k]=r.vals[i]);computeHamo()}j.autoSFok=r.ok;return r}
 function hamoSuggest(){const key=hamoMinKey;if(key===hamoSugKey)return hamoSugVal;const j=S.jump,keep=j.hamoSpread,F=['casSF','pod2Cas',...(pods3()?['pod3Cas']:[])],base=F.map(k=>Math.max(2000,+(j[k]??2000)));let res=null;const t0=Date.now();
   const works=()=>{for(const sp of [+(keep??15),0,10,20,30,40,50,60,75,90]){j.hamoSpread=sp;computeHamo();if(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))return sp}return null};
   /* smallest total increase first, in 500 ft steps, up to +3,000 ft on any one pod */
@@ -1202,8 +1204,8 @@ function hamoSuggest(){const key=hamoMinKey;if(key===hamoSugKey)return hamoSugVa
   for(const c of combos){if(Date.now()-t0>2500)break;F.forEach((k,i)=>j[k]=base[i]+c[i]);const sp=works();F.forEach((k,i)=>j[k]=base[i]);if(sp!=null){res={set:F.map((k,i)=>[k,base[i]+c[i],c[i]]).filter(x=>x[2]>0),sp};break}}
   j.hamoSpread=keep;computeHamo();hamoSugKey=key;hamoSugVal=res;return res}
 function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(+S.jump.pod2Open<+S.jump.openAlt+3000&&$('#pod2Open'))fillPod2Sel();const three=pods3();if(three&&+S.jump.pod3Open<+S.jump.pod2Open+3000&&$('#pod3Open'))fillPod3Sel();
-  const P1={mode:'HALO'},P2={mode:'HALO',openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers,casSF:Math.max(2000,+(S.jump.pod2Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod2Lp??1000))},
-    P3={mode:'HALO',openAlt:+S.jump.pod3Open,jumpers:+S.jump.pod3Jumpers||4,casSF:Math.max(2000,+(S.jump.pod3Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod3Lp??1000))},PL=three?P3:P2;
+  const P1={mode:'HALO',lpSF:1000},P2={mode:'HALO',openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers,casSF:Math.max(2000,+(S.jump.pod2Cas??2000)),lpSF:1000},
+    P3={mode:'HALO',openAlt:+S.jump.pod3Open,jumpers:+S.jump.pod3Jumpers||4,casSF:Math.max(2000,+(S.jump.pod3Cas??2000)),lpSF:1000},PL=three?P3:P2;
   const w=computeJump(S.pi,{...P1,harpBrg:null,runMode:'into'});if(w.err)return;const wl=brg(S.pi,w.op),into=w.heading,sp=Math.max(0,Math.min(90,+(S.jump.hamoSpread??15)));
   /* first and last pods either side of the mean wind line; the run-in is flown from HARP 1 towards the last pod's HARP */
   const a0=computeJump(S.pi,{...P1,harpBrg:norm(wl+sp)}),z0=computeJump(S.pi,{...PL,harpBrg:norm(wl-sp)});if(a0.err||z0.err)return;
@@ -1226,7 +1228,10 @@ function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode
   const waits=clears.map(c=>c/gs);/* last out to the next pod's first out, seconds at run-in speed: needs 30 s */
   hamo={A,B,C:three?Z:null,order,first:A,second:B,gap:seps[0]/gs,gaps:seps.map(x=>x/gs),waits,clear:Math.min(...clears),clears,ok:waits.every(t=>t>=30)&&order.every(P=>P.ok),timePts,runStart:dest(A.gl,norm(h+180),gs*600),runEnd:dest(last.rl,h,gs*60),oneMin:dest(A.gl,norm(h+180),gs*60),spread:sp,wl};
   S.jump.headingMag=Math.round(o.headingMag);S.jump.runMode='custom';const l=$('#hamoCseLbl');if(l)l.textContent=sp?`(Pod 1 ${sp}° L · Pod ${three?3:2} ${sp}° R)`:'(on wind line)';/* left/right as seen under canopy looking back at the DIP */const ci=$('[data-j="headingMag"]');if(ci&&document.activeElement!==ci)ci.value=S.jump.headingMag}
-function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the POD HAMO.';const h=hamo,bad=h.order.find(P=>!P.ok);return `Top SF ${['casSF','pod2Cas','pod3Cas'].slice(0,h.order.length).map(k=>ff(+S.jump[k]||2000)).join(' / ')} (lowest ${['casSF','pod2Cas','pod3Cas'].slice(0,h.order.length).map(k=>ff((S.jump.sfMin||{})[k]||2000)).join(' / ')}) · course ${fb(hamoHeading)} T · pod 1 exits first · ${h.gaps.map((g,i)=>`pod ${i+1} to ${i+2} ${fsec(g)}`).join(' · ')} · ${bad?`pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'outside its ring'}`:h.waits.some(t=>t<30)?`only ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} between pods (needs 30 s): move the dial`:`all ${h.order.length} HARPs inside their rings, ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} between pods`}`}
+/* the POD HAMO summary under the dial: top SFs, jumpers, time between pods, off wind line, course, and any problem */
+function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the POD HAMO.';const h=hamo,n=h.order.length,bad=h.order.find(P=>!P.ok),K=['casSF','pod2Cas','pod3Cas'].slice(0,n),jm=[S.jump.jumpers,S.jump.pod2Jumpers,S.jump.pod3Jumpers].slice(0,n);
+  const status=bad?`⚠ Pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'is outside its ring'}`:h.waits.some(t=>t<30)?'⚠ Under 30 s between pods: move the dial':`✓ All ${n} HARPs inside their rings`;
+  return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} (last out to next first out)\nOff wind line: ${Math.round(+(S.jump.hamoSpread??15))}°\nAC course: ${fb(hamoHeading)} T\n${status}`}
 // release solution for one pod (or the single jump)
 function calcDl(P,n){return `<dl class="res">
     <dd class="big" data-l="HARP">${fc(P.harp)}</dd>
@@ -1909,11 +1914,12 @@ function fillPod2Sel(){const sel=$('#pod2Open');/* any height up to 1,000 ft bel
 if(!S.set.wmEc){S.set.windModel='ecmwf_ifs025';S.set.wmEc=1;save('set')}
 function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ecmwf_ifs025';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();fillPod3Sel();$('#pod3Box').hidden=!pods3();$$('#podCount button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.pc===(pods3()?3:2))));$('#pod3Cas').value=Math.max(2000,+(S.jump.pod3Cas??2000));$('#pod3Lp').value=Math.max(1000,+(S.jump.pod3Lp??1000));exitHint();$('#hamoSlider').value=Math.round(+(S.jump.hamoSpread??15));$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i&&!(i.tagName==='SELECT'&&S.jump[i.dataset.j]==null))i.value=S.jump[i.dataset.j]??''});{const hm=S.jump.mode==='HAMO',of=$('#openFld'),jf=$('#jumpersFld');if(!of._home){of._home=[of.parentNode,of.nextSibling];jf._home=[jf.parentNode,jf.nextSibling]}
   const cf=$('#casFld'),lf=$('#lpFld');if(!cf._home){cf._home=[cf.parentNode,cf.nextSibling];lf._home=[lf.parentNode,lf.nextSibling]}
-  if(hm){$('#pod1Fields').append(of,jf,cf,lf)}else if(of.parentNode.id==='pod1Fields'){[of,jf,cf,lf].forEach(e=>e._home[0].insertBefore(e,e._home[1]))}
+  if(hm){$('#pod1Fields').append(of,jf,cf,lf);lf.hidden=true;S.jump.lpSF=1000;S.jump.pod2Lp=1000;S.jump.pod3Lp=1000;['jumpers','pod2Jumpers','pod3Jumpers'].forEach(k=>{if(+S.jump[k]>15)S.jump[k]=15});$$('[data-j="jumpers"],#pod2Jumpers,#pod3Jumpers').forEach(el=>{el.max=15;if(+el.value>15)el.value=15})}
+  else{lf.hidden=false;$$('[data-j="jumpers"]').forEach(el=>el.removeAttribute('max'));if(of.parentNode.id==='pod1Fields'){[of,jf,cf,lf].forEach(e=>e._home[0].insertBefore(e,e._home[1]))}}
   $('#sfSec').hidden=hm;if($('#harpSec'))$('#harpSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Assembly SF (ft)';if(!hm)$$('[data-j="casSF"]').forEach(el=>el.disabled=false);$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Pattern SF (ft)';
   $('#pod2Cas').value=Math.max(2000,+(S.jump.pod2Cas??2000));$('#pod2Lp').value=Math.max(1000,+(S.jump.pod2Lp??1000));
   $('#openLbl').textContent=hm?'Open (ft AGL)':'Open (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Jumpers'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
-let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='openAlt')renderWinds();if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
+let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='openAlt')renderWinds();if(k==='jumpers'&&S.jump.mode==='HAMO'&&v>15){S.jump.jumpers=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
 document.addEventListener('change',e=>{const k=e.target&&e.target.dataset&&e.target.dataset.j,min=k==='casSF'?2000:k==='lpSF'?1000:0;if(min&&!(+e.target.value>=min)){S.jump[k]=min;e.target.value=min;save('jump');renderJump();toast(`${k==='casSF'?'Canopy assembly':'Landing pattern'} safety factor can't be under ${ff(min)}`)}});
@@ -1926,8 +1932,8 @@ $('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;if(pods3())fillPod3Sel();save('jump');renderWinds();renderJump()};
 $('#podCount').onclick=e=>{const b=e.target.closest('[data-pc]');if(!b)return;S.jump.hamoPods=+b.dataset.pc;if(S.jump.hamoPods===3){if(!S.jump.pod3Jumpers)S.jump.pod3Jumpers=4;if(!(+S.jump.pod3Open>=+S.jump.pod2Open+3000))S.jump.pod3Open=(+S.jump.pod2Open||9000)+3000;fillPod3Sel()}save('jump');syncJumpInputs();renderWinds();renderJump()};
 $('#pod3Open').onchange=e=>{S.jump.pod3Open=+e.target.value;save('jump');renderWinds();renderJump()};
-$('#pod3Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
-$('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+$('#pod3Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+$('#pod2Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sfsug]');if(!b)return;const [sets,sp]=b.dataset.sfsug.split('|');sets.split(',').forEach(x=>{const [k,v]=x.split(':');S.jump[k]=+v});S.jump.hamoSpread=+sp;save('jump');syncJumpInputs();renderJump();toast('Top SF raised to give 30 s between pods')});
 $('#hamoSlider').oninput=e=>{S.jump.hamoSpread=Math.min(+e.target.max||90,Math.max(+e.target.min||0,+e.target.value));save('jump');renderJump()};
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
