@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 13:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 13:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1182,11 +1182,17 @@ let hamoSugKey=null,hamoSugVal=null;
 const autoCache=new Map();
 function hamoAutoSF(){const j=S.jump,F=['casSF','pod2Cas',...(pods3()?['pod3Cas']:[])],sp=+(j.hamoSpread??15);
   const key=JSON.stringify([S.pi&&S.pi.lat,S.pi&&S.pi.lon,j.exitAlt,j.openAlt,j.pod2Open,j.pod3Open,j.hamoPods,j.jumpers,j.pod2Jumpers,j.pod3Jumpers,j.interval,j.kias,j.k,j.canopySpeed,j.lpSF,j.pod2Lp,j.pod3Lp,j.dzElev,S.winds,sp]);
-  let r=autoCache.get(key);if(!r){const combos=[];const rec=(i,acc)=>{if(i===F.length){combos.push(acc.slice());return}for(let a=0;a<=3000;a+=500){acc.push(a);rec(i+1,acc);acc.pop()}};rec(0,[]);combos.sort((x,y)=>x.reduce((a,b)=>a+b,0)-y.reduce((a,b)=>a+b,0)||Math.max(...x)-Math.max(...y));
+  let r=autoCache.get(key);
+  /* keep every top SF as close to 2,000 ft as it can: the last pod stays at 2,000 ft (raising it only closes its gap); working back, each earlier pod is raised in 100 ft steps just until the gap after it reaches 30 s */
+  if(!r){const okAll=()=>hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok);F.forEach(k=>j[k]=2000);
+    for(let it=0;it<3;it++)for(let i=F.length-2;i>=0;i--){j[F[i]]=2000;computeHamo();while(hamo&&hamo.waits[i]<30&&j[F[i]]<5000){j[F[i]]+=100;computeHamo()}}
+    computeHamo();if(okAll())r={vals:F.map(k=>j[k]),ok:true}}
+  if(!r){const combos=[];const rec=(i,acc)=>{if(i===F.length){combos.push(acc.slice());return}for(let a=0;a<=3000;a+=500){acc.push(a);rec(i+1,acc);acc.pop()}};rec(0,[]);combos.sort((x,y)=>x.reduce((a,b)=>a+b,0)-y.reduce((a,b)=>a+b,0)||Math.max(...x)-Math.max(...y));
     r={vals:F.map(()=>2000),ok:false};const t0=Date.now();for(const c of combos){if(Date.now()-t0>1500)break;F.forEach((k,i)=>j[k]=2000+c[i]);computeHamo();if(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok)){
         /* found in 500 ft steps: now trim each pod back in 100 ft steps while it still works */const good=()=>{computeHamo();return hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok)};
         for(let pass=0;pass<2;pass++)F.forEach(k=>{while(j[k]-100>=2000){j[k]-=100;if(!good()){j[k]+=100;break}}});r={vals:F.map(k=>j[k]),ok:true};break}}
     if(autoCache.size>400)autoCache.clear();autoCache.set(key,r)}
+  if(!autoCache.has(key)){if(autoCache.size>400)autoCache.clear();autoCache.set(key,r)}
   F.forEach((k,i)=>j[k]=r.vals[i]);j.autoSFok=r.ok;return r}
 function hamoSuggest(){const key=hamoMinKey;if(key===hamoSugKey)return hamoSugVal;const j=S.jump,keep=j.hamoSpread,F=['casSF','pod2Cas',...(pods3()?['pod3Cas']:[])],base=F.map(k=>Math.max(2000,+(j[k]??2000)));let res=null;const t0=Date.now();
   const works=()=>{for(const sp of [+(keep??15),0,10,20,30,40,50,60,75,90]){j.hamoSpread=sp;computeHamo();if(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))return sp}return null};
