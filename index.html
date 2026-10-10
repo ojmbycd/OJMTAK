@@ -264,10 +264,13 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .warn{border-left:3px solid var(--amber);padding:6px 10px;background:var(--panel2);border-radius:0 8px 8px 0;font-size:14px;margin:10px 0}
 details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:0 10px}
 summary{font:500 18px/1.2 var(--cond);padding:10px 0;cursor:pointer}
-table.winds{width:100%;border-collapse:collapse}
-table.winds th{font:500 13px var(--body);color:var(--mute);text-align:left;padding:0 4px 4px}
-table.winds td{padding:3px 4px}
-table.winds td:last-child{width:40px}
+table.winds{width:100%;border-collapse:collapse;font-size:14px}
+table.winds input{padding:2px 6px;font-size:14px;min-width:0;width:100%;height:30px;min-height:0}
+.wtop{display:grid;grid-template-columns:1fr auto auto;gap:6px}.wtop select{min-width:0}
+.wbtns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.wbtns .btn{padding:4px 8px;font-size:12px;border-radius:7px}
+table.winds th{font:500 12px var(--body);color:var(--mute);text-align:left;padding:0 3px 3px}
+table.winds td{padding:2px 3px}
+table.winds td:last-child{width:30px}table.winds td:last-child .iconbtn{width:26px;height:26px;font-size:13px}
 table.winds td small{font-size:11px}
 .list{display:flex;flex-direction:column;gap:6px}
 .item{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;width:100%}
@@ -421,7 +424,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="winds" aria-pressed="false">Winds</button><button data-jm="plan" aria-pressed="true">Plan Jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump Vital Data</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan Jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump Vital Data</button></div>
 
         <div data-jm-panel="plan">
           <button class="mhead mt" id="mHead"><span>Plan Jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
@@ -444,7 +447,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <label class="fld" id="openFld"><span id="openLbl">Open (ft AGL)</span><select data-j="openAlt"></select></label>
               <label class="fld" hidden>Freefall configuration<select id="ffSel"><option value="176">Gear-free / tracking (176 ft/s)</option><option value="160">Light kit, weapon (160 ft/s)</option><option value="150">Full equipment, ruck (150 ft/s)</option><option value="140">Heavy equipment, bergan (140 ft/s)</option></select></label>
             </div>
-            <div id="harpRingBox" class="mt"><label class="fld"><span>HARP on ring <span id="harpBrgLbl">(auto)</span></span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
             <div id="hamoBox" hidden>
               <h4>Pod 1</h4>
               <div class="fields" id="pod1Fields"></div>
@@ -459,13 +461,24 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <p class="note" id="hamoNote"></p>
             </div>
           </section>
-          <section class="sec" id="sfSec">
-            <h3>Safety factors</h3>
+          <section class="sec" id="windSec">
+            <h3>Winds</h3>
+            <div class="wtop"><select id="windModel"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><select id="windHour"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><button class="btn primary" id="windImport">Import</button></div>
+            <div class="wbtns"><button class="btn" id="windSchulze">Winds aloft site</button><button class="btn" id="windFileBtn">Load file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden><button class="btn" id="windSwap">Dir/Kt</button><button class="btn" id="windOrder">Alt ↑</button><button class="btn" id="windFill">Copy top ↓</button></div>
+            <p class="note" id="windSrc"></p>
+            <table class="winds"><thead><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
+            <p class="note">From °T (where the wind blows from), speed in kt. Value: 0–2 Zero, 3–7 ¼, 8–12 ½, 13–17 ¾, 18–22 Full.</p>
+          </section>
+          <section class="sec" id="harpSec">
+            <h3>HARP adjustment</h3>
+            <div id="harpRingBox"><label class="fld"><span>HARP on ring <span id="harpBrgLbl">(auto)</span></span><input type="range" id="harpBrg" min="0" max="359" step="1" value="0"></label><div class="row"><button class="btn" id="harpAuto">With wind</button></div></div>
+            <div id="sfSec" class="mt">
             <div class="fields">
               <label class="fld" id="casFld"><span style="white-space:nowrap" id="casLbl">Assembly SF (ft)</span><input type="number" inputmode="decimal" step="500" min="2000" data-j="casSF"></label>
               <label class="fld" id="lpFld"><span style="white-space:nowrap" id="lpLbl">Pattern SF (ft)</span><input type="number" inputmode="decimal" step="500" min="1000" data-j="lpSF"></label>
             </div>
             <p class="note">Minimums: canopy assembly 2,000 ft, landing pattern 1,000 ft.</p>
+            </div>
           </section>
           <section class="sec">
             <h3>Canopy</h3>
@@ -503,18 +516,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
           </section>
           <h3>Release solution</h3>
           <div id="jumpOut"></div>
-          <div class="row mt"><button class="btn" id="toWinds">← Winds</button></div>
-          </div>
-          <div data-pp="2" hidden>
-          <h3>Wind layers</h3>
-          <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value uses the ATAK brackets: 0–2 kt Zero, 3–7 ¼, 8–12 ½, 13–17 ¾, 18–22 Full.</p>
-          <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds</button></div>
-          <div class="row mt"><button class="btn" id="windSchulze">Open winds aloft at DIP</button><button class="btn" id="windFileBtn">Load winds file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
-          <p class="note" id="windSrc"></p>
-          <div class="row mt"><button class="btn" id="windSwap">Dir / Kt ⇄</button><button class="btn" id="windOrder">Alt ↑</button></div>
-          <table class="winds"><thead><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
-          <div class="row mt"><button class="btn" id="windFill">Copy top row down</button></div>
-          <div class="row mt"><button class="btn primary" id="toPlan">Next: Plan Jump →</button></div>
           </div>
         </div>
 
@@ -579,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 21:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 21:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1278,7 +1279,7 @@ function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY
 function patDir(){const P=S.pattern,w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);return P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):null):P.dir}
 const k2on=()=>!!(J&&!J.err&&(J.marks||[]).some(m=>m.agl===2000));
 function patternSheet(){const P=S.pattern,pd=patDir();sheet({title:'Landing pattern',sub:P.on?(k2on()?`${P.type==='z'?'Z pattern (downwind, diagonal base, final)':'Standard pattern (downwind, base, final)'} · downwind starts at the 2K mark, turn heights worked from the surface wind and canopy`:`${P.type==='z'?'Z pattern':'Standard pattern'}, ${P.hand}-hand · ${P.alts.join(' / ')} ft (no plan yet)`)+` · landing ${pd==null?'–':fb(pd)+' T'} ${P.dirAuto?'(from surface wind)':'(manual)'} · long press a point on the map to move it`:'Not drawn',input:{label:'Manual landing direction °T',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;P.mv=null;save('pattern');renderJump()}},buttons:[...(P.mv&&Object.keys(P.mv).length?[['Reset moved points',()=>{P.mv=null;save('pattern');renderJump();patternSheet()}]]:[]),...(P.dirAuto?[]:[['Use surface wind for direction',()=>{P.dirAuto=true;P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}]]),[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;save('pattern');renderJump()},'primary'],[P.type==='z'?'Switch to standard (U) pattern':'Switch to Z pattern',()=>{P.type=P.type==='z'?'u':'z';P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}],...[[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.mv=null;P.on=true;save('pattern');renderJump()}],...(k2on()?[]:[['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.mv=null;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]])]]})}
-function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;
+function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* needs a complete plan (canopy, winds) */const w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;
   const V=(+S.jump.canopySpeed||0)*KT,cr=(+S.jump.canopyRate||16)*FT,L0=landDir*D2R,col='#2648F0';
   /* landing-line frame: s along the landing direction (DIP at 0, upwind +), y to the right of it. Surface wind in the same frame */
   const toSY=q=>{const d=dist(S.pi,q),b=brg(S.pi,q)*D2R,e=d*Math.sin(b),n=d*Math.cos(b);return {s:e*Math.sin(L0)+n*Math.cos(L0),y:e*Math.cos(L0)-n*Math.sin(L0)}};
@@ -1481,7 +1482,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   </dl>
   <div class="row"><button class="btn primary" data-start="ac">Start Jump</button><button class="btn" data-hound="c:gl">Navigate to First out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
-function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='winds')showPage(2);else if(k==='plan')showPage(1);if(k==='summary')renderSummary()}
+function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
 
 
@@ -1627,7 +1628,7 @@ function fillPod2Sel(){const sel=$('#pod2Open');const top=Math.max(1000,Math.flo
 function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windModel||'ukmo_seamless';syncCypInputs();$('#acPerf').value=S.jump.acPerf||'high';fillExitSel();fillOpenSel();$('#sortie').value=S.jump.sortie||'';fillPod2Sel();exitHint();$('#hamoSlider').value=Math.round(+(S.jump.hamoSpread??15));$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();$$('[data-j]').forEach(i=>{if(document.activeElement!==i&&!(i.tagName==='SELECT'&&S.jump[i.dataset.j]==null))i.value=S.jump[i.dataset.j]??''});{const hm=S.jump.mode==='HAMO',of=$('#openFld'),jf=$('#jumpersFld');if(!of._home){of._home=[of.parentNode,of.nextSibling];jf._home=[jf.parentNode,jf.nextSibling]}
   const cf=$('#casFld'),lf=$('#lpFld');if(!cf._home){cf._home=[cf.parentNode,cf.nextSibling];lf._home=[lf.parentNode,lf.nextSibling]}
   if(hm){$('#pod1Fields').append(of,jf,cf,lf)}else if(of.parentNode.id==='pod1Fields'){[of,jf,cf,lf].forEach(e=>e._home[0].insertBefore(e,e._home[1]))}
-  $('#sfSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Assembly SF (ft)';$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Pattern SF (ft)';
+  $('#sfSec').hidden=hm;if($('#harpSec'))$('#harpSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Assembly SF (ft)';$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Pattern SF (ft)';
   $('#pod2Cas').value=Math.max(2000,+(S.jump.pod2Cas??2000));$('#pod2Lp').value=Math.max(1000,+(S.jump.pod2Lp??1000));
   $('#openLbl').textContent=hm?'Open (ft AGL)':'Open (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Jumpers'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
@@ -1656,10 +1657,10 @@ function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w])
 /* ATAK wind brackets: 0-2 Zero, 3-7 ¼, 8-12 ½, 13-17 ¾, 18-22 Full */
 function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';return v<=2?'Zero':v<=7?'¼':v<=12?'½':v<=17?'¾':v<=22?'Full':'Full+'}
 function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
-function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Kt / Dir ⇄':'Dir / Kt ⇄';$('#windOrder').textContent=S.set.windDesc?'Alt ↓ (high first)':'Alt ↑ (low first)';
+function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Kt/Dir':'Dir/Kt';$('#windOrder').textContent=S.set.windDesc?'Alt ↓':'Alt ↑';
   $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Kt</th><th>From °T</th>':'<th>From °T</th><th>Kt</th>'}<th>Value</th><th></th>`;
   const cell=(i,f,v)=>`<td><input type="number" inputmode="decimal" data-w="${i}" data-f="${f}" value="${v??''}"></td>`;
-  $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 15px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:400 15px var(--cond);white-space:nowrap">${w.spd==null?'–':windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('')}
+  $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 13px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:400 13px var(--cond);white-space:nowrap">${w.spd==null?'–':windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('')}
 $('#windSwap').onclick=()=>{S.set.windVelFirst=!S.set.windVelFirst;save('set');renderWinds()};$('#windOrder').onclick=()=>{S.set.windDesc=!S.set.windDesc;save('set');renderWinds()};
 $('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);S.winds[i][e.target.dataset.f]=!isFinite(v)?null:e.target.dataset.f==='dir'?norm(v):v;save('winds');const row=e.target.closest('tr');if(row)row.querySelector('.wv').textContent=S.winds[i].spd==null?'–':windValue(+S.winds[i].spd);clearTimeout(jt);jt=setTimeout(renderJump,200)});
 $('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy,o=windOrder();o.slice(o.indexOf(i)+1).forEach(k=>{S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd});save('winds');renderWinds();renderJump()});
