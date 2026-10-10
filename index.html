@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 08:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 08:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1008,7 +1008,7 @@ function delRng(id){S.rng=S.rng.filter(x=>x.id!==id);if(selRing===id)selRing=nul
 function rangeTap(p){const m=S.set.rngMode;if(m==='ring'){if(Date.now()-shapeDragAt<500)return;const r={id:uid(),kind:'ring',c:p,step:+S.set.ringStep||450*FT,u:S.set.ringUnit||'ft',n:1};S.rng.push(r);selRing=r.id;save('rng');renderRng();rngActions(r.id);return}
   if(!rngA){rngA=p;tmpLayer.clearLayers();dot(p,cssv('--ink')).addTo(tmpLayer);$('#tipText').textContent='Tap the end point';return}
   S.rng.push({id:uid(),kind:m,a:rngA,b:p});rngA=null;tmpLayer.clearLayers();save('rng');renderRng();$('#tipText').textContent=rngTip()}
-const rngTip=()=>({perm:'Tap start, then end, for a fixed range line',move:'Tap start, then end. Drag either end to move it',ring:'Press the centre and drag outwards (or tap for rings at the set interval)'}[S.set.rngMode]);
+const rngTip=()=>({perm:'Tap start, then end, for a fixed range line',move:'Tap start, then end. Drag either end to move it',ring:'Press the centre and drag outwards, or tap once for a preset ring as set below'}[S.set.rngMode]);
 function syncRng(){$$('#rngSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.rm===S.set.rngMode));$('#ringCtl').hidden=S.set.rngMode!=='ring';{const u=RU[S.set.ringUnit]||RU.m;$('#ringUnit').value=S.set.ringUnit||'m';$('#ringUnitLbl').textContent=u.l;$('#ringStep').value=inU(+S.set.ringStep||0,u)}$('#rngNote').textContent={perm:'Fixed lines stay where you put them and show distance and bearing.',move:'Moveable lines have draggable ends; the readout updates as you drag.',ring:'Rings show the radius of each ring. Use − and + to add or remove rings on the selected set.'}[S.set.rngMode]}
 $('#rngSeg').onclick=e=>{const b=e.target.closest('[data-rm]');if(!b)return;S.set.rngMode=b.dataset.rm;save('set');rngA=null;tmpLayer.clearLayers();syncRng();enterToolMode('range')};
 $('#ringUnit').onchange=e=>{S.set.ringUnit=e.target.value;save('set');const r=S.rng.find(x=>x.id===selRing);if(r){r.u=e.target.value;save('rng');renderRng()}syncRng()};
