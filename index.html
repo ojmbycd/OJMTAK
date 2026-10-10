@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 18:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 18:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1413,7 +1413,7 @@ const METRICS={
   hdg:{l:'My heading °T',f:d=>d.ht?fb(d.ht.h):'–'},
   eta:{l:'Time to target',f:d=>closing>0.3?fsec(d.R/closing):'–'},
   closing:{l:'Closing speed',f:d=>`${kts(Math.round(closing/KT))}`},
-  gs:{l:'Ground Speed Kts',f:d=>me.spd!=null?`${Math.round(me.spd/KT)}`:'–'},
+  gs:{l:()=>`Ground Speed Kts (plan ${J&&!J.err&&J.gsM?Math.round(J.gsM/KT):'–'})`,f:d=>me.spd!=null?`${Math.round(me.spd/KT)}`:'–'},
   agl:{l:'Altitude AGL',f:d=>me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0)):'–'},
   amsl:{l:'Altitude AMSL',f:d=>me.alt!=null?ff(me.alt/FT):'–'},
   glide:{l:'Glide needed',f:d=>{const h=me.alt!=null?me.alt-(+S.jump.dzElev||0)*FT:null;return h>5?`1 : ${(d.R/h).toFixed(1)}`:'–'}},
