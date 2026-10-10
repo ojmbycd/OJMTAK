@@ -467,7 +467,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <div class="wtop"><select id="windModel"><option value="ecmwf_ifs025">ECMWF</option><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><select id="windHour"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><button class="btn primary" id="windImport">Import</button></div>
             <div class="wbtns"><button class="btn" id="windSchulze">Winds aloft site</button><button class="btn" id="windFileBtn">Load file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
             <p class="note" id="windSrc"></p>
-            <table class="winds"><thead><tr class="wsw"><th><button class="btn" id="windOrder">Alt ↑</button></th><th colspan="2"><button class="btn" id="windSwap">Dir / Vel</button></th><th colspan="2"></th></tr><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
+            <table class="winds"><thead><tr class="wsw"><th><button class="btn" id="windOrder">Alt ↑</button></th><th colspan="2"><button class="btn" id="windSwap">Dir ⇄ Vel</button></th><th colspan="2"></th></tr><tr id="windHead"></tr></thead><tbody id="windRows"></tbody></table>
             <p class="note">From °T (where the wind blows from), speed in kt. Value: 0–2 Zero, 3–7 ¼, 8–12 ½, 13–17 ¾, 18–22 FV, 23+ FV+.</p>
           </section>
           <section class="sec" id="harpSec">
@@ -581,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:12</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1661,7 +1661,7 @@ function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';re
 /* value colour: FV+ red, FV amber, the rest green */
 const wvCol=spd=>{if(spd==null||spd==='')return 'var(--mute)';const v=Math.round(+spd);return v>22?'#FF3B30':v>17?'#FFB020':'#39FF6A'};
 function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
-function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel / Dir':'Dir / Vel';$('#windOrder').textContent=S.set.windDesc?'Alt ↓':'Alt ↑';
+function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel ⇄ Dir':'Dir ⇄ Vel';$('#windOrder').textContent=S.set.windDesc?'Alt ↓':'Alt ↑';
   $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Vel kt</th><th>Dir °T</th>':'<th>Dir °T</th><th>Vel kt</th>'}<th>Value</th><th></th>`;
   const cell=(i,f,v)=>`<td><input type="number" inputmode="decimal" data-w="${i}" data-f="${f}" value="${v??''}"></td>`;
   $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 13px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:500 13px var(--cond);white-space:nowrap;color:${wvCol(w.spd)}">${w.spd==null?'–':windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('')}
