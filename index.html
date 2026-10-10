@@ -488,7 +488,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <h4>Pod 2</h4>
               <div class="fields">
                 <label class="fld">Open (ft AGL)<select id="pod2Open"></select></label>
-                <label class="fld">Jumpers<input type="number" inputmode="numeric" id="pod2Jumpers"></label>
+                <label class="fld">Jumpers<input type="number" inputmode="numeric" min="1" id="pod2Jumpers"></label>
                 <label class="fld"><span style="white-space:nowrap">Top SF (ft)</span><input type="number" inputmode="decimal" step="100" min="2000" id="pod2Cas"></label>
                 <label class="fld" hidden><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod2Lp"></label>
               </div>
@@ -496,7 +496,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <h4>Pod 3</h4>
               <div class="fields">
                 <label class="fld">Open (ft AGL)<select id="pod3Open"></select></label>
-                <label class="fld">Jumpers<input type="number" inputmode="numeric" id="pod3Jumpers"></label>
+                <label class="fld">Jumpers<input type="number" inputmode="numeric" min="1" id="pod3Jumpers"></label>
                 <label class="fld"><span style="white-space:nowrap">Top SF (ft)</span><input type="number" inputmode="decimal" step="100" min="2000" id="pod3Cas"></label>
                 <label class="fld" hidden><span style="white-space:nowrap">Bottom SF (ft)</span><input type="number" inputmode="decimal" step="100" min="1000" id="pod3Lp"></label>
               </div>
@@ -554,7 +554,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
           <section class="sec">
             <h3>Exit detail</h3>
             <div class="fields">
-              <label class="fld" id="jumpersFld"><span id="jumpersLbl">Jumpers</span><input type="number" inputmode="numeric" data-j="jumpers"></label>
+              <label class="fld" id="jumpersFld"><span id="jumpersLbl">Jumpers</span><input type="number" inputmode="numeric" min="1" data-j="jumpers"></label>
               <label class="fld" style="grid-column:1/-1"><span style="white-space:nowrap">Exit interval <span id="intervalHint">(s)</span></span><input type="number" inputmode="decimal" data-j="interval"></label>
             </div>
           </section>
@@ -623,7 +623,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 14:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1919,7 +1919,7 @@ function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windMod
   $('#sfSec').hidden=hm;if($('#harpSec'))$('#harpSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Assembly SF (ft)';if(!hm)$$('[data-j="casSF"]').forEach(el=>el.disabled=false);$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Pattern SF (ft)';
   $('#pod2Cas').value=Math.max(2000,+(S.jump.pod2Cas??2000));$('#pod2Lp').value=Math.max(1000,+(S.jump.pod2Lp??1000));
   $('#openLbl').textContent=hm?'Open (ft AGL)':'Open (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Jumpers'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Heading equals the wind-from direction at exit altitude.',down:'Reciprocal of the exit-altitude wind.',left:'Jumper trackback (DIP to release point) minus 90°.',right:'Jumper trackback (DIP to release point) plus 90°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
-let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='openAlt')renderWinds();if(k==='jumpers'&&S.jump.mode==='HAMO'&&v>15){S.jump.jumpers=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
+let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;S.jump[k]=v;if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='openAlt')renderWinds();if(k==='jumpers'&&v<1){S.jump.jumpers=1;e.target.value=1}if(k==='jumpers'&&S.jump.mode==='HAMO'&&v>15){S.jump.jumpers=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
 document.addEventListener('change',e=>{const k=e.target&&e.target.dataset&&e.target.dataset.j,min=k==='casSF'?2000:k==='lpSF'?1000:0;if(min&&!(+e.target.value>=min)){S.jump[k]=min;e.target.value=min;save('jump');renderJump();toast(`${k==='casSF'?'Canopy assembly':'Landing pattern'} safety factor can't be under ${ff(min)}`)}});
@@ -1932,8 +1932,8 @@ $('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;if(pods3())fillPod3Sel();save('jump');renderWinds();renderJump()};
 $('#podCount').onclick=e=>{const b=e.target.closest('[data-pc]');if(!b)return;S.jump.hamoPods=+b.dataset.pc;if(S.jump.hamoPods===3){S.jump.pod3Jumpers=4;if(!(+S.jump.pod3Open>=+S.jump.pod2Open+3000))S.jump.pod3Open=(+S.jump.pod2Open||9000)+3000;fillPod3Sel()}save('jump');syncJumpInputs();renderWinds();renderJump()};
 $('#pod3Open').onchange=e=>{S.jump.pod3Open=+e.target.value;save('jump');renderWinds();renderJump()};
-$('#pod3Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
-$('#pod2Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+$('#pod3Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v<1){v=1;e.target.value=1}if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+$('#pod2Jumpers').oninput=e=>{let v=parseInt(e.target.value);if(v<1){v=1;e.target.value=1}if(v>15){v=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sfsug]');if(!b)return;const [sets,sp]=b.dataset.sfsug.split('|');sets.split(',').forEach(x=>{const [k,v]=x.split(':');S.jump[k]=+v});S.jump.hamoSpread=+sp;save('jump');syncJumpInputs();renderJump();toast('Top SF raised to give 30 s between pods')});
 $('#hamoSlider').oninput=e=>{S.jump.hamoSpread=Math.min(+e.target.max||90,Math.max(+e.target.min||0,+e.target.value));save('jump');renderJump()};
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
