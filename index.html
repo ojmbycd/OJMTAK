@@ -196,6 +196,7 @@ button,input,select{font:inherit;color:inherit}
 /* small cross for the cursor over the map instead of the hand */
 .leaflet-container,.leaflet-grab,.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:crosshair}
 /* DIP name: small, fixed size, centred directly below the DIP (6 o'clock); stays when zoomed out */
+.altname{position:absolute;left:50%;top:21px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 10px/1.15 var(--cond);color:#FFD400;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.altname small{display:block;font-size:9px;font-weight:400}.leaflet-container.lowz .altname{display:none}
 .dipname{position:absolute;left:50%;top:27px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.dipname small{display:block;font-size:9px;font-weight:400;opacity:.85}
 /* wind speeds only from 30,000 ft eye altitude down */
 .leaflet-container.hi30k .wlbl,.leaflet-container.hi30k .warr,.leaflet-container.hi30k .holdlbl{display:none}
@@ -203,7 +204,7 @@ button,input,select{font:inherit;color:inherit}
 .leaflet-container.hi5k .clbl,.leaflet-container.hi5k .dipname,.leaflet-container.hi5k .altname{display:none}
 /* landing pattern turn heights: small but crisp (thin outline, no soft glow) */
 .plbl{font:700 11px/1 Arial,sans-serif;color:#5B8CFF;-webkit-font-smoothing:antialiased;text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000}.leaflet-container.lowz .plbl,.leaflet-container.hi10k .plbl,.leaflet-container.hi10k .landlbl{display:none}/* only from 10,000 ft eye altitude down */
-.leaflet-container :is(.lbl,.linelbl,.tag,.clbl,.klbl,.tlbl,.wlbl,.glbl,.xlbl,.plbl,.dipname){zoom:var(--ls,1)}
+.leaflet-container :is(.lbl,.linelbl,.tag,.clbl,.klbl,.tlbl,.wlbl,.glbl,.xlbl,.plbl,.dipname,.altname){zoom:var(--ls,1)}
 .leaflet-tile-pane .leaflet-layer{filter:brightness(var(--mapb,1))}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
@@ -638,7 +639,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1664,7 +1665,7 @@ function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old
 /* alternate DIPs: a small yellow ring with a centre dot and the name. The full DIP rings and compass only appear once one is switched to as the DIP */
 let altElevBusy=false;function altElevs(){if(altElevBusy)return;const need=S.altDips.filter(d=>d.dzElev==null&&!d.elevTried);if(!need.length)return;altElevBusy=true;Promise.all(need.map(async d=>{d.elevTried=true;const m=await groundElevM(d);if(m!=null)d.dzElev=Math.round(m/FT)})).then(()=>{altElevBusy=false;save('altDips');renderAltDips()})}
 function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});if(S.set.showAlts===false)return;const Y='#FFD400';altElevs();
-  S.altDips.forEach(d=>{L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,11],html:`<div style="position:relative;width:22px;height:22px"><svg viewBox="-11 -11 22 22" width="22" height="22"><circle r="7.5" fill="none" stroke="#141414" stroke-width="4"/><circle r="7.5" fill="none" stroke="${Y}" stroke-width="2.2"/><circle r="2.4" fill="${Y}" stroke="#141414" stroke-width=".8"/></svg><span class="lbl altname" style="position:absolute;left:22px;top:${d.dzElev!=null?-1:4}px;color:${Y};line-height:1.1">${esc(d.name)}${d.dzElev!=null?`<br><small style="font-size:10px;opacity:.9">(${ff(d.dzElev)} AMSL${S.jump.dzElev!=null&&isFinite(+S.jump.dzElev)?` · ${(()=>{const df=Math.round(d.dzElev-(+S.jump.dzElev));return df===0?'same as DZ':`${df>0?'+':'−'}${Math.abs(df).toLocaleString('en-GB')} ft on DZ`})()}`:''})</small>`:''}</span></div>`})})
+  S.altDips.forEach(d=>{L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,11],html:`<div style="position:relative;width:22px;height:22px"><svg viewBox="-11 -11 22 22" width="22" height="22"><circle r="7.5" fill="none" stroke="#141414" stroke-width="4"/><circle r="7.5" fill="none" stroke="${Y}" stroke-width="2.2"/><circle r="2.4" fill="${Y}" stroke="#141414" stroke-width=".8"/></svg><span class="altname">${esc(d.name)}${d.dzElev!=null?`<small>(${ff(d.dzElev)} AMSL)</small>${S.jump.dzElev!=null&&isFinite(+S.jump.dzElev)?`<small>${(()=>{const df=Math.round(d.dzElev-(+S.jump.dzElev));return df===0?'same as DZ':`${df>0?'+':'−'}${Math.abs(df).toLocaleString('en-GB')} ft to DZ`})()}</small>`:''}`:''}</span></div>`})})
     .on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>useAltAsDip(d.id,false)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
 /* landing pattern */
 /* landing direction: manual, or into the surface wind; a Z pattern lands along the trackback (2K mark to the DIP) */
