@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 19:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 19:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1288,7 +1288,8 @@ function renderJump(){autoDecl();heatSync();exitHint();LY.jump.clearLayers();
     /* openings above 10,000 ft: halving phase lines along the canopy trackback (half the distance back to the DIP, then half again), alongside the 2K/3K lines */
     if(P.trk.length>1&&P.trk[0].h>10000){const T=P.trk.slice().reverse(),cum=[0];for(let i=1;i<T.length;i++)cum.push(cum[i-1]+dist(T[i-1].p,T[i].p));const tot=cum[cum.length-1];
       const at=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return {p:dest(T[i-1].p,brg(T[i-1].p,T[i].p),dist(T[i-1].p,T[i].p)*f),h:T[i-1].h+(T[i].h-T[i-1].h)*f,b:brg(T[i].p,T[i-1].p)}}return null};
-      for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;L.polyline([LL(dest(q.p,norm(q.b+90),450)),LL(dest(q.p,norm(q.b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump);}}
+      const done=new Set([2000,3000]);/* each halving point snaps to its nearest 1,000 ft trackback mark */
+      for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;const h=Math.round(q.h/1000)*1000;if(done.has(h))continue;done.add(h);const i=P.marks.findIndex(m=>m.agl===h);if(i<0)continue;const m=P.marks[i],nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi,b=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(b+90),450)),LL(dest(m.p,norm(b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}}
   };drawTrack(J);if(hamo){if(J2)drawTrack(J2);if(J3)drawTrack(J3)}
   /* POD HAMO: each pod's 2K and 3K phase lines are joined to the next pod's by a bowed line curving round the DIP */
   if(hamo&&J2)[2000,3000].forEach(h=>{const ms=[J,J2,J3].filter(Boolean).map(P=>(P.marks||[]).find(m=>m.agl===h)).filter(Boolean).map(m=>({p:m.p,b:brg(S.pi,m.p),d:dist(S.pi,m.p)}));if(ms.length<2)return;
