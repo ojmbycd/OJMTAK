@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 21:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 21:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -710,7 +710,7 @@ const S={
   altDips:store.get('altDips',[]),
   savedDips:store.get('savedDips',[]),
   canopies:store.get('canopies',[]),
-  pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{})),
+  pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{}),{alts:[1000,600,300]}),
   set:Object.assign({},DEF_SET,store.get('set',{})),
   ov:Object.assign({},DEF_OV,store.get('ov',{})),
   target:store.get('target',null),
@@ -1278,7 +1278,7 @@ function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY
 /* landing pattern */
 function patDir(){const P=S.pattern,w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);return P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):null):P.dir}
 const k2on=()=>!!(J&&!J.err&&(J.marks||[]).some(m=>m.agl===2000));
-function patternSheet(){const P=S.pattern,pd=patDir();sheet({title:'Landing pattern',sub:P.on?(k2on()?`${P.type==='z'?'Z pattern (downwind, diagonal base, final)':'Standard pattern (downwind, base, final)'} · downwind starts at the 2K mark, turn heights worked from the surface wind and canopy`:`${P.type==='z'?'Z pattern':'Standard pattern'}, ${P.hand}-hand · ${P.alts.join(' / ')} ft (no plan yet)`)+` · landing ${pd==null?'–':fb(pd)+' T'} ${P.dirAuto?'(from surface wind)':'(manual)'} · long press a point on the map to move it`:'Not drawn',input:{label:'Manual landing direction °T',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;P.mv=null;save('pattern');renderJump()}},buttons:[...(P.mv&&Object.keys(P.mv).length?[['Reset moved points',()=>{P.mv=null;save('pattern');renderJump();patternSheet()}]]:[]),...(P.dirAuto?[]:[['Use surface wind for direction',()=>{P.dirAuto=true;P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}]]),[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;save('pattern');renderJump()},'primary'],[P.type==='z'?'Switch to standard (U) pattern':'Switch to Z pattern',()=>{P.type=P.type==='z'?'u':'z';P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}],...[[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.mv=null;P.on=true;save('pattern');renderJump()}],...(k2on()?[]:[['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.mv=null;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]])]]})}
+function patternSheet(){const P=S.pattern,pd=patDir();sheet({title:'Landing pattern',sub:P.on?(k2on()?`${P.type==='z'?'Z pattern (downwind, diagonal base, final)':'Standard pattern (downwind, base, final)'} · downwind from the 2K mark, crosswind at 600 ft, into wind at 300 ft`:`${P.type==='z'?'Z pattern':'Standard pattern'}, ${P.hand}-hand · ${P.alts.join(' / ')} ft (no plan yet)`)+` · landing ${pd==null?'–':fb(pd)+' T'} ${P.dirAuto?'(from surface wind)':'(manual)'} · long press a point on the map to move it`:'Not drawn',input:{label:'Manual landing direction °T',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;P.mv=null;save('pattern');renderJump()}},buttons:[...(P.mv&&Object.keys(P.mv).length?[['Reset moved points',()=>{P.mv=null;save('pattern');renderJump();patternSheet()}]]:[]),...(P.dirAuto?[]:[['Use surface wind for direction',()=>{P.dirAuto=true;P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}]]),[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;if(P.on)P.mv=null;save('pattern');renderJump()},'primary'],[P.type==='z'?'Switch to standard (U) pattern':'Switch to Z pattern',()=>{P.type=P.type==='z'?'u':'z';P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}],...[[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.mv=null;P.on=true;save('pattern');renderJump()}],...(k2on()?[]:[['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.mv=null;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]])]]})}
 function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* needs a complete plan (canopy, winds) */const w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;
   const V=(+S.jump.canopySpeed||0)*KT,cr=(+S.jump.canopyRate||16)*FT,L0=landDir*D2R,col='#2648F0';
   /* landing-line frame: s along the landing direction (DIP at 0, upwind +), y to the right of it. Surface wind in the same frame */
@@ -1288,13 +1288,11 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
   const gs=(ds,dy)=>{const l=Math.hypot(ds,dy)||1;ds/=l;dy/=l;const dot=wS*ds+wY*dy,cx=wS*dy-wY*ds;return Math.max(0.5,dot+Math.sqrt(Math.max(0,V*V-cx*cx)))};
   const legT=(a,b)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy)};
   const k2=J&&!J.err&&(J.marks||[]).find(m=>m.agl===2000);let pts,startAlt,warn='';
-  if(k2){/* downwind starts at the 2K mark; the base turn is placed so the time from 2,000 ft to the ground in the surface wind ends at the DIP */
-    /* the downwind leg runs from the 2K mark to a point beside the landing line (at least 200 m off it, on the left/right-hand side if the 2K mark is on the line) */
-    const A=toSY(k2.p),T=2000*FT/cr,k=P.type==='z'?1:0,sg=Math.abs(A.y)>=200?Math.sign(A.y):(P.hand==='left'?1:-1),Y=sg*Math.max(200,Math.abs(A.y));
-    const path=sb=>[A,{s:sb,y:Y},{s:sb+k*Math.abs(Y),y:0},{s:0,y:0}],tot=q=>legT(q[0],q[1])+legT(q[1],q[2])+legT(q[2],q[3]);
-    let lo=Math.min(A.s,-k*Math.abs(Y))-20000,hi=Math.min(A.s,-k*Math.abs(Y));
-    if(tot(path(hi))>T){warn='Not enough height from the 2K mark to fly this pattern';pts=path(hi)}
-    else{for(let i=0;i<50;i++){const m=(lo+hi)/2;if(tot(path(m))>T)lo=m;else hi=m}pts=path((lo+hi)/2)}startAlt=2000}
+  if(k2){/* downwind from the 2K mark; turn crosswind (base) at 600 ft and into wind (final) at 300 ft, each 300 ft leg sized from the canopy descent and the surface wind */
+    const A=toSY(k2.p),sg=Math.abs(A.y)>=50?Math.sign(A.y):(P.hand==='left'?1:-1),t=300*FT/cr,R2=Math.SQRT1_2;
+    const fS={s:-gs(1,0)*t,y:0};let bS;
+    if(P.type==='z'){const l=gs(1,-sg)*t;bS={s:fS.s-l*R2,y:sg*l*R2}}else bS={s:fS.s,y:sg*gs(0,-sg)*t};
+    pts=[A,bS,fS,{s:0,y:0}];startAlt=2000}
   else{/* no plan yet: fixed leg altitudes */
     const [a1,a2,a3]=P.alts,hw=-wS,side=P.hand==='left'?1:-1;startAlt=a1;
     const f=-Math.max(30,(V-hw)*(a3*FT/cr)),by=side*Math.max(30,V*((a2-a3)*FT/cr)),ds=Math.max(30,(V+hw)*((a1-a2)*FT/cr));
@@ -1303,14 +1301,15 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
   /* heights at each turn from the time on each leg and the canopy rate of descent */
   /* worked back from the DIP (0 ft), so moving a point changes the turn heights rather than leaving height over */
   const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1])*cr/FT;
-  const LLs=pts.map(q=>fromSY(q.s,q.y)),rnd=a=>Math.round(a/50)*50;
+  const rnd=a=>Math.round(a/50)*50;if(k2&&!(P.mv&&P.mv.d)){if(alts[0]>2050)warn=`Downwind needs ${ff(rnd(alts[0]))} at the 2K mark`;alts[0]=2000}
+  const LLs=pts.map(q=>fromSY(q.s,q.y));
   {/* rounded turns: each corner is eased with a curve that starts and ends up to 150 m either side of the turn point */
     const sm=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],la=Math.hypot(b.s-a.s,b.y-a.y),lc=Math.hypot(c.s-b.s,c.y-b.y),r=Math.min(150,la*.45,lc*.45);
       if(r<5){sm.push(b);continue}const p0={s:b.s+(a.s-b.s)*r/la,y:b.y+(a.y-b.y)*r/la},p2={s:b.s+(c.s-b.s)*r/lc,y:b.y+(c.y-b.y)*r/lc};
       for(let t=0;t<=1.0001;t+=1/12){const u=1-t;sm.push({s:u*u*p0.s+2*u*t*b.s+t*t*p2.s,y:u*u*p0.y+2*u*t*b.y+t*t*p2.y})}}
     sm.push(pts[pts.length-1]);L.polyline(sm.map(q=>LL(fromSY(q.s,q.y))),{color:col,weight:3,interactive:false}).addTo(LY.jump)}
   LLs.slice(0,3).forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#8EA2FF">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
-  if(alts[0]>startAlt+50)warn=`Needs ${ff(rnd(alts[0]))} at the start of downwind`;else if(warn&&!warn.startsWith('Not enough'))warn='';
+
   /* long press a turn point, then drag it to move it */
   [['d',LLs[0]],['b',LLs[1]],['f',LLs[2]]].forEach(([k,p])=>{const m=L.marker(LL(p),{icon:L.divIcon({className:'pathandle',iconSize:[32,32]}),keyboard:false,zIndexOffset:500}).addTo(LY.jump),el=m.getElement();let t=null,sx=0,sy=0,drag=false;
     const mvh=e=>{if(t&&!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){clearTimeout(t);t=null}if(drag)m.setLatLng(map.mouseEventToLatLng(e))};
