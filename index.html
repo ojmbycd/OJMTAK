@@ -102,6 +102,7 @@ button,input,select{font:inherit;color:inherit}
 .lbl{font:500 13px/1.15 var(--cond);color:var(--ink);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)}
 
 .stackbtns{display:flex;flex-direction:column;gap:8px}.stackbtns>*{width:100%}
+.pathandle{border-radius:50%}.pathandle.on{background:rgba(57,255,106,.3);border:2px solid #39FF6A}
 .klbl.faint{font-size:11px;left:5px;top:-13px;opacity:.4}
 .klbl{position:absolute;left:8px;top:-18px;font:400 14px/1 var(--cond);color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .wlbl{position:absolute;left:-14px;top:-18px;white-space:nowrap;font:400 12px/1 var(--cond);color:#FF8C1A;text-shadow:0 0 3px #000,0 0 2px #000}
@@ -579,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1274,14 +1275,42 @@ function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.l
 function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old=S.pi;S.pi={lat:d.lat,lon:d.lon};d.lat=old.lat;d.lon=old.lon;save('pi');save('altDips');renderJump();renderAltDips();autoDzElev();toast(`${d.name} is now the DIP`)}
 function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});S.altDips.forEach(d=>{L.circle([d.lat,d.lon],{radius:450*FT,color:'#FF2A2A',weight:1.5,dashArray:'6 6',fill:false,interactive:false,altdip:true}).addTo(LY.jump);L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[24,24],iconAnchor:[12,12],html:`<div style="position:relative;width:24px;height:24px"><svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="8" fill="none" stroke="#FF2A2A" stroke-width="2.5" stroke-dasharray="4 3"/></svg><span class="lbl" style="position:absolute;left:24px;top:5px">${esc(d.name)}</span></div>`})}).on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>swapDip(d.id)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
 /* landing pattern */
-function patternSheet(){const P=S.pattern;sheet({title:'Landing pattern',sub:P.on?`${P.hand}-hand · downwind ${P.alts[0]} ft, base ${P.alts[1]} ft, final ${P.alts[2]} ft · landing ${P.dirAuto?'into surface wind':fb(P.dir)+' T'}`:'Not drawn',input:{label:'Landing direction °T (blank = into surface wind)',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;save('pattern');renderJump()}},buttons:[[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;save('pattern');renderJump()},'primary'],[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.on=true;save('pattern');renderJump()}],['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]]})}
-function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const wind=makeWind();const w=wind(+S.jump.dzElev||0);const ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;const cs=(+S.jump.canopySpeed||0)*KT,cr=(+S.jump.canopyRate||16)*FT;const [a1,a2,a3]=P.alts;const hw=P.dirAuto?ws:Math.max(0,-(w.u*Math.sin(landDir*D2R)+w.v*Math.cos(landDir*D2R)));
-  const finalLen=Math.max(30,(cs-hw)*(a3*FT/cr)),baseLen=Math.max(30,cs*((a2-a3)*FT/cr)),dwLen=Math.max(30,(cs+hw)*((a1-a2)*FT/cr));
-  const back=norm(landDir+180),side=norm(landDir+(P.hand==='left'?90:-90));
-  const fStart=dest(S.pi,back,finalLen),bStart=dest(fStart,side,baseLen),dStart=dest(bStart,landDir,dwLen);
-  const col='#39FF6A';L.polyline([LL(dStart),LL(bStart),LL(fStart),LL(S.pi)],{color:col,weight:2,dashArray:'6 5',interactive:false}).addTo(LY.jump);
-  [[dStart,`${a1} ft`],[bStart,`${a2} ft`],[fStart,`${a3} ft`]].forEach(([p,t])=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${t}</span>`}),interactive:false}).addTo(LY.jump)});
-  const arrowBase=dest(S.pi,back,finalLen*0.4);L.marker(LL(arrowBase),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col};left:-20px;top:4px">land ${fb(landDir)} T</span>`}),interactive:false}).addTo(LY.jump)}
+function patDir(){const P=S.pattern,w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);return P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):null):P.dir}
+const k2on=()=>!!(J&&!J.err&&(J.marks||[]).some(m=>m.agl===2000));
+function patternSheet(){const P=S.pattern,pd=patDir();sheet({title:'Landing pattern',sub:P.on?(k2on()?`${P.type==='z'?'Z pattern (downwind, diagonal base, final)':'Standard pattern (downwind, base, final)'} · downwind starts at the 2K mark, turn heights worked from the surface wind and canopy`:`${P.type==='z'?'Z pattern':'Standard pattern'}, ${P.hand}-hand · ${P.alts.join(' / ')} ft (no plan yet)`)+` · landing ${pd==null?'–':fb(pd)+' T'} ${P.dirAuto?'(from surface wind)':'(manual)'} · long press a point on the map to move it`:'Not drawn',input:{label:'Manual landing direction °T',value:P.dirAuto?'':P.dir,save:v=>{const n=parseFloat(v);if(isFinite(n)){P.dir=norm(n);P.dirAuto=false}else P.dirAuto=true;P.on=true;P.mv=null;save('pattern');renderJump()}},buttons:[...(P.mv&&Object.keys(P.mv).length?[['Reset moved points',()=>{P.mv=null;save('pattern');renderJump();patternSheet()}]]:[]),...(P.dirAuto?[]:[['Use surface wind for direction',()=>{P.dirAuto=true;P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}]]),[P.on?'Hide pattern':'Show pattern',()=>{P.on=!P.on;save('pattern');renderJump()},'primary'],[P.type==='z'?'Switch to standard (U) pattern':'Switch to Z pattern',()=>{P.type=P.type==='z'?'u':'z';P.mv=null;P.on=true;save('pattern');renderJump();patternSheet()}],...[[P.hand==='left'?'Switch to right-hand':'Switch to left-hand',()=>{P.hand=P.hand==='left'?'right':'left';P.mv=null;P.on=true;save('pattern');renderJump()}],...(k2on()?[]:[['Leg altitudes',()=>sheet({title:'Pattern altitudes',sub:'Downwind, base, final in ft AGL',input:{label:'e.g. 1000, 600, 300',value:P.alts.join(', '),save:v=>{const a=v.split(/[,\s]+/).map(Number).filter(n=>n>0);if(a.length===3&&a[0]>a[1]&&a[1]>a[2]){P.alts=a;P.mv=null;P.on=true;save('pattern');renderJump()}else toast('Enter three descending altitudes')}},buttons:[]})]])]]})}
+function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const landDir=P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):0):P.dir;
+  const V=(+S.jump.canopySpeed||0)*KT,cr=(+S.jump.canopyRate||16)*FT,L0=landDir*D2R,col='#2E8BFF';
+  /* landing-line frame: s along the landing direction (DIP at 0, upwind +), y to the right of it. Surface wind in the same frame */
+  const toSY=q=>{const d=dist(S.pi,q),b=brg(S.pi,q)*D2R,e=d*Math.sin(b),n=d*Math.cos(b);return {s:e*Math.sin(L0)+n*Math.cos(L0),y:e*Math.cos(L0)-n*Math.sin(L0)}};
+  const fromSY=(s_,y)=>{const e=s_*Math.sin(L0)+y*Math.cos(L0),n=s_*Math.cos(L0)-y*Math.sin(L0);return dest(S.pi,norm(Math.atan2(e,n)*R2D),Math.hypot(e,n))};
+  const wS=w.u*Math.sin(L0)+w.v*Math.cos(L0),wY=w.u*Math.cos(L0)-w.v*Math.sin(L0);
+  const gs=(ds,dy)=>{const l=Math.hypot(ds,dy)||1;ds/=l;dy/=l;const dot=wS*ds+wY*dy,cx=wS*dy-wY*ds;return Math.max(0.5,dot+Math.sqrt(Math.max(0,V*V-cx*cx)))};
+  const legT=(a,b)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy)};
+  const k2=J&&!J.err&&(J.marks||[]).find(m=>m.agl===2000);let pts,startAlt,warn='';
+  if(k2){/* downwind starts at the 2K mark; the base turn is placed so the time from 2,000 ft to the ground in the surface wind ends at the DIP */
+    /* the downwind leg runs from the 2K mark to a point beside the landing line (at least 200 m off it, on the left/right-hand side if the 2K mark is on the line) */
+    const A=toSY(k2.p),T=2000*FT/cr,k=P.type==='z'?1:0,sg=Math.abs(A.y)>=200?Math.sign(A.y):(P.hand==='left'?1:-1),Y=sg*Math.max(200,Math.abs(A.y));
+    const path=sb=>[A,{s:sb,y:Y},{s:sb+k*Math.abs(Y),y:0},{s:0,y:0}],tot=q=>legT(q[0],q[1])+legT(q[1],q[2])+legT(q[2],q[3]);
+    let lo=Math.min(A.s,-k*Math.abs(Y))-20000,hi=Math.min(A.s,-k*Math.abs(Y));
+    if(tot(path(hi))>T){warn='Not enough height from the 2K mark to fly this pattern';pts=path(hi)}
+    else{for(let i=0;i<50;i++){const m=(lo+hi)/2;if(tot(path(m))>T)lo=m;else hi=m}pts=path((lo+hi)/2)}startAlt=2000}
+  else{/* no plan yet: fixed leg altitudes */
+    const [a1,a2,a3]=P.alts,hw=-wS,side=P.hand==='left'?1:-1;startAlt=a1;
+    const f=-Math.max(30,(V-hw)*(a3*FT/cr)),by=side*Math.max(30,V*((a2-a3)*FT/cr)),ds=Math.max(30,(V+hw)*((a1-a2)*FT/cr));
+    pts=P.type==='z'?[{s:f-Math.abs(by)+ds,y:by},{s:f-Math.abs(by),y:by},{s:f,y:0},{s:0,y:0}]:[{s:f+ds,y:by},{s:f,y:by},{s:f,y:0},{s:0,y:0}]}
+  {const mv=P.mv||{};['d','b','f'].forEach((k,i)=>{if(mv[k])pts[i]=toSY(dest(S.pi,mv[k][0],mv[k][1]))})}
+  /* heights at each turn from the time on each leg and the canopy rate of descent */
+  const alts=[startAlt];for(let i=1;i<pts.length;i++)alts.push(alts[i-1]-legT(pts[i-1],pts[i])*cr/FT);
+  const LLs=pts.map(q=>fromSY(q.s,q.y)),rnd=a=>Math.round(a/50)*50;
+  L.polyline(LLs.map(LL),{color:col,weight:3,interactive:false}).addTo(LY.jump);
+  LLs.slice(0,3).forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#7FB8FF">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
+  const over=rnd(alts[3]);if(!warn&&Math.abs(over)>=100)warn=over>0?`Arrives over the DIP with ${ff(over)} to spare`:`Runs out of height ${fd(Math.abs(over)/cr*FT*V)} short of the DIP`;
+  /* long press a turn point, then drag it to move it */
+  [['d',LLs[0]],['b',LLs[1]],['f',LLs[2]]].forEach(([k,p])=>{const m=L.marker(LL(p),{icon:L.divIcon({className:'pathandle',iconSize:[32,32]}),keyboard:false,zIndexOffset:500}).addTo(LY.jump),el=m.getElement();let t=null,sx=0,sy=0,drag=false;
+    const mvh=e=>{if(t&&!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){clearTimeout(t);t=null}if(drag)m.setLatLng(map.mouseEventToLatLng(e))};
+    const up=()=>{clearTimeout(t);t=null;document.removeEventListener('pointermove',mvh);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!drag)return;drag=false;map.dragging.enable();const ll=m.getLatLng(),q={lat:ll.lat,lon:ll.lng};P.mv=Object.assign({},P.mv,{[k]:[brg(S.pi,q),dist(S.pi,q)]});save('pattern');renderJump()};
+    el.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;document.addEventListener('pointermove',mvh);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);t=setTimeout(()=>{t=null;drag=true;map.dragging.disable();el.classList.add('on');if(navigator.vibrate)navigator.vibrate(30);toast('Drag to move this point')},500)})});
+  const arrowBase=fromSY(Math.min(-40,pts[2].s*0.4),0);L.marker(LL(arrowBase),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#7FB8FF;left:-20px;top:4px">land ${fb(landDir)} T${warn?`<br><span style="color:#FFB020">${esc(warn)}</span>`:''}</span>`}),interactive:false}).addTo(LY.jump)}
 
 
 /* ================= map view: north up / heading up / 3D ================= */
