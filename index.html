@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 19:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 20:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1944,7 +1944,9 @@ $('#loadSel').onchange=e=>{S.jump.loadKg=+e.target.value;applyK();renderCanopySe
 $('#acPerf').onchange=e=>{S.jump.acPerf=e.target.value;save('jump');renderJump()};
 $('#sortie').oninput=e=>{S.jump.sortie=e.target.value;save('jump')};
 $('#jmSeg').onclick=e=>{const b=e.target.closest('[data-jm]');if(b)showJm(b.dataset.jm)};
-function fillExitSel(){const sel=$('[data-j="exitAlt"]');if(!sel)return;let o='';for(let a=3000;a<=35000;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;if(S.jump.exitAlt==null){sel.innerHTML='<option value="" disabled hidden>Select</option>'+o;sel.value='';return}sel.innerHTML=o;let v=Math.min(35000,Math.max(3000,Math.round((+S.jump.exitAlt||12000)/500)*500));if(v!==S.jump.exitAlt){S.jump.exitAlt=v;save('jump')}sel.value=v}
+function fillExitSel(){const sel=$('[data-j="exitAlt"]');if(!sel)return;let o='';for(let a=3000;a<=35000;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;if(S.jump.exitAlt==null){sel.innerHTML='<option value="" disabled hidden>Select</option>'+o;sel.value='';return}/* an exact exit off the 500 ft steps (e.g. from an ATAK package, where exit is set above the DIP) is kept and listed in its place */
+  const ex=Math.round(+S.jump.exitAlt||12000);if(ex>=3000&&ex<=35000&&ex%500){const at=Math.ceil(ex/500)*500;o=o.replace(`<option value="${at}">`,`<option value="${ex}">${ex.toLocaleString('en-GB')}</option><option value="${at}">`);sel.innerHTML=o;sel.value=ex;return}
+  sel.innerHTML=o;let v=Math.min(35000,Math.max(3000,Math.round((+S.jump.exitAlt||12000)/500)*500));if(v!==S.jump.exitAlt){S.jump.exitAlt=v;save('jump')}sel.value=v}
 function fillOpenSel(){const sel=$('[data-j="openAlt"]');if(!sel)return;/* opening at least 1,000 ft below the exit height above the DIP */const top=Math.max(1000,Math.floor(((+S.jump.exitAlt||0)-(+S.jump.dzElev||0)-1000)/500)*500);let o='';for(let a=1000;a<=top;a+=500)o+=`<option value="${a}">${a.toLocaleString('en-GB')}</option>`;if(S.jump.openAlt==null){sel.innerHTML='<option value="" disabled hidden>Select</option>'+o;sel.value='';return}sel.innerHTML=o;let v=Math.round((+S.jump.openAlt||3500)/500)*500;v=Math.min(top,Math.max(1000,v));if(v!==S.jump.openAlt){S.jump.openAlt=v;save('jump')}sel.value=v}
 function exitHint(){const e=$('#exitAglHint');if(e)e.textContent='(ft AMSL)';const n=$('#exitAglNote');if(n){const x=S.jump.exitAlt,dz=S.jump.dzElev;n.textContent=x!=null&&dz!=null&&dz!==''?`(${ff(+x-(+dz))} AGL above DIP)`:''}}
 function intervalHint(){const e=$('#intervalHint');if(!e)return;const gs=J&&!J.err?J.gsM:(+S.jump.kias||0)*KT;e.textContent=`(s · ${Math.round((+S.jump.interval||0)*gs)} m apart)`}
