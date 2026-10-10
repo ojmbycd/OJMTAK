@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 17:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 17:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1418,8 +1418,8 @@ const METRICS={
   grid:{l:'Target grid',f:d=>fc(d.p)},
   dgl:{l:'Distance to first out',f:d=>J&&!J.err?fd(dist(me,J.gl)):'–'},
   // GPS gives ground speed: take out the planned wind at this height, then TAS to IAS at 2% per 1,000 ft
-  acspd:{l:'AC speed KIAS (plan)',f:d=>{const plan=Math.round(+S.jump.kias||0);if(!me.spd||me.spd<1||me.course==null)return `– (${plan})`;const altFt=me.alt!=null?me.alt/FT:+S.jump.exitAlt||0,w=makeWind()(altFt),c=me.course*D2R,ax=me.spd*Math.sin(c)-w.u,ay=me.spd*Math.cos(c)-w.v;return `${Math.round(Math.hypot(ax,ay)/KT/(1+0.02*altFt/1000))} (${plan})`}},
-  accse:{l:'AC course °T (plan)',f:d=>`${me.course!=null&&me.spd>1?fb(me.course):'–'} (${J&&!J.err?fb(J.heading):'–'})`}
+  acspd:{l:()=>`AC speed KIAS · plan ${Math.round(+S.jump.kias||0)}`,f:d=>{if(!me.spd||me.spd<1||me.course==null)return '–';const altFt=me.alt!=null?me.alt/FT:+S.jump.exitAlt||0,w=makeWind()(altFt),c=me.course*D2R,ax=me.spd*Math.sin(c)-w.u,ay=me.spd*Math.cos(c)-w.v;return `${Math.round(Math.hypot(ax,ay)/KT/(1+0.02*altFt/1000))}`}},
+  accse:{l:()=>`AC course °T · plan ${J&&!J.err?fb(hamo?hamoHeading:J.heading):'–'}`,f:d=>`${me.course!=null&&me.spd>1?fb(me.course):'–'}`}
 };
 const PRESETS={ac:{tiles:['amsl','togl','acspd','accse'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','gs'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
@@ -1437,7 +1437,7 @@ function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HA
 function navLock(){if(!S.target)return false;toast('Navigating: press STOP JUMP to use the menus');return true}
 document.body.classList.toggle('navlock',!!S.target);
 function setTarget(key){document.body.classList.toggle('navlock',!!key);setTimeout(()=>{placeHud();placeZoom()},60);if(key){closeDrawer();if(tool)closeTool();closeSheet();closeRadial()}if(!key&&jumpActive){jumpActive=false;setTimeout(renderJump,0)}S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
-function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
+function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${typeof m.l==='function'?m.l():m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 // the box sits just right of the JUMPMASTER box, same height and bottom line, filling the space to the right
 var projLayer=null;
 function drawProj(){if(!projLayer)projLayer=L.layerGroup().addTo(map);projLayer.clearLayers();if(S.set.proj===false||!me||!(me.spd>1)||me.course==null)return;const T=+S.set.projSec||60,q=dest(me,me.course,me.spd*T),col=cssv('--self');
@@ -1462,7 +1462,7 @@ function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();cons
   live={R,B,p:r.p,ht:headingTrue()};S.hound.tiles.forEach((k,i)=>{const m=METRICS[k]||METRICS.range;const e=$('#tile'+i);if(e)e.textContent=m.f(live)});$('#hNote').textContent=closing<-0.3?`Opening ${kts(Math.round(-closing/KT))}`:'';updateDial()}
 $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-dock]');if(d){S.hound.dock=d.dataset.dock;save('hound');renderTiles();updateHound();setTimeout(()=>map.invalidateSize(),50);return}
   const pr=e.target.closest('[data-preset]');if(pr){const P=PRESETS[pr.dataset.preset];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound();return}
-  const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
+  const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[typeof m.l==='function'?m.l():m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
 // my arrow stays fixed pointing up (my heading); the target diamond moves round the ring to its bearing relative to me
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue(),dip=S.target==='c:pi';$('#dialHarp').style.display=dip?'none':'';$('#dialDip').style.display=dip?'':'none';$('#dialArrow').setAttribute('transform','');if(ht){$('#dialTgt').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialTgt').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
