@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1300,11 +1300,12 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const w=makeWind
     pts=P.type==='z'?[{s:f-Math.abs(by)+ds,y:by},{s:f-Math.abs(by),y:by},{s:f,y:0},{s:0,y:0}]:[{s:f+ds,y:by},{s:f,y:by},{s:f,y:0},{s:0,y:0}]}
   {const mv=P.mv||{};['d','b','f'].forEach((k,i)=>{if(mv[k])pts[i]=toSY(dest(S.pi,mv[k][0],mv[k][1]))})}
   /* heights at each turn from the time on each leg and the canopy rate of descent */
-  const alts=[startAlt];for(let i=1;i<pts.length;i++)alts.push(alts[i-1]-legT(pts[i-1],pts[i])*cr/FT);
+  /* worked back from the DIP (0 ft), so moving a point changes the turn heights rather than leaving height over */
+  const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1])*cr/FT;
   const LLs=pts.map(q=>fromSY(q.s,q.y)),rnd=a=>Math.round(a/50)*50;
   L.polyline(LLs.map(LL),{color:col,weight:3,interactive:false}).addTo(LY.jump);
   LLs.slice(0,3).forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#7FB8FF">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
-  const over=rnd(alts[3]);if(!warn&&Math.abs(over)>=100)warn=over>0?`Arrives over the DIP with ${ff(over)} to spare`:`Runs out of height ${fd(Math.abs(over)/cr*FT*V)} short of the DIP`;
+  if(alts[0]>startAlt+50)warn=`Needs ${ff(rnd(alts[0]))} at the start of downwind`;else if(warn&&!warn.startsWith('Not enough'))warn='';
   /* long press a turn point, then drag it to move it */
   [['d',LLs[0]],['b',LLs[1]],['f',LLs[2]]].forEach(([k,p])=>{const m=L.marker(LL(p),{icon:L.divIcon({className:'pathandle',iconSize:[32,32]}),keyboard:false,zIndexOffset:500}).addTo(LY.jump),el=m.getElement();let t=null,sx=0,sy=0,drag=false;
     const mvh=e=>{if(t&&!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){clearTimeout(t);t=null}if(drag)m.setLatLng(map.mouseEventToLatLng(e))};
