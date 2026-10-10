@@ -281,16 +281,16 @@ table.winds td small{font-size:11px}
 /* the menu docks on the right; the map shrinks to the space on its left */
 :root{--dw:min(400px,50vw)}
 #drawer{position:fixed;top:0;bottom:0;right:0;width:var(--dw);z-index:2500;display:flex;justify-content:flex-end}
-body.dopen #app,body.topen #app{margin-right:var(--dw)}
+body.dopen #app,body.topen #app,body.aopen #app{margin-right:var(--dw)}
 body.dopen #menuBtn{display:none}
-body.dopen #hud,body.topen #hud{display:none}
-body.topen:not(.dbot) #tip,body.dopen:not(.dbot) #tip{right:8px;left:8px;font-size:13px;padding:7px 9px}
+body.dopen #hud,body.topen #hud,body.aopen #hud{display:none}
+body.topen:not(.dbot) #tip,body.dopen:not(.dbot) #tip,body.aopen:not(.dbot) #tip{right:8px;left:8px;font-size:13px;padding:7px 9px}
 #drawer .seg button,#tool.dock .seg button{white-space:normal;line-height:1.15;padding-left:4px;padding-right:4px}
-body.dopen:not(.dbot) #quick,body.topen:not(.dbot) #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
+body.dopen:not(.dbot) #quick,body.topen:not(.dbot) #quick,body.aopen:not(.dbot) #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
 /* flipped: map on the top half, menu on the bottom half */
-body.dopen.dbot #app,body.topen.dbot #app{margin-right:0;height:50%}
+body.dopen.dbot #app,body.topen.dbot #app,body.aopen.dbot #app{margin-right:0;height:50%}
 body.dbot #drawer{top:50%;left:0;width:auto}
-body.dopen.dbot #status,body.topen.dbot #status{display:none}
+body.dopen.dbot #status,body.topen.dbot #status,body.aopen.dbot #status{display:none}
 /* quick tools dock in the same place as the menu */
 #tool.dock{position:fixed;top:0!important;bottom:0!important;right:0!important;left:auto!important;width:var(--dw)!important;height:auto!important;z-index:2400;border-radius:0!important;background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none;border-top:none;border-left:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body.dbot #tool.dock{top:50%!important;left:0!important;width:auto!important;border-left:none;border-top:1px solid var(--line);padding-top:0}
@@ -309,7 +309,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 /* ---------- action sheet + toast ---------- */
 #act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center}
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
-#act.side{align-items:stretch;justify-content:flex-end}#act.side .box{width:50%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
+#act.side{left:auto;width:var(--dw);background:none;align-items:stretch;justify-content:flex-end}body.dbot #act.side{left:0;width:auto;top:50%}body.dbot #act.side .box{border-left:none;border-top:1px solid var(--line);padding-top:14px}#act.side .box{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
 #act .dipalt{color:#9a9a9a;font-weight:400}
 #act h4{margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -582,7 +582,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 18:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 18:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -802,9 +802,9 @@ function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].fin
   const done=leave=>{if(!$('#drawer').hidden&&seq===dSeq){if(leave)closeDrawer();else goPage(dParent)}};
   $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
   const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
-function popSheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+function popSheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';[...buttons,['Close',()=>{}]].forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
-function closeSheet(){$('#act').hidden=true}
+function closeSheet(){$('#act').hidden=true;if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});
 function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied')).catch(()=>toast(t,5000))}
 const relSub=p=>fc(p)+(me?` · ${fd(dist(me,p))} at ${fb(brg(me,p))} T`:'');
@@ -1370,7 +1370,7 @@ function closeTool(){if(tool==='redx'&&S.xs.length){S.xs=[];renderXs()}finishLin
 $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===t)closeTool();else if(t==='jump')jmMenu();else openTool(t)});
 // JM button: choose to place a DIP, pick a saved one, or go straight to the plan
 // JM button: two see-through buttons drop down under it; tap anywhere else to hide them
-function jmMenu(){const pop=$('#jmPop');if(!pop.hidden){pop.hidden=true;return}const b=$('.qb[data-tool="jump"]').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();pop.style.top=Math.round(b.bottom-mw.top+6)+'px';pop.style.right=Math.max(4,Math.round(mw.right-b.right))+'px';pop.hidden=false}
+function jmMenu(){const pop=$('#jmPop');if(!pop.hidden){pop.hidden=true;return}closeDrawer();const b=$('.qb[data-tool="jump"]').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();pop.style.top=Math.round(b.bottom-mw.top+6)+'px';pop.style.right=Math.max(4,Math.round(mw.right-b.right))+'px';pop.hidden=false}
 $('#jmPop').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#jmPop').hidden=true;if(b.dataset.jm==='saved')savedDipsSheet();else{if(tool)closeTool();setMode('pi','Tap the ground to set the DIP')}};
 document.addEventListener('pointerdown',e=>{const pop=$('#jmPop');if(!pop.hidden&&!e.target.closest('#jmPop')&&!e.target.closest('.qb[data-tool="jump"]'))pop.hidden=true},true);
 function savedDipsSheet(){const L_=S.savedDips;sheet({title:'Saved DIPs',sub:L_.length?'Tap one to use it.':'None saved yet. Set a DIP, then save it here.',buttons:[
@@ -1604,7 +1604,7 @@ $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool'
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
 // placing a DIP: set it, then ask for a name while showing the ground altitude there
 /* placing a DIP: name it first (altitude shown in grey brackets, not editable); the planner opens in its space only after Save */
-function placeDipAt(p){if(tool)closeTool();setDipAt(p);const g=fc(p);sheet({side:true,title:'Name this DIP',sub:g,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump');showJm('plan')}},buttons:[]});
+function placeDipAt(p){if(tool)closeTool();setDipAt(p);const g=fc(p);setTimeout(()=>map.panTo(LL(p)),120);sheet({side:true,title:'Name this DIP',sub:g,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump');showJm('plan')}},buttons:[]});
   const lb=$('#actInLabel');lb.innerHTML='DIP name <span class="dipalt">(looking up altitude…)</span>';setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
   groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;const a=lb.querySelector('.dipalt');if(a)a.textContent=m!=null?`(${ff(m/FT)} AMSL)`:'(altitude not available offline)'})}
 function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
@@ -1747,15 +1747,15 @@ function rotFix(){const b=document.body;if(!rotOn){b.style.width=b.style.height=
   const fix=o=>{if(!o||o.__rot)return;const cx=o.clientX,cy=o.clientY,px=o.pageX,py=o.pageY,W=innerWidth;try{Object.defineProperties(o,{clientX:{value:cy},clientY:{value:W-cx},pageX:{value:py},pageY:{value:W-px},x:{value:cy},y:{value:W-cx},__rot:{value:1}})}catch(_){}};
   const h=e=>{if(!rotOn)return;fix(e);for(const k of['touches','changedTouches','targetTouches'])if(e[k])for(let i=0;i<e[k].length;i++)fix(e[k][i])};
   ['pointerdown','pointermove','pointerup','pointercancel','pointerover','pointerout','pointerenter','pointerleave','mousedown','mousemove','mouseup','click','dblclick','contextmenu','touchstart','touchmove','touchend','touchcancel','wheel'].forEach(t=>window.addEventListener(t,h,{capture:true,passive:true}))})();
-function applyDock(){const up=phoneUpright();const was=rotOn;rotOn=up&&!!S.set.land;document.body.classList.toggle('rot',rotOn);rotFix();
-  const b=up?!rotOn:(innerWidth<700?false:!!S.set.dbot);document.body.classList.toggle('dbot',b);const land=up?rotOn:!b;
+function applyDock(){const up=phoneUpright();if(S.set.land==null)S.set.land=!up;const land=!!S.set.land,was=rotOn;rotOn=up&&land;document.body.classList.toggle('rot',rotOn);rotFix();
+  document.body.classList.toggle('dbot',!land);
   $('#layoutBtn').setAttribute('aria-label',land?'Landscape':'Portrait');$('#layoutBtn span').textContent=land?'Landscape':'Portrait';$('#layoutBtn').classList.toggle('land',land);if(was!==rotOn)setTimeout(()=>{map.invalidateSize();if(G3&&G3.v)G3.v.resize()},60)}
 window.addEventListener('resize',()=>{const was=document.body.className;applyDock();if(was!==document.body.className)drawerResize();else if(rotOn)drawerResize()});applyDock();
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
 function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
 function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
-$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{if(phoneUpright())S.set.land=!S.set.land;else S.set.dbot=!document.body.classList.contains('dbot');save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
+$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{S.set.land=!S.set.land;save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
