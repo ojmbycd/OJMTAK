@@ -190,7 +190,7 @@ button,input,select{font:inherit;color:inherit}
 #cloudBar input{flex:1;accent-color:#F2F2F2}
 #cloudBar button{background:none;border:1px solid rgba(255,255,255,.3);color:#F2F2F2;border-radius:7px;width:32px;height:32px;cursor:pointer}
 #cloudLbl{font:400 14px/1.1 var(--cond);white-space:nowrap;min-width:110px;text-align:right}
-#curPos{position:absolute;right:6px;bottom:22px;z-index:900;font:500 13px/1.35 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 78%,transparent);padding:2px 7px;border-radius:4px;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}#curPos small{display:block;font-size:11px;color:var(--mute)}#curX{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;z-index:850;pointer-events:none;background:linear-gradient(var(--ink),var(--ink)) center/1.5px 100% no-repeat,linear-gradient(var(--ink),var(--ink)) center/100% 1.5px no-repeat;opacity:.75;filter:drop-shadow(0 0 1px #000)}
+#curPos{position:absolute;left:220px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums}#curX{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;z-index:850;pointer-events:none;background:linear-gradient(var(--ink),var(--ink)) center/1.5px 100% no-repeat,linear-gradient(var(--ink),var(--ink)) center/100% 1.5px no-repeat;opacity:.75;filter:drop-shadow(0 0 1px #000)}
 /* map text stays a fixed size; zoomed out past the planning scale it is hidden so the map stays readable */
 .leaflet-container.lowz .lbl,.leaflet-container.lowz .linelbl,.leaflet-container.lowz .tag,.leaflet-container.lowz .clbl,.leaflet-container.lowz .klbl,.leaflet-container.lowz .tlbl{display:none}
 /* small cross for the cursor over the map instead of the hand */
@@ -627,7 +627,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 21:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 21:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -875,7 +875,7 @@ map.on('moveend zoomend',drawGrid);
 /* eye altitude: height a camera with a 60 deg field of view would need to see this much ground */
 let centreElev=null,elevKey='',elevT=null;
 function updateEyeAlt(){if(g3On())return;const c=map.getCenter(),z=map.getZoom(),h=map.getSize().y;const mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,z+8);const eye=mpp*h/(2*Math.tan(30*D2R))+(centreElev||0);
-  $('#eyeAlt').textContent=`Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`;{const sc=document.querySelector('.leaflet-control-scale-line'),ea=$('#eyeAlt'),mw=ea.offsetParent;if(sc&&mw){const r=sc.getBoundingClientRect(),m=mw.getBoundingClientRect();ea.style.left=Math.round(r.right-m.left+4)+'px';ea.style.bottom=Math.max(2,Math.round(m.bottom-r.bottom))+'px'}}
+  $('#eyeAlt').textContent=`Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`;{const sc=document.querySelector('.leaflet-control-scale-line'),ea=$('#eyeAlt'),mw=ea.offsetParent;if(sc&&mw){const r=sc.getBoundingClientRect(),m=mw.getBoundingClientRect();ea.style.left=Math.round(r.right-m.left+4)+'px';ea.style.bottom=Math.max(2,Math.round(m.bottom-r.bottom))+'px'}if(typeof curPlace==='function')curPlace()}
   // ground elevation under the map centre, looked up once the map settles
   const key=c.lat.toFixed(3)+','+c.lng.toFixed(3);if(key===elevKey)return;elevKey=key;clearTimeout(elevT);
   elevT=setTimeout(async()=>{const m=await groundElevM({lat:c.lat,lon:c.lng});if(key!==elevKey)return;centreElev=m;elevKey=key;updateEyeAlt()},600)}
@@ -908,8 +908,9 @@ async function terrElevs(pts){const n=2**TZ;return Promise.all(pts.map(async p=>
   const x0=Math.floor(fx-.5),y0=Math.floor(fy-.5),tx=fx-.5-x0,ty=fy-.5-y0;const [a,b,c,e]=await Promise.all([h(x0,y0),h(x0+1,y0),h(x0,y0+1),h(x0+1,y0+1)]);return (a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+e*tx)*ty}))}
 /* cursor readout, bottom right: grid and ground height under the mouse, or under the centre cross on a touch screen; follows the cursor as it moves */
 const curHover=matchMedia('(hover:hover) and (pointer:fine)').matches;let curT=0,curSeq=0;
-function curShow(p){const box=$('#curPos');if(!box)return;box.hidden=false;const g=fc(p);box.innerHTML=`${g}<small id="curAlt">ground …</small>`;clearTimeout(curT);const n=++curSeq;
-  curT=setTimeout(async()=>{const m=await groundElevM(p);if(n!==curSeq)return;const e=document.getElementById('curAlt');if(e)e.textContent=m==null?'ground –':`ground ${Math.round(m/FT).toLocaleString('en-GB')} ft AMSL`},120)}
+function curShow(p){const box=$('#curPos');if(!box)return;box.hidden=false;const g=fc(p);box.innerHTML=`${g} · <span id="curAlt">…</span>`;curPlace();clearTimeout(curT);const n=++curSeq;
+  curT=setTimeout(async()=>{const m=await groundElevM(p);if(n!==curSeq)return;const e=document.getElementById('curAlt');if(e)e.textContent=m==null?'–':`${Math.round(m/FT).toLocaleString('en-GB')} ft AMSL`},120)}
+function curPlace(){const ea=document.getElementById('eyeAlt'),b=document.getElementById('curPos');if(!ea||!b)return;b.style.left=(ea.offsetLeft+ea.offsetWidth+4)+'px';b.style.bottom=ea.style.bottom||'8px'}
 async function groundElevM(p){try{const v=(await terrElevs([p]))[0];return isFinite(v)?v:null}catch(e){return null}}
 async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
   if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Could not get the ground height (no signal?). Tap the Red X to enter its altitude.',6000)}save('xs');renderXs()}}
