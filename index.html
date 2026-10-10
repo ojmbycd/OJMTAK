@@ -205,7 +205,7 @@ button,input,select{font:inherit;color:inherit}
 .thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:color-mix(in srgb,var(--panel2) 55%,transparent);border-radius:12px 12px 0 0}
 .thead b{flex:1;font:500 19px/1.1 var(--cond)}
 .tbody{max-height:42vh;overflow:auto;overscroll-behavior:contain}
-#tool .tbody,#tool.tall .tbody{flex:1;min-height:0;height:auto;max-height:none}#tool{right:8px!important;border-radius:10px!important;overflow:hidden}#tool .thead{padding:4px 8px 4px 10px;border-radius:0}#tool .thead b{font-size:16px}
+#tool .tbody,#tool.tall .tbody{flex:1;min-height:0;height:auto;max-height:none}#tool.side{right:0!important;width:auto!important;border-radius:10px 0 0 0!important}#tool{right:8px!important;border-radius:10px!important;overflow:hidden}#tool .thead{padding:4px 8px 4px 10px;border-radius:0}#tool .thead b{font-size:16px}
 #tool.min .tbody{display:none}
 .panel{padding:12px 12px 18px;max-width:720px;margin:0 auto}
 .panel h3{font:500 18px/1.2 var(--cond);margin:16px 0 8px}
@@ -283,6 +283,7 @@ table.winds td small{font-size:11px}
 /* ---------- action sheet + toast ---------- */
 #act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center}
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#act.side{align-items:stretch;justify-content:flex-end}#act.side .box{width:50%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
 #act h4{margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
@@ -759,7 +760,7 @@ map.on('zoomend moveend resize',updateEyeAlt);
 
 
 /* ================= action sheet ================= */
-function sheet({title,sub,input,buttons}){$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+function sheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';[...buttons,['Close',()=>{}]].forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});
@@ -1150,7 +1151,8 @@ function drawProj(){if(!projLayer)projLayer=L.layerGroup().addTo(map);projLayer.
   L.marker(LL(q),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${T>=60?T/60+' min':T+' s'}</span>`}),interactive:false}).addTo(projLayer)}
 $('#sProj').checked=S.set.proj!==false;$('#sProjSec').value=String(S.set.projSec||60);
 $('#sProj').onchange=e=>{S.set.proj=e.target.checked;save('set');drawProj()};$('#sProjSec').onchange=e=>{S.set.projSec=+e.target.value;save('set');drawProj()};
-function placeTool(){const t=$('#tool');if(t.hidden)return;const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
+function placeTool(){const t=$('#tool');if(t.hidden)return;t.classList.toggle('side',tool==='jump');
+  if(tool==='jump'){const mw=$('#mapwrap').getBoundingClientRect(),qb=$('#quick').getBoundingClientRect(),top=Math.round(qb.bottom-mw.top+8);t.style.left=Math.round(mw.width/2)+'px';t.style.bottom='0px';t.style.height=t.classList.contains('min')?'auto':Math.round(mw.height-top)+'px';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
   t.style.left=Math.round(st.right-mw.left+6)+'px';t.style.bottom=Math.round(mw.bottom-st.bottom)+'px';t.style.height=t.classList.contains('min')?'auto':Math.round(tool==='jump'?Math.max(st.height,mw.height*.4):st.height)+'px'}/* JM planning panel opens taller */
 function placeHud(){const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
   h.style.left=Math.round(st.right-mw.left+6)+'px';h.style.bottom=Math.round(mw.bottom-st.bottom)+'px';h.style.height=Math.round(st.height)+'px'}
@@ -1447,9 +1449,9 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
 function qnhSrcText(){const q=S.jump.qnhSrc;if(!q||S.jump.qnhUnknown)return '';return `${q.icao} ${q.name||''} · ${q.nm.toFixed(0)} nm ${fb(q.b)} T of the DIP · METAR ${String(q.time||'').slice(11,16)}Z`}
 async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const b=$('#qnhNearest');b.disabled=true;b.textContent='Looking up stations…';
   try{const r=await fetch(`${ADSB_URL}metar?lat=${S.pi.lat.toFixed(3)}&lon=${S.pi.lon.toFixed(3)}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||r.status);
-    const L=(j.stations||[]).map(m=>({...m,nm:dist(S.pi,m)/1852,b:brg(S.pi,m),age:Math.max(0,Math.round((Date.now()-Date.parse(m.time))/60000))})).filter(m=>m.nm<=100).sort((a,b)=>a.nm-b.nm).slice(0,6);
+    const L=(j.stations||[]).map(m=>({...m,inhg:(/\sA(\d{4})\b/.exec(m.raw||'')||[])[1],nm:dist(S.pi,m)/1852,b:brg(S.pi,m),age:Math.max(0,Math.round((Date.now()-Date.parse(m.time))/60000))})).filter(m=>m.nm<=100).sort((a,b)=>a.nm-b.nm).slice(0,6);
     if(!L.length)sheet({title:'No station within 100 nm',sub:'There is no weather station reporting within 100 nm of the DIP, so treat the altimeter setting as unknown.',buttons:[['Use setting unknown',()=>{S.jump.qnhUnknown=true;S.jump.qnhSrc=null;save('jump');syncCypInputs();renderJump()},'primary']]});
-    else sheet({title:'Nearest weather stations',sub:'Within 100 nm of the DIP, nearest first. Tap one to use its QNH.',buttons:L.map((m,i)=>[`${m.icao} · ${m.nm.toFixed(0)} nm ${fb(m.b)} · Q${Math.round(m.qnh)} · ${m.age<2?'just in':m.age<120?m.age+' min old':Math.round(m.age/60)+' h old'}`,()=>{S.jump.qnh=Math.round(m.qnh);S.jump.qnhUnit='mb';S.jump.qnhUnknown=false;S.jump.qnhSrc={icao:m.icao,name:m.name,nm:m.nm,b:m.b,time:m.time};save('jump');syncCypInputs();renderJump();toast(`QNH ${Math.round(m.qnh)} mb from ${m.icao}, ${m.nm.toFixed(0)} nm from the DIP`)},i===0?'primary':''])})}
+    else sheet({title:'Nearest weather stations',sub:'Within 100 nm of the DIP, nearest first. Tap one to use its QNH.',buttons:L.map((m,i)=>[`${m.icao} · ${m.nm.toFixed(0)} nm ${fb(m.b)} · ${m.inhg?'A'+m.inhg:'Q'+Math.round(m.qnh)} · ${m.age<2?'just in':m.age<120?m.age+' min old':Math.round(m.age/60)+' h old'}`,()=>{/* US stations report inches (A2992): keep their units */if(m.inhg){S.jump.qnh=+(m.inhg/100).toFixed(2);S.jump.qnhUnit='inhg'}else{S.jump.qnh=Math.round(m.qnh);S.jump.qnhUnit='mb'}S.jump.qnhUnknown=false;S.jump.qnhSrc={icao:m.icao,name:m.name,nm:m.nm,b:m.b,time:m.time};save('jump');syncCypInputs();renderJump();toast(`QNH ${m.inhg?(m.inhg/100).toFixed(2)+' inHg':Math.round(m.qnh)+' mb'} from ${m.icao}, ${m.nm.toFixed(0)} nm from the DIP`)},i===0?'primary':''])})}
   catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
   finally{b.disabled=false;b.textContent='Nearest station QNH (within 100 nm)'}}
 $('#qnhNearest').onclick=nearestQnh;
@@ -1549,7 +1551,7 @@ $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool'
 // long-press (or right-click) anywhere on the map offers to put the DIP there
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
 // placing a DIP: set it, then ask for a name while showing the ground altitude there
-function placeDipAt(p){setDipAt(p);const g=fc(p);sheet({title:'Name this DIP',sub:`${g} · altitude: looking up…`,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump')}},buttons:[]});setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
+function placeDipAt(p){setDipAt(p);const g=fc(p);sheet({side:true,title:'Name this DIP',sub:`${g} · altitude: looking up…`,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump')}},buttons:[]});setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
   groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;$('#actSub').textContent=`${g} · altitude ${m!=null?`${ff(m/FT)} AMSL`:'not available offline'}`})}
 function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
 map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>placeDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
