@@ -588,13 +588,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <div class="fields mt"><label class="fld"><span style="white-space:nowrap">VDZ override (ft AMSL)</span><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
                       </section>
           <div id="milOut"></div>
-          <h3 class="mt">Expert CYPRES offset</h3>
-          <p class="note">Use when the landing area is at a different elevation from the take-off airfield.</p>
-          <div class="fields">
-            <label class="fld"><span style="white-space:nowrap">Take-off airfield (ft AMSL)</span><input type="number" inputmode="decimal" data-j="toElev"></label>
-            <label class="fld"><span style="white-space:nowrap">Landing area / DZ (ft AMSL)</span><input type="number" inputmode="decimal" data-j="dzElev"></label>
-          </div>
-          <div id="cypOut"></div>
         </div>
 
         <div data-jm-panel="alti" hidden>
@@ -624,7 +617,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1319,7 +1312,7 @@ function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
 function drawPI(){const e=S.jump.dzElev;drawDipRings(S.pi,S.pi.name||'DIP',e!==''&&e!=null&&isFinite(+e)?+e:null);renderAltDips();drawPattern()}
 
 /* CYPRES + altimeter */
-function renderCypres(){renderMilCypres();const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
+function renderCypres(){renderMilCypres();if(!$('#cypOut'))return;const to=+S.jump.toElev,dz=+S.jump.dzElev;if(!isFinite(to)||!isFinite(dz)){$('#cypOut').innerHTML='';return}const dFt=dz-to,dM=dFt*FT;const rM=Math.round(dM/10)*10,rFt=Math.round(dFt/30)*30;const sign=v=>v>0?'+':v<0?'−':'';const abs=Math.abs;
   $('#cypOut').innerHTML=`<dl class="res">
     <dd data-l="Landing vs take-off">${abs(dFt)<1?'Same elevation':`${ff(abs(dFt))} ${dFt>0?'higher':'lower'}`}</dd>
     <dd class="big" data-l="Offset (metric unit)">${rM===0?'0 m':`${sign(rM)}${abs(rM)} m`}</dd>
