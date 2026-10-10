@@ -635,7 +635,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1643,7 +1643,7 @@ function drawPattern(){const P=S.pattern,PJ=patJ();if(!P.on||!S.pi||!PJ||PJ.err)
   const LLs=pts.map(q=>fromSY(q.s,q.y));
   /* rounded turns (a curve from up to 150 m either side of each turn point); the turn dots sit on the curve */
   const DOT=LLs.slice(0,3);
-  {const sm=pre?[pre,pts[0]]:[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],la=Math.hypot(b.s-a.s,b.y-a.y),lc=Math.hypot(c.s-b.s,c.y-b.y),r=Math.min(150,la*.45,lc*.45);
+  {const sm=pre?[pre,pts[0]]:[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],la=Math.hypot(b.s-a.s,b.y-a.y),lc=Math.hypot(c.s-b.s,c.y-b.y),r=0;/* square corners: the turn dots sit on the corners and the heights run along straight legs */
       if(r<5){sm.push(b);continue}const p0={s:b.s+(a.s-b.s)*r/la,y:b.y+(a.y-b.y)*r/la},p2={s:b.s+(c.s-b.s)*r/lc,y:b.y+(c.y-b.y)*r/lc};
       for(let t=0;t<=1.0001;t+=1/12){const u=1-t;sm.push({s:u*u*p0.s+2*u*t*b.s+t*t*p2.s,y:u*u*p0.y+2*u*t*b.y+t*t*p2.y})}
       if(i<3)DOT[i]=fromSY(.25*p0.s+.5*b.s+.25*p2.s,.25*p0.y+.5*b.y+.25*p2.y)}
