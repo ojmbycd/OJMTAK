@@ -603,7 +603,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -882,20 +882,22 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 /* turn a text label to any angle: slide to preview on the map, Save to keep */
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
-  sheet({title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}],['Cancel',()=>{d.rot=was;renderDraws()}]]});
+  sheet({side:true,title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}],['Cancel',()=>{d.rot=was;renderDraws()}]]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;renderDraws()}}
 /* line thickness on a slider, previewed on the map as you slide */
 function lineThick(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=d.w||2;
-  sheet({title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()}},buttons:[['Cancel',()=>{d.w=was;renderDraws()}]]});
+  sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()}},buttons:[['Cancel',()=>{d.w=was;renderDraws()}]]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=12;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;renderDraws()}}
-function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Angle',()=>textAngle(id)],['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
-  sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} · ${fb(brg(d.pts[0],b))} T · from ${fc(d.pts[0])}${d.kind==='line'?' · drag the ends to move':''}`,buttons:[
-    [d.label?'Edit text on line':'Add text on line',()=>sheet({title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})],
-    ['Colour',()=>sheet({title:'Line colour',buttons:[...COLORS.map(([v,n])=>[n,upd(()=>{d.color=v}),d.color===v?'primary':''])]})],
-    ['Thickness',()=>lineThick(id)],
-    [d.dash?'Make solid':'Make dashed',upd(()=>{d.dash=!d.dash})],
-    ['Reverse direction',upd(()=>{d.pts.reverse()})],
-    ['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]})}
+function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()}};
+  const colour=()=>{popSheet({side:true,title:d.kind==='text'?'Text colour':'Line colour',buttons:COLORS.map(([v,n])=>[n,()=>{d.color=v;save('draws');renderDraws();drawActions(id)},d.color===v?'primary':''])});[...$('#actBtns').children].forEach((b,k)=>{if(COLORS[k])b.style.boxShadow=`inset 8px 0 0 ${COLORS[k][0]}`})};
+  if(d.kind==='text'){openRadial(d.p,[{l:'Edit text',icon:'text',f:()=>popSheet({side:true,title:'Text label',input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[]})},{l:'Angle',icon:'angle',f:()=>textAngle(id)},{l:'Colour',icon:'palette',f:colour},del],`Text: ${d.text}`);return}
+  const a=d.pts[0],b=d.pts[d.pts.length-1],mid=d.pts[Math.floor(d.pts.length/2)];
+  openRadial(d.pts.length===2?{lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2}:mid,[
+    {l:d.label?'Edit text on line':'Text on line',icon:'text',f:()=>popSheet({side:true,title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})},
+    {l:'Colour',icon:'palette',f:colour},
+    {l:'Thickness',icon:'thick',f:()=>lineThick(id)},
+    {l:d.dash?'Make solid':'Make dashed',icon:'dash',f:()=>{d.dash=!d.dash;save('draws');renderDraws();drawActions(id)}},
+    {l:'Reverse',icon:'swap',f:()=>{d.pts.reverse();save('draws');renderDraws();drawActions(id)}},del],d.kind==='line'?'Line':'Freehand')}
 function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
@@ -1326,9 +1328,9 @@ $('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected autom
 
 async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Could not get the DZ height (no signal?). Enter it in the planner.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
 /* ================= DIP radial menu ================= */
-const RI={uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
+const RI={palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
 /* point options (DIP, HARP, alternates…) open in the docked panel like the Menu, with the map re-centred on the point */
-function openRadial(latlon,items,title){closeRadial();popSheet({side:true,title:title||latlon.name||'Options',sub:fc(latlon),buttons:items.map(it=>[it.l,it.f])});
+function openRadial(latlon,items,title){closeRadial();popSheet({side:true,title:title||latlon.name||'Options',sub:fc(latlon),buttons:items.map(it=>[it.l,it.f,it.cls])});
   [...$('#actBtns').children].forEach((b,k)=>{const it=items[k];if(it&&RI[it.icon])b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24">${RI[it.icon]}</svg>`)});setTimeout(()=>map.panTo(LL(latlon),{animate:true}),150)}
 function openRadialRing(latlon,items,title){closeRadial();const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=92,n=items.length;r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();closeRadial();items[+b.dataset.i].f()}}
 function closeRadial(){$('#radial').hidden=true}
