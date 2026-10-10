@@ -639,7 +639,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 01:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1193,10 +1193,10 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   const cdPts=[pi];{let q=pi;cdLegs.forEach(l=>{l.start=q;q=dest(q,l.d,l.m);l.end=q;cdPts.push(q)})}let op=cdPts[cdPts.length-1];
   /* HARP on ring: a chosen bearing from the DIP puts the PRP at full canopy range in that direction (same reach as the HARP ring) */
   const custom=j.harpBrg!=null&&j.mode!=='HAMO';if(custom){const b=+j.harpBrg,c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});op=dest(pi,b,r);cdPts.length=0;cdPts.push(pi,op)}
-  /* ATAK JumpMaster plugin method (matched to its own plans): the canopy flies one drive heading the whole way down, downwind of the average wind from the landing pattern up to the opening
+  /* ATAK JumpMaster plugin method (matched to its own plans): the canopy flies one drive heading the whole way down, downwind of the average wind from the ground up to the opening
      (or the chosen HARP bearing reversed). Each 1,000 ft layer between the pattern and the top of the assembly SF adds that layer's wind drift (wind at the layer top) plus canopy drive:
      drift = wind kts x 1852 x layer/1,000 ft / K, drive = canopy speed x 1852 x layer / K. Worked back from the DIP. */
-  const Wc=makeWind();let driveH;if(custom)driveH=norm(+j.harpBrg+180);else{let su=0,sv=0;for(let a=Math.ceil(lp/1000)*1000;a<=pull;a+=1000){const x=Wc(dz+a);su+=x.u;sv+=x.v}driveH=norm(Math.atan2(su,sv)*R2D)}
+  const Wc=makeWind();let driveH;if(custom)driveH=norm(+j.harpBrg+180);else{/* downwind of the wind averaged evenly through the height from the ground to the opening (fits the plugin to within about 0.3 degrees) */let su=0,sv=0;const n=Math.max(1,Math.round(pull/50));for(let i=0;i<=n;i++){const x=Wc(dz+pull*i/n),w=i===0||i===n?.5:1;su+=w*x.u;sv+=w*x.v}driveH=norm(Math.atan2(su,sv)*R2D)}
   const chain=[];{let q=pi,lo=lp;const top=pull-cas;while(lo<top-0.5){const hi=Math.min(top,Math.floor(lo/1000)*1000+1000),hh=(hi-lo)/1000,x=Wc(dz+Math.ceil(hi/1000)*1000),v=Math.hypot(x.u,x.v)/KT,up=norm(Math.atan2(-x.u,-x.v)*R2D);q=dest(q,up,v*1852*hh/K);q=dest(q,norm(driveH+180),FS*1852*hh/K);chain.push({p:q,h:hi});lo=hi}}
   if(chain.length){op=chain[chain.length-1].p;cdPts.length=0;cdPts.push(pi,...chain.map(c=>c.p))}
   const cdNm=Math.round(cdLegs.reduce((a,l)=>a+l.nm,0)*10)/10,cdKm=Math.round(cdLegs.reduce((a,l)=>a+l.km,0)*10)/10,cdM=dist(pi,op);const cd={v:cdLegs[0].v,d:brg(pi,op)};
