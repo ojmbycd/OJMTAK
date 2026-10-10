@@ -332,7 +332,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     <button id="heatKey" hidden title="Hide terrain heatmap"><b>Above DZ</b><span style="background:#2858FF"></span>below<span style="background:#28C85A"></span>level<span style="background:#FFD600"></span>+100<span style="background:#FF2A2A"></span>+200 ft ✕</button>
     <div id="g3bar" aria-label="3D view controls"><div class="g3row"><button class="g3b" id="g3Dip" aria-pressed="true">DIP view</button><button class="g3b" id="g3Harp" aria-pressed="false">HARP view</button></div><label class="g3sw"><span id="g3SwL">Orbit</span><input type="range" id="g3Sw" min="0" max="360" step="1" value="0" aria-label="Swivel 360 degrees"><output id="g3SwV">0°</output></label></div>
     <nav id="quick" aria-label="Quick menu">
-      <button class="qb lab" id="layoutBtn" aria-label="Layout"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M6.5 12h11"/></svg><span>Split</span></button>
+      <button class="qb lab" id="layoutBtn" aria-label="Layout"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M6.5 12h11"/></svg><span>Portrait</span></button>
       <button class="qb redx" data-tool="redx" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg><span>Marker</span></button>
       <button class="qb lab" data-tool="draw" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/><path d="M14 7l3 3"/></svg><span>Drawing tool</span></button>
       <button class="qb lab" data-tool="range" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12 19 5"/></svg><span>Range tool</span></button>
@@ -1735,7 +1735,7 @@ $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions
 const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
 /* phones (narrow screens) always put the menu and tool panels on the bottom half; wider screens can flip */
 const isPhone=()=>innerWidth<700;
-function applyDock(){const b=S.set.dbot==null?isPhone():!!S.set.dbot;document.body.classList.toggle('dbot',b);$('#layoutBtn').setAttribute('aria-label',b?'Layout: map top, panels bottom':'Layout: map left, panels right');$('#layoutBtn span').textContent=b?'Split':'Side'}
+function applyDock(){const b=S.set.dbot==null?isPhone():!!S.set.dbot;document.body.classList.toggle('dbot',b);$('#layoutBtn').setAttribute('aria-label',b?'Layout: map top, panels bottom':'Layout: map left, panels right');$('#layoutBtn span').textContent=b?'Portrait':'Landscape'}
 window.addEventListener('resize',()=>{const was=document.body.classList.contains('dbot');applyDock();if(was!==document.body.classList.contains('dbot'))drawerResize()});applyDock();
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
