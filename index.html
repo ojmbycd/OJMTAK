@@ -402,7 +402,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <!-- RED X -->
       <div class="panel" data-tool-panel="redx">
         <p class="note" style="margin-top:0">Quick check: tap the map to drop an X and see its grid and ground altitude. Tap an X to remove it. X's are never saved and clear when you close the Marker tool.</p>
-        <div class="row"><button class="btn" id="xMe">Plot at my position</button><button class="btn danger" id="xClear">Clear all</button></div>
+        <div class="row"><button class="btn danger" id="xClear">Clear all</button></div>
         <h3>Plotted</h3>
         <div class="list" id="xList"></div>
       </div>
@@ -600,7 +600,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 03:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 03:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -846,7 +846,7 @@ function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.
   $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>${esc(x.name||`X${i+1}`)} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
 function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;const nm=x.name||`X${i+1}`;sheet({title:nm,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:' · Alt –'),input:{label:'Name',value:nm,save:v=>{x.name=v.trim()||nm;save('xs');renderXs()}},
   buttons:[['Navigate to',()=>setTarget('x:'+id),'primary'],['Set altitude',()=>sheet({title:`${nm} altitude`,sub:x.alt!=null?ff(x.alt):'Not set',input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},buttons:[]})],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as DIP',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('DIP set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
-$('#xMe').onclick=()=>{if(!me){toast('No position yet. Start sensors or use simulation.');return}plotX(me,me.alt)};
+
 $('#xClear').onclick=()=>{if(!S.xs.length)return;sheet({title:'Clear all Red Xs?',buttons:[['Clear all',()=>{S.xs=[];save('xs');renderXs()},'danger']]})};
 $('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const b=e.target.closest('[data-x]');if(b)xActions(b.dataset.x)});
 
