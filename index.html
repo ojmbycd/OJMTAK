@@ -329,7 +329,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 #act.side{left:auto;width:var(--dw);background:none;align-items:stretch;justify-content:flex-end}body.dbot #act.side{left:0;width:auto;top:50%}body.dbot #act.side .box{border-left:none;border-top:1px solid var(--line);padding-top:14px}#act.side .box{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
 #act .dipalt{color:#9a9a9a;font-weight:400}
-#act .box{position:relative}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
+#act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}
 #act p{white-space:pre-line;margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -688,7 +688,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     <button class="iconbtn" id="actX" aria-label="Close">✕</button>
     <h4 id="actTitle"></h4>
     <p id="actSub"></p>
-    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn" id="actClr" hidden>Clear</button><button class="btn" id="actCancel" hidden>Cancel</button><button class="btn primary" id="actSave">Save</button></div></label></div>
+    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><input type="text" id="actIn" style="width:100%"></label><div class="inbtns"><button class="btn primary" id="actSave">Save</button><button class="btn danger" id="actClr" hidden>Clear</button><button class="btn" id="actCancel" hidden>Cancel</button></div></div>
     <div class="acts" id="actBtns"></div>
   </div>
 </div>
