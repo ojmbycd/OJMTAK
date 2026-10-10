@@ -603,7 +603,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -884,11 +884,15 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
   sheet({title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}],['Cancel',()=>{d.rot=was;renderDraws()}]]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;renderDraws()}}
+/* line thickness on a slider, previewed on the map as you slide */
+function lineThick(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=d.w||2;
+  sheet({title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()}},buttons:[['Cancel',()=>{d.w=was;renderDraws()}]]});
+  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=12;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;renderDraws()}}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Angle',()=>textAngle(id)],['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
   sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} · ${fb(brg(d.pts[0],b))} T · from ${fc(d.pts[0])}${d.kind==='line'?' · drag the ends to move':''}`,buttons:[
     [d.label?'Edit text on line':'Add text on line',()=>sheet({title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})],
     ['Colour',()=>sheet({title:'Line colour',buttons:[...COLORS.map(([v,n])=>[n,upd(()=>{d.color=v}),d.color===v?'primary':''])]})],
-    ['Thickness',()=>sheet({title:'Line thickness',buttons:[['Thin',2],['Medium',4],['Thick',7]].map(([n,w])=>[n,upd(()=>{d.w=w}),(d.w||2)===w?'primary':''])})],
+    ['Thickness',()=>lineThick(id)],
     [d.dash?'Make solid':'Make dashed',upd(()=>{d.dash=!d.dash})],
     ['Reverse direction',upd(()=>{d.pts.reverse()})],
     ['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]})}
