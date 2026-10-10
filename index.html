@@ -263,6 +263,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .fldnote{display:block;font-size:11px;color:var(--mute);margin-top:2px;min-height:13px}
 .btn.sm{padding:3px 10px;font-size:12px;margin-left:6px}
 #hamoBox .fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.navlock #quick .qb:not(#layoutBtn){opacity:.35}
 .drawtip{margin:8px 0 2px;font-weight:600;color:var(--amber)}.drawtip:empty{display:none}
 .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;justify-items:center}
 .swatch{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
@@ -619,7 +620,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1424,14 +1425,17 @@ const PRESETS={ac:{tiles:['amsl','togl','acspd','accse'],target:'c:harp',note:'J
 /* Auto jump only arms 2 minutes from first out, so the climb can't be mistaken for an exit; Force jump works any time */
 var ajArmed=false;
 function ajCheck(){if(ajArmed||S.hound.autoJump===false||!S.target||S.hound.tiles.join()!==PRESETS.ac.tiles.join()||!me||!(me.spd>1)||!J||J.err)return;if(dist(me,J.gl)/me.spd<=120){ajArmed=true;renderAutoJump();toast('Auto jump armed: 2 minutes to first out',4000);if(navigator.vibrate)navigator.vibrate([150,80,150])}}
-function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=!on?'Auto jump: OFF':ajArmed?'Auto jump: ON':'Auto jump: ARMS AT 2 MIN';b.setAttribute('aria-pressed',on&&ajArmed);b.dataset.state=on&&!ajArmed?'wait':''}
+function renderAutoJump(){const on=S.hound.autoJump!==false,b=$('#autoJump');if(!b)return;b.textContent=on?'Auto jump: ON':'Auto jump: OFF';b.setAttribute('aria-pressed',on&&ajArmed);b.dataset.state=on&&!ajArmed?'wait':''}
 $('#autoJump').onclick=()=>{S.hound.autoJump=S.hound.autoJump===false;save('hound');renderAutoJump();if(S.hound.autoJump){phaseAuto=true;renderPhase();startMotion();toast('Auto jump on: arms 2 minutes from first out, then switches to Canopy Data when you exit')}else toast('Auto jump off: use Force jump when you exit')};
 $('#forceJump').onclick=()=>{phase='freefall';renderPhase();renderJump();startJumpAs('canopy');if(navigator.vibrate)navigator.vibrate([300,100,300]);toast('Jump forced: Canopy Data to the DIP',4000)};
 /* once a jump is started the HARP rings are hidden; they come back when navigation stops */
 var jumpActive=false;
 function startJumpAs(k){jumpActive=true;if(k==='ac'){ajArmed=false}if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else{jumpActive=false;toast(`${P.note}: set the DIP first`)}renderJump();updateHound()}
 function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
-function setTarget(key){if(!key&&jumpActive){jumpActive=false;setTimeout(renderJump,0)}S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
+/* while navigating, the app is locked into navigation: menus and tools wait until STOP JUMP */
+function navLock(){if(!S.target)return false;toast('Navigating: press STOP JUMP to use the menus');return true}
+document.body.classList.toggle('navlock',!!S.target);
+function setTarget(key){document.body.classList.toggle('navlock',!!key);if(key){closeDrawer();if(tool)closeTool();closeSheet();closeRadial()}if(!key&&jumpActive){jumpActive=false;setTimeout(renderJump,0)}S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 // the box sits just right of the JUMPMASTER box, same height and bottom line, filling the space to the right
 var projLayer=null;
@@ -1509,7 +1513,7 @@ function itemsAt(pt){const out=[],seen=new Set();map.eachLayer(l=>{if(!l.listens
 map.getContainer().addEventListener('click',e=>{if(e.__picked||(mode&&!['none','draw-line','draw-free','draw-text','draw-shape','redx','range'].includes(mode)))return;if(e.target.closest&&e.target.closest('#radial,.leaflet-control-container,#quick,#status,#zoom,#hud,#tool,#tip'))return;
   const items=itemsAt(map.mouseEventToContainerPoint(e));if(items.length<2)return;e.stopPropagation();e.preventDefault();closeRadial();
   const at=map.mouseEventToLatLng(e);openRadial({lat:at.lat,lon:at.lng},items.slice(0,8).map(it=>({l:it.name.length>14?it.name.slice(0,13)+'…':it.name,icon:it.l instanceof L.Polyline?'thick':'alt',f:()=>setTimeout(()=>{radialCtx=null;it.l.fire('click',{latlng:it.l.getLatLng?it.l.getLatLng():at})},60)})),'Which one?')},true);
-function openRadial(latlon,items,title,line,ringR){selKeep=false;closeRadial();showSel(latlon,line);const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=ringR||92,n=items.length;r.style.setProperty('--rr',-R+'px');r.style.setProperty('--rd',2*R+'px');r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();selKeep=true;closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f();setTimeout(()=>{if($('#act').hidden&&$('#radial').hidden)clearSel()},1600)}}
+function openRadial(latlon,items,title,line,ringR){if(navLock())return;selKeep=false;closeRadial();showSel(latlon,line);const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=ringR||92,n=items.length;r.style.setProperty('--rr',-R+'px');r.style.setProperty('--rd',2*R+'px');r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();selKeep=true;closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f();setTimeout(()=>{if($('#act').hidden&&$('#radial').hidden)clearSel()},1600)}}
 function closeRadial(){$('#radial').hidden=true;if(!selKeep)clearSel()}
 map.on('movestart zoomstart click',closeRadial);
 function dipRadial(){openRadial(S.pi,[
@@ -1678,7 +1682,7 @@ const TOOL_TITLES={redx:'Red X',draw:'Draw',range:'Measure',layers:'Overlays',ju
 function openTool(t){closeDrawer();applyDock();document.body.classList.add('topen');setTimeout(()=>map.invalidateSize(),50);finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
   if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base);$$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
 function closeTool(){if(tool==='redx'&&S.xs.length){S.xs=[];renderXs()}finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;document.body.classList.remove('topen');setMode('none');setTimeout(()=>{map.invalidateSize();placeHud()},50)}
-$$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===t)closeTool();else if(t==='jump')jmMenu();else openTool(t)});
+$$('.qb[data-tool]').forEach(b=>b.onclick=()=>{if(navLock())return;const t=b.dataset.tool;if(tool===t)closeTool();else if(t==='jump')jmMenu();else openTool(t)});
 // JM button: choose to place a DIP, pick a saved one, or go straight to the plan
 // JM button: two see-through buttons drop down under it; tap anywhere else to hide them
 function jmMenu(){const pop=$('#jmPop');if(!pop.hidden){pop.hidden=true;return}closeDrawer();const b=$('.qb[data-tool="jump"]').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();pop.style.top=Math.round(b.bottom-mw.top+6)+'px';pop.style.right=Math.max(4,Math.round(mw.right-b.right))+'px';pop.hidden=false}
@@ -2135,7 +2139,7 @@ function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
 function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions();if(p==='data')offStatus()}
 function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
-$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{S.set.land=!S.set.land;save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
+$('#menuBtn').onclick=()=>{if(navLock())return;openDrawer()};$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{S.set.land=!S.set.land;save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
