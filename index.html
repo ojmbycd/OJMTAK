@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 20:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1303,7 +1303,11 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const w=makeWind
   /* worked back from the DIP (0 ft), so moving a point changes the turn heights rather than leaving height over */
   const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1])*cr/FT;
   const LLs=pts.map(q=>fromSY(q.s,q.y)),rnd=a=>Math.round(a/50)*50;
-  L.polyline(LLs.map(LL),{color:col,weight:3,interactive:false}).addTo(LY.jump);
+  {/* rounded turns: each corner is eased with a curve that starts and ends up to 150 m either side of the turn point */
+    const sm=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],la=Math.hypot(b.s-a.s,b.y-a.y),lc=Math.hypot(c.s-b.s,c.y-b.y),r=Math.min(150,la*.45,lc*.45);
+      if(r<5){sm.push(b);continue}const p0={s:b.s+(a.s-b.s)*r/la,y:b.y+(a.y-b.y)*r/la},p2={s:b.s+(c.s-b.s)*r/lc,y:b.y+(c.y-b.y)*r/lc};
+      for(let t=0;t<=1.0001;t+=1/12){const u=1-t;sm.push({s:u*u*p0.s+2*u*t*b.s+t*t*p2.s,y:u*u*p0.y+2*u*t*b.y+t*t*p2.y})}}
+    sm.push(pts[pts.length-1]);L.polyline(sm.map(q=>LL(fromSY(q.s,q.y))),{color:col,weight:3,interactive:false}).addTo(LY.jump)}
   LLs.slice(0,3).forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#7FB8FF">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
   if(alts[0]>startAlt+50)warn=`Needs ${ff(rnd(alts[0]))} at the start of downwind`;else if(warn&&!warn.startsWith('Not enough'))warn='';
   /* long press a turn point, then drag it to move it */
