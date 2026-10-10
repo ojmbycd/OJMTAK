@@ -633,7 +633,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 21:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 22:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -835,7 +835,7 @@ const bTM=b=>`${fb(b)} T`;
 let toastT;function toast(msg,ms=3200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms)}
 
 /* ================= map ================= */
-const map=L.map('map',{zoomControl:false,worldCopyJump:true,rotate:true,bearing:0,touchRotate:false,rotateControl:false,shiftKeyRotate:false}).setView(S.pi?LL(S.pi):[52.6,-1.8],S.pi?13:6);
+const map=L.map('map',{zoomControl:false,zoomSnap:0,zoomDelta:0.5,wheelPxPerZoomLevel:140,wheelDebounceTime:20,worldCopyJump:true,rotate:true,bearing:0,touchRotate:false,rotateControl:false,shiftKeyRotate:false}).setView(S.pi?LL(S.pi):[52.6,-1.8],S.pi?13:6);
 L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
 // 3D view leans the map back, so the far (top) side shows ground beyond the normal map edge: fetch tiles and draw lines out there too
 {const tpb=L.GridLayer.prototype._getTiledPixelBounds;L.GridLayer.prototype._getTiledPixelBounds=function(c){const b=tpb.call(this,c);if(!view3d)return b;const h=b.max.y-b.min.y,w=b.max.x-b.min.x;return L.bounds(b.min.subtract([w*0.9,h*1.8]),b.max.add([w*0.9,0]))};
@@ -1514,7 +1514,11 @@ $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-do
 // my arrow stays fixed pointing up (my heading); the target diamond moves round the ring to its bearing relative to me
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue(),dip=S.target==='c:pi';$('#dialHarp').style.display=dip?'none':'';$('#dialDip').style.display=dip?'':'none';$('#dialArrow').setAttribute('transform','');if(ht){$('#dialTgt').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialTgt').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
-$('#zIn').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomIn(c.positionCartographic.height*.4)}else map.zoomIn()};$('#zOut').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomOut(c.positionCartographic.height*.6)}else map.zoomOut()};
+/* + / − step the eye altitude in 5,000 ft steps (2,500 and 1,000 ft below 5,000; whole zoom levels above 50,000) */
+function eyeNowFt(){const c=map.getCenter(),h=map.getSize().y,mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,map.getZoom()+8);return (mpp*h/(2*Math.tan(30*D2R))+(centreElev||0))/FT}
+function setEyeFt(ft){const c=map.getCenter(),h=map.getSize().y,m=Math.max(30,ft*FT-(centreElev||0));map.setZoom(Math.min(map.getMaxZoom(),Math.max(map.getMinZoom(),Math.log2(40075016.686*Math.cos(c.lat*D2R)*h/(2*Math.tan(30*D2R)*m))-8)))}
+function eyeStep(dir){const e=Math.round(eyeNowFt());if(dir<0){if(e>50000){map.zoomIn(1);return}setEyeFt(e>5000?(Math.ceil(e/5000)-1)*5000:e>2500?2500:1000)}else{if(e>=50000){map.zoomOut(1);return}setEyeFt(e<1000?1000:e<2500?2500:e<5000?5000:(Math.floor(e/5000)+1)*5000)}}
+$('#zIn').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomIn(c.positionCartographic.height*.4)}else eyeStep(-1)};$('#zOut').onclick=()=>{if(g3On()){const c=G3.v.camera;c.zoomOut(c.positionCartographic.height*.6)}else eyeStep(1)};
 document.addEventListener('click',e=>{const sj=e.target.closest('[data-start]');if(sj){e.stopPropagation();startJumpAs(sj.dataset.start);return}const h=e.target.closest('[data-hound]');if(h){e.stopPropagation();setTarget(h.dataset.hound)}},true);
 
 
