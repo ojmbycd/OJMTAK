@@ -145,6 +145,7 @@ button,input,select{font:inherit;color:inherit}
 .hname{flex:1;font:400 16px/1.2 var(--cond);color:#CFCFCF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .docks{display:flex;gap:2px}.docks button{background:none;border:1px solid rgba(255,255,255,.18);color:#ddd;border-radius:6px;width:30px;height:30px;font-size:15px;cursor:pointer}
 .docks button[aria-pressed="true"]{background:#F2F2F2;color:#141414}
+.iconbtn{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:400 15px/1 var(--body);cursor:pointer}
 #hud .iconbtn{background:none;color:#eee;border-color:rgba(255,255,255,.18)}
 .hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
 #hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
@@ -595,7 +596,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1295,7 +1296,7 @@ function dipRadial(){openRadial(S.pi,[
   {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:patternSheet},
-  {l:S.jump.calcOff?'Calculate':'Uncalculate',icon:S.jump.calcOff?'params':'uncalc',f:()=>{S.jump.calcOff=!S.jump.calcOff;save('jump');renderJump();toast(S.jump.calcOff?'Plan cleared from the map':'Plan calculated')}},
+  {l:S.jump.calcOff?'Calculate':'Uncalculate',icon:S.jump.calcOff?'params':'uncalc',f:()=>{S.jump.calcOff=!S.jump.calcOff;save('jump');renderJump()}},
   {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
   {l:'Start Jump',icon:'hound',f:()=>startJumpAs('canopy')}])}
 
