@@ -352,7 +352,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <span class="k">Grid</span><span id="bPos">No fix</span>
         <span class="k">Alt</span><span id="bAlt"></span>
         <span class="k">Above DZ</span><span id="bAgl"></span>
-        <span class="k">Vert spd</span><span id="bVs"></span>
         <span class="k">Heading</span><span id="bHdg"></span>
         <span class="k">Gnd spd</span><span id="bSpd"></span>
         <span class="k">GPS</span><span><span id="bAcc"></span> <span id="bAge"></span></span>
@@ -589,7 +588,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 01:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 01:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1169,7 +1168,7 @@ const altHist=[];function vsNow(){if(altHist.length<2)return null;const a=altHis
 function onFix(f){const prev=me;f.t=Date.now();me=f;phaseFromFix(f);if(f.alt!=null){altHist.push({t:f.t,a:f.alt});while(altHist.length>2&&f.t-altHist[0].t>4000)altHist.shift()}
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
   drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow&&Date.now()>followHold)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
-function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null&&S.jump.dzElev!=null&&S.jump.dzElev!==''?ff(me.alt/FT-(+S.jump.dzElev||0)):'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}{const v=vsNow();$('#bVs').textContent=v==null||Math.abs(v)<2?'':`${v<0?'↓':'↑'} ${Math.round(Math.abs(v))} ft/s`}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
+function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null&&S.jump.dzElev!=null&&S.jump.dzElev!==''?ff(me.alt/FT-(+S.jump.dzElev||0)):'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
 let geoWatch=null,orientOn=false;
 new MutationObserver(()=>{if(mode&&mode.startsWith('draw-')&&$('#drawTip'))$('#drawTip').textContent=$('#tipText').textContent}).observe($('#tipText'),{childList:true,characterData:true,subtree:true});
 /* fix age and offline tag, refreshed every second: a stale fix turns red */
