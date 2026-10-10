@@ -113,6 +113,7 @@ button,input,select{font:inherit;color:inherit}
 
 .stackbtns{display:flex;flex-direction:column;gap:8px}.stackbtns>*{width:100%}
 .pathandle{border-radius:50%}.pathandle.on{background:rgba(57,255,106,.3);border:2px solid #39FF6A}
+.linelbl{position:absolute;left:0;top:0;transform-origin:0 0;white-space:nowrap;font:600 11px/1 var(--cond);text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none}
 .klbl.faint{font-size:11px;left:5px;top:-13px;opacity:.4}
 .klbl{position:absolute;left:8px;top:-18px;font:400 14px/1 var(--cond);color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .wlbl{position:absolute;left:-14px;top:-18px;white-space:nowrap;font:400 12px/1 var(--cond);color:#FF8C1A;text-shadow:0 0 3px #000,0 0 2px #000}
@@ -600,7 +601,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 03:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -856,7 +857,8 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
-      L.marker(LL(mid),{icon:tagPin(`${fd(pathLen(pts))} · ${fb(brg(pts[0],b))} T`),interactive:false}).addTo(LY.draw);
+      {/* length and direction run along the top side of the line, small, in the line's colour */let th=brg(a,b)-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;if(th>90)th-=180;else if(th<=-90)th+=180;
+        L.marker(LL(mid),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:${col};transform:rotate(${th}deg) translate(-50%,calc(-100% - ${Math.ceil(w/2)+1}px))">${fd(pathLen(pts))} · ${fb(brg(pts[0],b))} T</div>`}),interactive:false}).addTo(LY.draw)}
       L.marker(LL(arrowPt(a,b)),{icon:arrowIcon(a,b,col),interactive:false}).addTo(LY.draw);
       [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
@@ -1384,7 +1386,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
 let viewMode='north';
 function applyView(){const w=$('#mapwrap');const want3d=viewMode==='3d',tilt=want3d&&g3Failed;w.classList.toggle('tilt',tilt);const was=view3d;view3d=tilt;if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}show3d(want3d&&!g3Failed);if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
 $('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
-map.on('rotate',()=>{$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
+map.on('rotate',()=>{if(S.draws.some(d=>d.kind==='line')){clearTimeout(window.__rd);window.__rd=setTimeout(renderDraws,60)}$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
 /* ================= true 3D view: Cesium globe with terrain, loaded the first time 3D is opened ================= */
 const CES='https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/';
 var G3=null,g3Loading=null,g3Failed=false;
