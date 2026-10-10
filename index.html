@@ -420,6 +420,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <!-- RANGE -->
       <div class="panel" data-tool-panel="range">
         <div class="seg full" id="rngSeg"><button data-rm="perm" aria-pressed="true">Fixed line</button><button data-rm="move" aria-pressed="false">Moveable line</button><button data-rm="ring" aria-pressed="false">Range rings</button></div>
+        <p class="drawtip" id="rngTip"></p>
         <p class="note" id="rngNote"></p>
         <div id="ringCtl">
           <div class="fields"><label class="fld"><span style="white-space:nowrap">Ring interval (<span id="ringUnitLbl">feet</span>)</span><input type="number" inputmode="decimal" id="ringStep"></label><label class="fld">Units<select id="ringUnit"><option value="m">Metres (m)</option><option value="km">Kilometres (km)</option><option value="ft">Feet (ft)</option><option value="yd">Yards (yd)</option><option value="nm">Nautical miles (NM)</option></select></label></div>
@@ -602,7 +603,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -874,9 +875,7 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
-      {/* length and direction run along the top side of the line, small, in the line's colour */let th=brg(a,b)-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;if(th>90)th-=180;else if(th<=-90)th+=180;
-        L.marker(LL(mid),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:${col};transform:rotate(${th}deg) translate(-50%,calc(-100% - ${Math.ceil(w/2)+1}px))">${fd(pathLen(pts))} · ${fb(brg(pts[0],b))} T</div>`}),interactive:false}).addTo(LY.draw)}
-      L.marker(LL(arrowPt(a,b)),{icon:arrowIcon(a,b,col),interactive:false}).addTo(LY.draw);
+
       [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
@@ -897,7 +896,7 @@ mc.addEventListener('pointerdown',e=>{if(mode!=='draw-free'||e.target.closest('.
 mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
 const freeEnd=()=>{if(!free)return;const pts=free.map(p=>({lat:p.lat,lon:p.lon}));free=null;tmpLayer.clearLayers();if(pts.length>2){S.draws.push({id:uid(),kind:'free',color:S.set.drawColor,pts});save('draws');renderDraws()}};
 mc.addEventListener('pointerup',freeEnd);mc.addEventListener('pointercancel',freeEnd);
-function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. Each line shows its length and direction. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" title="${n}" aria-pressed="${S.set.drawColor===v}" style="background:${v}"></button>`).join('')}
+function syncDraw(){$$('#drawSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dm===S.set.drawMode));$('#drawFinish').hidden=true;$('#drawNote').textContent={line:'Tap the start, then the end. For distance and direction use Measure. Drag a line\'s ends to move them; tap a line or its ends for colour, thickness, dashes and direction.',free:'Drag on the map to draw. The map stops panning while freehand is on.',text:'Tap the map, type the label, save. Tap a label later to edit or delete it.'}[S.set.drawMode];$('#swatches').innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" aria-label="${n}" title="${n}" aria-pressed="${S.set.drawColor===v}" style="background:${v}"></button>`).join('')}
 $('#drawSeg').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;finishLine();S.set.drawMode=b.dataset.dm;save('set');syncDraw();enterToolMode('draw')};
 $('#swatches').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;S.set.drawColor=b.dataset.c;save('set');syncDraw();renderDraft()};
 $('#drawFinish').onclick=finishLine;
@@ -906,22 +905,25 @@ $('#drawClear').onclick=()=>{if(!S.draws.length)return;sheet({title:'Clear all d
 
 /* ================= RANGE ================= */
 let rngA=null;
-const lineLabel=(a,b)=>`${fd(dist(a,b))}<br>${bTM(brg(a,b))}`;
+const lineLabel=(a,b)=>`${fd(dist(a,b))} · ${bTM(brg(a,b))}`;
 // tiny direction arrow part-way along a line
 const arrowPt=(a,b)=>dest(a,brg(a,b),dist(a,b)*.85),arrowIcon=(a,b,col)=>L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block;transform:rotate(${brg(a,b)}deg);transform-origin:50% 50%;overflow:visible"><path d="M0-5 4 3.5 0 1.5-4 3.5Z" fill="${col}" stroke="#141414" stroke-width=".8"/></svg>`});
 // tiny end circle with a finger-sized touch area
 const endDot=col=>L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html:`<div style="width:8px;height:8px;margin:10px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`});
 const RU={m:{l:'metres',a:'m',f:1,d:0},km:{l:'kilometres',a:'km',f:1000,d:2},ft:{l:'feet',a:'ft',f:FT,d:0},yd:{l:'yards',a:'yd',f:.9144,d:0},nm:{l:'nautical miles',a:'NM',f:1852,d:2}};
 const ru=r=>RU[(r&&r.u)||S.set.ringUnit]||RU.m,inU=(m,u)=>+(m/u.f).toFixed(u.d),fmtU=(m,u)=>`${inU(m,u).toLocaleString('en-GB')} ${u.a}`;
+/* a label that runs along the top side of a line, small, in the line's colour, never upside down */
+function lineTag(a,b,text,col,w=2){let th=brg(a,b)-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;if(th>90)th-=180;else if(th<=-90)th+=180;
+  return L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:${col};transform:rotate(${th}deg) translate(-50%,calc(-100% - ${Math.ceil(w/2)+1}px))">${text}</div>`})}
 function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--amber');
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
-    const tag=L.marker(LL(mid()),{icon:tagPin(lineLabel(r.a,r.b)),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,ink),interactive:false}).addTo(LY.rng);
+    const tag=L.marker(LL(mid()),{icon:lineTag(r.a,r.b,lineLabel(r.a,r.b),ink),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,ink),interactive:false}).addTo(LY.rng);
     ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(ink)}).addTo(LY.rng);
-      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(tagPin(lineLabel(r.a,r.b)));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,ink))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
+      if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(lineTag(r.a,r.b,lineLabel(r.a,r.b),ink));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,ink))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
   renderRngList()}
 function rngText(r){return r.kind==='ring'?`Rings ${r.n} × ${fd(r.step)} · ${fc(r.c)}`:`${r.kind==='move'?'Moveable':'Fixed'} · ${fd(dist(r.a,r.b))} ${fb(brg(r.a,r.b))} T`}
 function renderRngList(){$('#rngList').innerHTML=S.rng.length?S.rng.map(r=>`<button class="item" data-r="${r.id}"><span class="sw" style="background:var(${r.kind==='move'||r.id===selRing?'--amber':'--ink'})"></span><span><b>${r.kind==='ring'?'Range rings':r.kind==='move'?'Moveable line':'Fixed line'}</b><small>${esc(rngText(r))}</small></span><span></span></button>`).join(''):'<p class="note">No range tools placed.</p>';const s=S.rng.find(r=>r.id===selRing);$('#ringCount').textContent=s?`${s.n} × ${fd(s.step)}`:'–'}
@@ -1205,7 +1207,7 @@ let geoWatch=null,orientOn=false;
 /* hide / show the jumper box (status); remembered */
 function applyStatusVis(){const h=!!S.set.statusHidden;$('#status').classList.toggle('collapsed',h);$('#statusToggle').textContent=h?'Show jumper details':'Hide jumper details';if(typeof placeHud==='function')placeHud()}
 $('#statusToggle').onclick=()=>{S.set.statusHidden=!S.set.statusHidden;save('set');applyStatusVis()};applyStatusVis();
-new MutationObserver(()=>{if(mode&&mode.startsWith('draw-')&&$('#drawTip'))$('#drawTip').textContent=$('#tipText').textContent}).observe($('#tipText'),{childList:true,characterData:true,subtree:true});
+new MutationObserver(()=>{const t=$('#tipText').textContent;if(mode&&mode.startsWith('draw-')&&$('#drawTip'))$('#drawTip').textContent=t;if(mode==='range'&&$('#rngTip'))$('#rngTip').textContent=t}).observe($('#tipText'),{childList:true,characterData:true,subtree:true});
 /* fix age and offline tag, refreshed every second: a stale fix turns red */
 setInterval(()=>{const g=$('#bAge');if(!g)return;const off=!navigator.onLine;if(!me||me.sim){g.textContent=off?'offline':'';g.style.color='#FFB020';return}const s_=Math.round((Date.now()-me.t)/1000);g.textContent=(s_<=1?'live':`${s_} s ago`)+(off?' · offline':'');g.style.color=s_>5?'#FF5A4F':off?'#FFB020':'#4DFF9A'},1000);
 async function startSensors(){
@@ -1403,7 +1405,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
 let viewMode='north';
 function applyView(){const w=$('#mapwrap');const want3d=viewMode==='3d',tilt=want3d&&g3Failed;w.classList.toggle('tilt',tilt);const was=view3d;view3d=tilt;if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}show3d(want3d&&!g3Failed);if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
 $('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
-map.on('rotate',()=>{if(S.draws.some(d=>d.kind==='line')){clearTimeout(window.__rd);window.__rd=setTimeout(renderDraws,60)}$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
+map.on('rotate',()=>{if(S.rng.some(r=>r.kind!=='ring')){clearTimeout(window.__rd);window.__rd=setTimeout(renderRng,60)}$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
 /* ================= true 3D view: Cesium globe with terrain, loaded the first time 3D is opened ================= */
 const CES='https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/';
 var G3=null,g3Loading=null,g3Failed=false;
@@ -1474,7 +1476,7 @@ function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!o
 
 /* ================= modes / quick menu ================= */
 /* while drawing, the tap instructions show in the Draw panel instead of over the map */
-function setMode(m,tip){mode=m;const inPanel=m.startsWith('draw-')&&tool==='draw';$('#tip').hidden=m==='none'||inPanel||(m==='redx'&&tool==='redx');if(tip)$('#tipText').textContent=tip;if($('#drawTip'))$('#drawTip').textContent=inPanel?$('#tipText').textContent:'';$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
+function setMode(m,tip){mode=m;const inPanel=m.startsWith('draw-')&&tool==='draw',inRng=m==='range'&&tool==='range';$('#tip').hidden=m==='none'||inPanel||inRng||(m==='redx'&&tool==='redx');if(tip)$('#tipText').textContent=tip;if($('#drawTip'))$('#drawTip').textContent=inPanel?$('#tipText').textContent:'';if($('#rngTip'))$('#rngTip').textContent=inRng?$('#tipText').textContent:'';$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
   const freeOn=m==='draw-free';if(freeOn){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}
   if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
 $('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','draw-text','range'].includes(mode))closeTool();else setMode('none')};
