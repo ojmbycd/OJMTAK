@@ -104,6 +104,8 @@ button,input,select{font:inherit;color:inherit}
 .pin{background:none;border:none}
 .lbl{font:500 13px/1.15 var(--cond);color:var(--ink);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg)}
 
+.stackbtns{display:flex;flex-direction:column;gap:8px}.stackbtns>*{width:100%}
+.klbl.faint{font-size:11px;left:5px;top:-13px;opacity:.4}
 .klbl{position:absolute;left:8px;top:-18px;font:400 14px/1 var(--cond);color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .wlbl{position:absolute;left:-14px;top:-18px;white-space:nowrap;font:400 12px/1 var(--cond);color:#FF8C1A;text-shadow:0 0 3px #000,0 0 2px #000}
 .clbl{display:inline-block;transform:translate(-50%,-50%);font:400 12px/1 var(--cond);text-shadow:0 0 3px #000,0 0 2px #000}
@@ -575,8 +577,7 @@ table.winds td small{font-size:11px}
           <label class="fld">Type<select id="ptType"></select></label>
           <label class="fld">Name<input type="text" id="ptName" placeholder="Auto"></label>
         </div>
-        <div class="row mt"><input type="text" id="ptGrid" placeholder="Grid or lat, long" style="flex:1;min-width:180px"><button class="btn" id="ptAddGrid">Add at grid</button></div>
-        <div class="row mt"><button class="btn" id="ptAddMe">Add at my position</button><button class="btn" id="ptDrop">Drop on map</button></div>
+        <div class="stackbtns mt"><input type="text" id="ptGrid" placeholder="Grid or lat, long"><button class="btn" id="ptAddGrid">Add at grid</button><button class="btn" id="ptAddMe">Add at my position</button><button class="btn" id="ptDrop">Drop on map</button></div>
         <h3>Navigate to</h3>
         <div class="list" id="ptList"></div>
         </div>
@@ -1001,7 +1002,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   L.polyline(P.path.slice(0,P.openIdx+1).map(LL),{color:c.amb,weight:3,dashArray:'2 7',lineCap:'round',interactive:false}).addTo(LY.jump);
   L.polyline(P.path.slice(P.openIdx).map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump);
   P.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);{const wb=brg(tail,m.p);L.marker(LL(dest(tail,wb,dist(tail,m.p)*.6)),{icon:L.divIcon({className:'pin',iconSize:[10,10],iconAnchor:[5,5],html:`<svg viewBox="-5 -5 10 10" width="10" height="10" style="display:block;transform:rotate(${wb}deg);overflow:visible"><path d="M0-4.5 3.5 3.5 0 1.8-3.5 3.5Z" fill="#FF8C1A" stroke="#141414" stroke-width=".6"/></svg>`}),interactive:false}).addTo(LY.jump)}L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
-  (P.ffMarks||[]).forEach(m=>{L.circleMarker(LL(m.p),{radius:4,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
+  (P.ffMarks||[]).forEach(m=>{L.circleMarker(LL(m.p),{radius:2.5,color:'#141414',weight:1,opacity:.35,fillColor:'#FFFFFF',fillOpacity:.35,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl faint">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
     /* openings above 10,000 ft: halving phase lines along the canopy trackback (half the distance back to the DIP, then half again), alongside the 2K/3K lines */
     if(P.trk.length>1&&P.trk[0].h>10000){const T=P.trk.slice().reverse(),cum=[0];for(let i=1;i<T.length;i++)cum.push(cum[i-1]+dist(T[i-1].p,T[i].p));const tot=cum[cum.length-1];
       const at=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return {p:dest(T[i-1].p,brg(T[i-1].p,T[i].p),dist(T[i-1].p,T[i].p)*f),h:T[i-1].h+(T[i].h-T[i-1].h)*f,b:brg(T[i].p,T[i-1].p)}}return null};
@@ -1290,7 +1291,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
     // freefall: exit at the HARP, falls with the wind to the PRP where the canopy opens
     const ffPts=P.path.slice(0,P.openIdx+1);let tot=0;const seg=ffPts.map((p,i)=>tot+=i?dist(ffPts[i-1],p):0);const ffPos=ffPts.map((p,i)=>at(p,tot?exA-(exA-pullP)*seg[i]/tot:pullP));
     if(ffPos.length>1){line(ffPos,amb,3,true);curtain(ffPos,amb)}else line([at(P.prp,exA),at(P.op,pullP)],amb,3,true);
-    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))});drop(P.op,pullP,wht)};
+    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>E.add({position:at(m.p,m.agl),point:{pixelSize:5,color:wht.withAlpha(.35),outlineColor:C.Color.BLACK.withAlpha(.35),outlineWidth:1,disableDepthTestDistance:Infinity},label:{text:`${m.agl/1000}K`,font:'500 11px "Barlow Condensed",sans-serif',fillColor:wht.withAlpha(.4),outlineColor:C.Color.BLACK.withAlpha(.4),outlineWidth:2,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(7,-6),disableDepthTestDistance:Infinity}}));drop(P.op,pullP,wht)};
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
   [J,...(hamo&&J2?[J2]:[])].forEach(P=>{const trk=P.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);P.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))})});/* each pod's canopy trackback */
