@@ -620,7 +620,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 11:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 12:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1238,7 +1238,7 @@ function renderJump(){heatSync();exitHint();LY.jump.clearLayers();computeHamo();
   if(hamo)[J,J2,J3].filter(Boolean).forEach((P,i)=>L.polygon(P.ring.map(LL),{color:P.ok?'#FFFFFF':'#FF2A2A',weight:1.2,opacity:.9,dashArray:i===1?'6 5':i===2?'1.5 5':null,fill:false,interactive:false}).addTo(LY.jump));
     const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
   if(showRun){L.polyline(runPts(J).map(LL),{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
-  L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(J.runEnd),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">+1 min</span>`}),interactive:false}).addTo(LY.jump);
+  L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);runTag(J.runEnd,hamo?hamoHeading:J.heading,'+1 min',c.amb);
   J.timePts.forEach(tp=>{const col=tp.t===60?G:tp.t===120?Rd:c.amb;const half=tp.t===240;const dotHtml=half?`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block"><path d="M0-5A5 5 0 0 1 0 5Z" fill="${G}"/><path d="M0-5A5 5 0 0 0 0 5Z" fill="${Rd}"/><circle r="5" fill="none" stroke="#141414" stroke-width="1"/></svg>`:'';
     if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
     runTag(tp.p,hamo?hamoHeading:J.heading,half?'4 min':tp.l,half?c.amb:col)});}
