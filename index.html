@@ -114,6 +114,7 @@ button,input,select{font:inherit;color:inherit}
 .stackbtns{display:flex;flex-direction:column;gap:8px}.stackbtns>*{width:100%}
 .pathandle{border-radius:50%}.pathandle.on{background:rgba(57,255,106,.3);border:2px solid #39FF6A}
 .linelbl{position:absolute;left:0;top:0;transform-origin:0 0;white-space:nowrap;font:600 11px/1 var(--cond);text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none}
+#radial .rb.danger{color:#FF5A4F}
 .klbl.faint{font-size:11px;left:5px;top:-13px;opacity:.4}
 .klbl{position:absolute;left:8px;top:-18px;font:400 14px/1 var(--cond);color:#fff;white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000}
 .wlbl{position:absolute;left:-14px;top:-18px;white-space:nowrap;font:400 12px/1 var(--cond);color:#FF8C1A;text-shadow:0 0 3px #000,0 0 2px #000}
@@ -603,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -836,14 +837,14 @@ map.on('zoomend moveend resize',updateEyeAlt);
 
 /* ================= action sheet ================= */
 /* while the menu is open, a choice list replaces the current menu page in the same place (Back returns) instead of popping up */
-function sheet(o){if(!o.side&&!$('#drawer').hidden)return dsheet(o);popSheet(o)}
+function sheet(o){if(radialCtx&&Date.now()-radialCtx.t<1500&&!o.side)o.side=true;if(!o.side&&!$('#drawer').hidden)return dsheet(o);popSheet(o)}
 let dParent='root',dSeq=0;
 function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;if(cur&&cur!=='sub')dParent=cur;const seq=++dSeq;
   $$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!=='sub');$('#dTitle').textContent=title;$('#dBack').hidden=false;$('#dSubSub').textContent=sub||'';$('#drawer .dbody')?.scrollTo?.(0,0);
   const done=leave=>{if(!$('#drawer').hidden&&seq===dSeq){if(leave)closeDrawer();else goPage(dParent)}};
   $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
   const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
-function popSheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+function popSheet({title,sub,input,buttons,side}){if(side&&radialCtx&&Date.now()-radialCtx.t<1500){const rp=radialCtx.p;setTimeout(()=>map.panTo(LL(rp)),150)}$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true;if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});$('#actX').onclick=closeSheet;
@@ -1329,10 +1330,9 @@ $('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected autom
 async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Could not get the DZ height (no signal?). Enter it in the planner.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
 /* ================= DIP radial menu ================= */
 const RI={palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
-/* point options (DIP, HARP, alternates…) open in the docked panel like the Menu, with the map re-centred on the point */
-function openRadial(latlon,items,title){closeRadial();popSheet({side:true,title:title||latlon.name||'Options',sub:fc(latlon),buttons:items.map(it=>[it.l,it.f,it.cls])});
-  [...$('#actBtns').children].forEach((b,k)=>{const it=items[k];if(it&&RI[it.icon])b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24">${RI[it.icon]}</svg>`)});setTimeout(()=>map.panTo(LL(latlon),{animate:true}),150)}
-function openRadialRing(latlon,items,title){closeRadial();const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=92,n=items.length;r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();closeRadial();items[+b.dataset.i].f()}}
+/* options for a point, line or label: a circle of buttons around it; whatever is picked opens in the docked panel with the map centred on the item */
+let radialCtx=null;
+function openRadial(latlon,items,title){closeRadial();const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=92,n=items.length;r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f()}}
 function closeRadial(){$('#radial').hidden=true}
 map.on('movestart zoomstart click',closeRadial);
 function dipRadial(){openRadial(S.pi,[
