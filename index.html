@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 19:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 19:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2119,7 +2119,7 @@ function parseAtakPkg(files,fname){const X=t=>new DOMParser().parseFromString(t,
       if(!c&&k&&sp){c={name:`${cn||'ATAK'} (k${k})`,k,spd:sp};if(!S.canopies.some(x=>x.name===c.name)){S.canopies.push(c);save('canopies')}}if(c)j.canopy=c.name}
     const wr=[...(jm?jm.querySelectorAll('winds wind'):[])].map(w=>({alt:N(w,'alt'),dir:N(w,'dir'),vel:N(w,'vel')})).filter(w=>w.alt!=null&&w.dir!=null&&w.vel!=null);
     const alts=[...[...e.querySelectorAll('altDIPs alt')].map(a=>altBy[A(a,'uid')]).filter(Boolean),...loose];
-    missions.push({id:uid(),name:nm,saved:Date.now(),data:{pi:{name:nm,lat:p.lat,lon:p.lon},jump:j,winds:jmWindsToRows(wr,dzE,j.exitAlt),altDips:alts.map(a=>Object.assign({},a,{id:uid()})),markers:JSON.parse(JSON.stringify(shared.markers)),draws:JSON.parse(JSON.stringify(shared.draws)),rng:JSON.parse(JSON.stringify(shared.rng)),xs:[]}})});
+    missions.push({id:uid(),name:`${nm} · ${pkgName.replace(/^DP-/,'')}`,saved:Date.now(),data:{pi:{name:nm,lat:p.lat,lon:p.lon},jump:j,winds:jmWindsToRows(wr,dzE,j.exitAlt),altDips:alts.map(a=>Object.assign({},a,{id:uid()})),markers:JSON.parse(JSON.stringify(shared.markers)),draws:JSON.parse(JSON.stringify(shared.draws)),rng:JSON.parse(JSON.stringify(shared.rng)),xs:[]}})});
   if(!missions.length&&(shared.markers.length||shared.draws.length||shared.rng.length))missions.push({id:uid(),name:pkgName,saved:Date.now(),data:{pi:null,jump:Object.assign({},S.jump),winds:S.winds,altDips:Object.values(altBy),markers:shared.markers,draws:shared.draws,rng:shared.rng,xs:[]}});
   return {missions,plain,pkgName}}
 $('#mImport').onclick=()=>$('#pkgFile').click();
