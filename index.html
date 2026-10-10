@@ -6,16 +6,13 @@
 <title>Jump Master Expert Tool</title>
 <meta name="apple-mobile-web-app-title" content="Jump Master Expert Tool">
 <meta name="application-name" content="Jump Master Expert Tool">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#E6E9E0; --panel:#F5F6F0; --panel2:#E9ECE2; --ink:#1A211C; --mute:#59624F; --line:#C1C8B8;
   --amber:#A86C00; --self:#0A7891; --pi:#BC1B5A; --go:#2A8743; --stop:#C3392C; --x:#E01E1E;
   --grid:rgba(25,45,30,.38); --mapbg:#D7DBCF;
-  --cond:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
-  --body:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --cond:Arial,Helvetica,sans-serif;
+  --body:Arial,Helvetica,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
@@ -56,7 +53,7 @@ button,input,select{font:inherit;color:inherit}
 .qb{background:rgba(16,16,16,.35);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(3px);border-radius:10px;width:50px;height:50px;display:grid;place-items:center;cursor:pointer;color:#F4F4F4;padding:0}
 .qb svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .qb span{display:none}
-.qb.redx,.qb.lab{grid-template-rows:auto auto;align-content:center;gap:1px}.qb.redx svg,.qb.lab svg{width:24px;height:24px}.qb.redx span,.qb.lab span{display:block;font:500 9px/1 var(--cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;text-align:center;white-space:normal;max-width:48px}.qb.lab[aria-pressed="true"] span{color:#141414}
+.qb.redx,.qb.lab{grid-template-rows:auto auto;align-content:center;gap:1px}.qb.redx svg,.qb.lab svg{width:24px;height:24px}.qb.redx span,.qb.lab span{display:block;font:500 7.5px/1 var(--cond);letter-spacing:0;text-transform:uppercase;color:#fff;text-align:center;white-space:normal;max-width:48px}.qb.lab[aria-pressed="true"] span{color:#141414}
 .qb[aria-pressed="true"]{background:#F4F4F4;color:#141414}
 .qb.redx svg{stroke:#FF2A2A;stroke-width:2.6}
 .qb.redx[aria-pressed="true"]{background:#FF2A2A}.qb.redx[aria-pressed="true"] svg{stroke:#fff}
@@ -582,7 +579,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 18:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 19:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -917,7 +914,7 @@ function adsbSheet(hex){const a=adsbAc.find(x=>x.hex===hex);if(!a)return;const j
 function g3Air(){if(!g3On())return;const C=Cesium;if(!G3.air){G3.air=new C.CustomDataSource('air');G3.v.dataSources.add(G3.air)}const E=G3.air.entities;E.removeAll();if(!S.ov.adsb)return;
   adsbAc.forEach(a=>{const alt=adsbAlt(a),jmp=a.hex===S.set.jumpAc,col=C.Color.fromCssColorString(jmp?'#FFD400':'#7FD3FF'),hr=alt==null?C.HeightReference.CLAMP_TO_GROUND:C.HeightReference.NONE;
     E.add({position:C.Cartesian3.fromDegrees(a.lon,a.lat,alt==null?0:alt*FT),point:{pixelSize:jmp?13:9,color:col,outlineColor:C.Color.BLACK,outlineWidth:1.5,heightReference:hr,disableDepthTestDistance:Infinity},
-      label:{text:`${adsbName(a)} ${alt==null?'GND':ff(alt)}`,font:'600 13px "Barlow Condensed",sans-serif',fillColor:col,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),heightReference:hr,disableDepthTestDistance:Infinity}})})}
+      label:{text:`${adsbName(a)} ${alt==null?'GND':ff(alt)}`,font:'600 13px Arial,sans-serif',fillColor:col,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),heightReference:hr,disableDepthTestDistance:Infinity}})})}
 if(!OV_NAMES.adsb)S.ov.adsb=false;setTimeout(adsbSync,2000);
 
 
@@ -1044,8 +1041,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     /* openings above 10,000 ft: halving phase lines along the canopy trackback (half the distance back to the DIP, then half again), alongside the 2K/3K lines */
     if(P.trk.length>1&&P.trk[0].h>10000){const T=P.trk.slice().reverse(),cum=[0];for(let i=1;i<T.length;i++)cum.push(cum[i-1]+dist(T[i-1].p,T[i].p));const tot=cum[cum.length-1];
       const at=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return {p:dest(T[i-1].p,brg(T[i-1].p,T[i].p),dist(T[i-1].p,T[i].p)*f),h:T[i-1].h+(T[i].h-T[i-1].h)*f,b:brg(T[i].p,T[i-1].p)}}return null};
-      for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;L.polyline([LL(dest(q.p,norm(q.b+90),450)),LL(dest(q.p,norm(q.b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump);
-        L.marker(LL(dest(q.p,norm(q.b+90),470)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#FF6B6B">PL ${ff(Math.round(q.h/100)*100)}</span>`}),interactive:false}).addTo(LY.jump)}}
+      for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;L.polyline([LL(dest(q.p,norm(q.b+90),450)),LL(dest(q.p,norm(q.b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump);}}
   };drawTrack(J);if(hamo&&J2)drawTrack(J2);
   if(!hamo)L.polygon(J.ring.map(LL),{color:'#FFFFFF',weight:1.2,opacity:.9,fill:false,interactive:false}).addTo(LY.jump);
   /* SP HAMO: both pods' HARP rings, pod 1 solid and pod 2 dashed, red if that pod's HARP falls outside its ring */
@@ -1321,7 +1317,7 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
   const line=(pos,c,w,dash)=>E.add({polyline:{positions:pos,width:w,arcType:C.ArcType.NONE,material:dash?new C.PolylineDashMaterialProperty({color:c,dashLength:14}):c}});
   const curtain=(pos,c)=>E.add({wall:{positions:pos,material:c.withAlpha(.16),outline:false}});
   const drop=(p,h,c)=>line([at(p,h),C.Cartesian3.fromDegrees(p.lon,p.lat,base-200)],c.withAlpha(.7),1,true);
-  const dot=(pos,c,text,size=9)=>E.add({position:pos,point:{pixelSize:size,color:c,outlineColor:C.Color.BLACK,outlineWidth:1.5,disableDepthTestDistance:Infinity},label:text?{text,font:'600 14px "Barlow Condensed",sans-serif',fillColor:c,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),disableDepthTestDistance:Infinity}:undefined});
+  const dot=(pos,c,text,size=9)=>E.add({position:pos,point:{pixelSize:size,color:c,outlineColor:C.Color.BLACK,outlineWidth:1.5,disableDepthTestDistance:Infinity},label:text?{text,font:'600 14px Arial,sans-serif',fillColor:c,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(10,-8),disableDepthTestDistance:Infinity}:undefined});
   const exA=(+S.jump.exitAlt)-dzSet,pull=+S.jump.openAlt,showRun=phase==='ground'||phase==='aircraft';
   const plan=(P,tag,first)=>{const pullP=P===J?pull:+S.jump.pod2Open;
     if(showRun){if(first){const run=[at(P.runStart,exA),at(P.runEnd,exA)],yel=col('#FFD400');line(run,yel,2.5,true);curtain(run,yel);P.timePts.forEach(tp=>{const c=tp.t===60?go:tp.t===120?st:amb;dot(at(tp.p,exA),c,tp.l,7);drop(tp.p,exA,gry)})}
@@ -1330,12 +1326,12 @@ function globeSync(){if(!g3On())return;const C=Cesium,E=G3.src.entities;E.remove
     // freefall: exit at the HARP, falls with the wind to the PRP where the canopy opens
     const ffPts=P.path.slice(0,P.openIdx+1);let tot=0;const seg=ffPts.map((p,i)=>tot+=i?dist(ffPts[i-1],p):0);const ffPos=ffPts.map((p,i)=>at(p,tot?exA-(exA-pullP)*seg[i]/tot:pullP));
     if(ffPos.length>1){line(ffPos,amb,3,true);curtain(ffPos,amb)}else line([at(P.prp,exA),at(P.op,pullP)],amb,3,true);
-    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>E.add({position:at(m.p,m.agl),point:{pixelSize:5,color:wht.withAlpha(.35),outlineColor:C.Color.BLACK.withAlpha(.35),outlineWidth:1,disableDepthTestDistance:Infinity},label:{text:`${m.agl/1000}K`,font:'500 11px "Barlow Condensed",sans-serif',fillColor:wht.withAlpha(.4),outlineColor:C.Color.BLACK.withAlpha(.4),outlineWidth:2,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(7,-6),disableDepthTestDistance:Infinity}}));drop(P.op,pullP,wht)};
+    dot(at(P.op,pullP),amb,`PRP${tag} · open ${ff(pullP)} AGL`);(P.ffMarks||[]).forEach(m=>E.add({position:at(m.p,m.agl),point:{pixelSize:5,color:wht.withAlpha(.35),outlineColor:C.Color.BLACK.withAlpha(.35),outlineWidth:1,disableDepthTestDistance:Infinity},label:{text:`${m.agl/1000}K`,font:'500 11px Arial,sans-serif',fillColor:wht.withAlpha(.4),outlineColor:C.Color.BLACK.withAlpha(.4),outlineWidth:2,style:C.LabelStyle.FILL_AND_OUTLINE,horizontalOrigin:C.HorizontalOrigin.LEFT,pixelOffset:new C.Cartesian2(7,-6),disableDepthTestDistance:Infinity}}));drop(P.op,pullP,wht)};
   plan(J,hamo?' 1':'',true);if(hamo&&J2)plan(J2,' 2',false);
   // canopy trackback with the height bands
   [J,...(hamo&&J2?[J2]:[])].forEach(P=>{const trk=P.trk.map(t=>at(t.p,t.h));line(trk,wht,4);curtain(trk,wht);P.marks.forEach(m=>{dot(at(m.p,m.agl),wht,`${m.agl/1000}K`,7);drop(m.p,m.agl,col('#BBBBBB'))})});/* each pod's canopy trackback */
   
-  E.add({position:C.Cartesian3.fromDegrees(S.pi.lon,S.pi.lat),point:{pixelSize:12,color:col(cssv('--pi')),outlineColor:C.Color.BLACK,outlineWidth:2,heightReference:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity},label:{text:S.pi.name||'DIP',font:'700 15px "Barlow Condensed",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,heightReference:C.HeightReference.CLAMP_TO_GROUND,pixelOffset:new C.Cartesian2(12,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Infinity}});
+  E.add({position:C.Cartesian3.fromDegrees(S.pi.lon,S.pi.lat),point:{pixelSize:12,color:col(cssv('--pi')),outlineColor:C.Color.BLACK,outlineWidth:2,heightReference:C.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:Infinity},label:{text:S.pi.name||'DIP',font:'700 15px Arial,sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.BLACK,outlineWidth:3,style:C.LabelStyle.FILL_AND_OUTLINE,heightReference:C.HeightReference.CLAMP_TO_GROUND,pixelOffset:new C.Cartesian2(12,-10),horizontalOrigin:C.HorizontalOrigin.LEFT,disableDepthTestDistance:Infinity}});
   if(G3.key!==piKey){G3.key=piKey;g3Frame()}G3.v.scene.requestRender()}
 // camera opens close to the DIP, standing back from it on the far side from the HARP, so the trackback comes down towards you
 function g3Frame(){const C=Cesium,v=G3.v,c=map.getCenter(),p=S.pi||{lat:c.lat,lon:c.lng};const base=(+S.jump.dzElev||0)*FT||G3.dzGround||0;
