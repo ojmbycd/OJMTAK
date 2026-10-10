@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -688,7 +688,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     <button class="iconbtn" id="actX" aria-label="Close">✕</button>
     <h4 id="actTitle"></h4>
     <p id="actSub"></p>
-    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn primary" id="actSave">Save</button></div></label></div>
+    <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn" id="actClr" hidden>Clear</button><button class="btn primary" id="actSave">Save</button></div></label></div>
     <div class="acts" id="actBtns"></div>
   </div>
 </div>
@@ -844,7 +844,7 @@ function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].fin
   const done=leave=>{if(!$('#drawer').hidden&&seq===dSeq){if(leave)closeDrawer();else goPage(dParent)}};
   $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
   const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
-function popSheet({title,sub,input,buttons,side}){if(side&&radialCtx&&Date.now()-radialCtx.t<1500){const rp=radialCtx.p;setTimeout(()=>map.panTo(LL(rp)),150)}$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+function popSheet({title,sub,input,buttons,side}){if(side&&radialCtx&&Date.now()-radialCtx.t<1500){const rp=radialCtx.p;setTimeout(()=>map.panTo(LL(rp)),150)}$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actClr').hidden=!input.clear;$('#actClr').onclick=e=>{e.preventDefault();i.value='';i.focus()};$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true;if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});$('#actX').onclick=closeSheet;
@@ -900,14 +900,14 @@ function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const d
   const colour=()=>{popSheet({side:true,title:d.kind==='text'?'Text colour':'Line colour',buttons:[]});const g=document.createElement('div');g.className='swatches';g.style.gridColumn='1/-1';
     const paint=()=>{g.innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" title="${n}" aria-label="${n}" aria-pressed="${colOf(d.color)===v}" style="background:${v}"></button>`).join('')};paint();
     g.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;d.color=b.dataset.c;save('draws');renderDraws();paint()};$('#actBtns').appendChild(g)};
-  if(d.kind==='text'){openRadial(d.p,[{l:'Edit text',icon:'text',f:()=>popSheet({side:true,title:'Text label',input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[]})},{l:'Angle',icon:'angle',f:()=>textAngle(id)},{l:'Colour',icon:'palette',f:colour},del],`Text: ${d.text}`);return}
+  if(d.kind==='text'){openRadial(d.p,[{l:'Edit text',icon:'text',f:()=>popSheet({side:true,title:'Text label',input:{clear:true,label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[]})},{l:'Angle',icon:'angle',f:()=>textAngle(id)},{l:'Colour',icon:'palette',f:colour},del],`Text: ${d.text}`);return}
   const a=d.pts[0],b=d.pts[d.pts.length-1],mid=d.pts[Math.floor(d.pts.length/2)];
   openRadial(d.pts.length===2?{lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2}:mid,[
-    {l:d.label?'Edit text on line':'Text on line',icon:'text',f:()=>popSheet({side:true,title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})},
+    {l:d.label?'Edit text on line':'Text on line',icon:'text',f:()=>popSheet({side:true,title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{clear:true,label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})},
     {l:'Colour',icon:'palette',f:colour},
     {l:'Thickness',icon:'thick',f:()=>lineThick(id)},
     {l:d.dash?'Make solid':'Make dashed',icon:'dash',f:()=>{d.dash=!d.dash;save('draws');renderDraws();drawActions(id)}},del],d.kind==='line'?'Line':'Freehand')}
-function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
+function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{clear:true,label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
 function renderDraft(){tmpLayer.clearLayers();if(!lineDraft||!lineDraft.length)return;const col=colOf(S.set.drawColor);L.polyline(lineDraft.map(LL),{color:col,weight:4,dashArray:'8 6',interactive:false}).addTo(tmpLayer);lineDraft.forEach(p=>dot(p,col,5).addTo(tmpLayer));if(lineDraft.length>1){const a=lineDraft[lineDraft.length-2],b=lineDraft[lineDraft.length-1];L.marker(LL(b),{icon:tagPin(`${fd(pathLen(lineDraft))}<br>leg ${fd(dist(a,b))} ${fb(brg(a,b))} T`),interactive:false}).addTo(tmpLayer)}$('#tipText').textContent=`${lineDraft.length} point${lineDraft.length>1?'s':''} · ${fd(pathLen(lineDraft))}. Tap to add, then Finish.`}
