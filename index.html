@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 20:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 20:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1315,7 +1315,12 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi)return;const w=makeWind
     const mvh=e=>{if(t&&!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>8){clearTimeout(t);t=null}if(drag)m.setLatLng(map.mouseEventToLatLng(e))};
     const up=()=>{clearTimeout(t);t=null;document.removeEventListener('pointermove',mvh);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!drag)return;drag=false;map.dragging.enable();const ll=m.getLatLng(),q={lat:ll.lat,lon:ll.lng};P.mv=Object.assign({},P.mv,{[k]:[brg(S.pi,q),dist(S.pi,q)]});save('pattern');renderJump()};
     el.addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;document.addEventListener('pointermove',mvh);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);t=setTimeout(()=>{t=null;drag=true;map.dragging.disable();el.classList.add('on');if(navigator.vibrate)navigator.vibrate(30);toast('Drag to move this point')},500)})});
-  const arrowBase=fromSY(Math.min(-40,pts[2].s*0.4),0);L.marker(LL(arrowBase),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#7FB8FF;left:-20px;top:4px">land ${fb(landDir)} T${warn?`<br><span style="color:#FFB020">${esc(warn)}</span>`:''}</span>`}),interactive:false}).addTo(LY.jump)}
+  {/* orange arrow along the final, from the pass in (start of final) towards the DIP, beside the line on the far side from the pattern, with the surface wind strength */
+    const off=(pts[1].y>0?-1:1)*45,s0=pts[2].s,s1=Math.min(-25,s0*0.15),oc='#FF8C1A';
+    if(s1-s0>40){const P2=(a,b)=>LL(fromSY(a,b));L.polyline([P2(s0,off),P2(s1,off)],{color:oc,weight:3,interactive:false}).addTo(LY.jump);
+      const hl=Math.min(45,(s1-s0)*.3);L.polyline([P2(s1-hl,off+hl*.5),P2(s1,off),P2(s1-hl,off-hl*.5)],{color:oc,weight:3,interactive:false}).addTo(LY.jump);
+      L.marker(P2((s0+s1)/2,off*2.2),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${oc};left:-14px;top:-7px">${Math.round(ws/KT)} kt</span>`}),interactive:false}).addTo(LY.jump)}
+    if(warn)L.marker(LL(fromSY(s0,off*3)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#FFB020">${esc(warn)}</span>`}),interactive:false}).addTo(LY.jump)}}
 
 
 /* ================= map view: north up / heading up / 3D ================= */
