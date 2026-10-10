@@ -137,7 +137,7 @@ button,input,select{font:inherit;color:inherit}
 #hud{position:absolute;z-index:1100;background:rgba(16,16,16,.45);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
 #hud[data-dock="box"]{right:8px;border-radius:10px;border-left-width:5px;min-height:0}
 #hud[data-dock="box"] .docks,#hud[data-dock="box"] .hfoot [data-preset],#hud[data-dock="box"] .hfoot .note{display:none}
-#hud[data-dock="box"] .hhead{padding:2px 4px 2px 8px;gap:4px;border-bottom:none}#hud[data-dock="box"] .hname{font-size:13px}#hud[data-dock="box"] #hStop{width:22px;height:22px;min-height:0;padding:0;font-size:12px}
+#hud[data-dock="box"] .hhead{padding:2px 4px 2px 8px;gap:4px;border-bottom:none}#hud[data-dock="box"] .hname{font-size:13px}#hud[data-dock="box"] #hStop{min-height:0;width:auto;height:auto}
 #hud[data-dock="box"] .hbody{padding:0 6px;gap:4px;grid-template-columns:auto 1fr;min-height:0}#hud[data-dock="box"] #dial{width:44px;height:44px}
 #hud[data-dock="box"] .tiles{grid-template-columns:1fr 1fr;grid-auto-rows:auto;height:auto;gap:3px}#hud[data-dock="box"] .tile{padding:1px 5px;border-radius:6px}
 #hud[data-dock="box"] .tile small{font-size:9px}#hud[data-dock="box"] .tile b{font-size:17px}
@@ -153,6 +153,8 @@ button,input,select{font:inherit;color:inherit}
 .docks{display:flex;gap:2px}.docks button{background:none;border:1px solid rgba(255,255,255,.18);color:#ddd;border-radius:6px;width:30px;height:30px;font-size:15px;cursor:pointer}
 .docks button[aria-pressed="true"]{background:#F2F2F2;color:#141414}
 .iconbtn{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:400 15px/1 var(--body);cursor:pointer}
+#hud .hname{flex:1;min-width:0}#hud .hname b{display:block;font:700 12px/1.15 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}#hud .hname small{display:block;font-size:10px;opacity:.75}
+#hud .stopjump{flex:none;background:#D62828;color:#fff;border:none;border-radius:7px;padding:4px 9px;font:700 11px/1 var(--body);letter-spacing:.03em;cursor:pointer}
 #hud .iconbtn{background:none;color:#eee;border-color:rgba(255,255,255,.18)}
 .hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
 #hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
@@ -383,7 +385,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <div class="hhead">
         <div class="hname" id="hName">Navigate</div>
         <div class="docks"><button data-dock="left" title="Dock left">◧</button><button data-dock="top" title="Dock top">⬒</button><button data-dock="bottom" title="Dock bottom">⬓</button><button data-dock="right" title="Dock right">◨</button></div>
-        <button id="hStop" class="iconbtn" aria-label="Stop navigation">✕</button>
+        <button id="hStop" class="stopjump" aria-label="Stop jump">STOP JUMP</button>
       </div>
       <div class="hbody">
         <svg id="dial" viewBox="-50 -50 100 100" aria-hidden="true">
@@ -617,7 +619,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1445,7 +1447,7 @@ function placeZoom(){const z=$('#zoom'),st=$('#status').getBoundingClientRect(),
 function placeHud(){placeZoom();const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
   h.style.left=Math.round(st.right-mw.left+6)+'px';h.style.bottom=Math.round(mw.bottom-st.bottom)+'px';h.style.height=Math.round(st.height)+'px'}
 if(window.ResizeObserver)new ResizeObserver(()=>{placeHud();placeTool()}).observe($('#status'));new MutationObserver(placeTool).observe($('#tool'),{attributes:true,attributeFilter:['class','hidden']});window.addEventListener('resize',()=>{placeHud();placeTool()});
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').textContent=tl===PRESETS.ac.tiles.join()?`Jumpmaster Data · ${r.name}`:tl===PRESETS.canopy.tiles.join()?`Canopy Data · ${r.name}`:`Navigate to ${r.name}`}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').innerHTML=`<b>NAVIGATE MODE - TO ${esc((S.target==='c:pi'?`DIP${S.pi&&S.pi.name&&S.pi.name!=='DIP'?' ('+S.pi.name+')':''}`:String(r.name)).toUpperCase())}</b><small>${tl===PRESETS.ac.tiles.join()?'Jumpmaster data':tl===PRESETS.canopy.tiles.join()?'Canopy data':'Navigation'}</small>`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
