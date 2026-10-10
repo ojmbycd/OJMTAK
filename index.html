@@ -503,7 +503,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               </div>
               <p class="note" style="margin:6px 0 0;color:var(--amber);font-weight:600">Bottom SF is fixed at 1,000 ft for every pod.</p>
               <label class="fld mt"><span>Off wind line <span id="hamoCseLbl"></span></span><input type="range" id="hamoSlider" min="0" max="90" step="1"></label>
-              <p class="note" id="hamoNote" style="white-space:pre-line;line-height:1.5"></p>
+              <p class="note" id="hamoNote" style="white-space:pre-line;line-height:1.45;font-size:12px"></p>
             </div>
           </section>
           <section class="sec" id="windSec">
@@ -623,7 +623,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -794,6 +794,8 @@ if(S.set.callsign==='JUMP MASTER EXPERT TOOL'||S.set.callsign==='JUMPMASTER PRO'
 if(!S.set.drawColor||S.set.drawColor.startsWith('--')){S.set.drawColor='#FF0000';save('set')}
 const colOf=c=>!c?'#FF0000':c.startsWith('--')?cssv(c):c;
 function pickColour(cur,done){const i=document.createElement('input');i.type='color';i.value=/^#[0-9a-f]{6}$/i.test(colOf(cur))?colOf(cur):'#ff0000';i.style.cssText='position:fixed;left:-99px;top:0;opacity:0';document.body.appendChild(i);i.addEventListener('change',()=>{done(i.value.toUpperCase());i.remove()});i.addEventListener('blur',()=>setTimeout(()=>i.remove(),500));i.click()}
+/* knots: 1 kt, otherwise kts */
+const kts=v=>{const r=Math.round(+v||0);return `${r} ${Math.abs(r)===1?'kt':'kts'}`};
 const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
 
 /* ================= formatting ================= */
@@ -1077,9 +1079,9 @@ async function adsbPoll(){clearTimeout(adsbT);if(!S.ov.adsb)return;const c=S.pi|
   catch(e){if(++adsbErr===3)toast('Live aircraft feed not reachable. Check internet; retrying.',4500)}
   adsbT=setTimeout(adsbPoll,document.hidden?60000:10000)}
 function drawAdsb(){LY.adsb.clearLayers();adsbAc.forEach(a=>{const jmp=a.hex===S.set.jumpAc,alt=adsbAlt(a),col=jmp?'#FFD400':'#7FD3FF',toH=jmp&&J&&!J.err?` · HARP ${fd(dist(a,J.harp))}`:'';
-    const html=`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28" style="transform:rotate(${a.track||0}deg);overflow:visible"><path d="M0-12 2-3 11 2 11 4 2 1 1.5 8 5 11 5 12.5 0 11-5 12.5-5 11-1.5 8-2 1-11 4-11 2-2-3Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="lbl" style="position:absolute;left:28px;top:-2px;color:${col}">${esc(adsbName(a))}<br>${alt==null?'GND':ff(alt)} · ${Math.round(a.gs||0)} kt${toH}</span></div>`;
+    const html=`<div style="position:relative;width:28px;height:28px"><svg viewBox="-14 -14 28 28" width="28" height="28" style="transform:rotate(${a.track||0}deg);overflow:visible"><path d="M0-12 2-3 11 2 11 4 2 1 1.5 8 5 11 5 12.5 0 11-5 12.5-5 11-1.5 8-2 1-11 4-11 2-2-3Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="lbl" style="position:absolute;left:28px;top:-2px;color:${col}">${esc(adsbName(a))}<br>${alt==null?'GND':ff(alt)} · ${kts(Math.round(a.gs||0))}${toH}</span></div>`;
     L.marker([a.lat,a.lon],{icon:L.divIcon({className:'pin',iconSize:[28,28],iconAnchor:[14,14],html}),zIndexOffset:jmp?900:500}).on('click',()=>adsbSheet(a.hex)).addTo(LY.adsb)});g3Air()}
-function adsbSheet(hex){const a=adsbAc.find(x=>x.hex===hex);if(!a)return;const jmp=S.set.jumpAc===hex,alt=adsbAlt(a);let sub=`${a.t||'Type ?'} ${a.r||''} · ${alt==null?'on the ground':ff(alt)+' AMSL'} · ${Math.round(a.gs||0)} kt · ${fb(a.track||0)} T`;
+function adsbSheet(hex){const a=adsbAc.find(x=>x.hex===hex);if(!a)return;const jmp=S.set.jumpAc===hex,alt=adsbAlt(a);let sub=`${a.t||'Type ?'} ${a.r||''} · ${alt==null?'on the ground':ff(alt)+' AMSL'} · ${kts(Math.round(a.gs||0))} · ${fb(a.track||0)} T`;
   if(J&&!J.err){const d=dist(a,J.harp),gs=(a.gs||0)*KT;sub+=` · HARP ${fd(d)}${gs>10?`, ${fsec(d/gs)}`:''}`}
   sheet({title:adsbName(a)||'Aircraft',sub,buttons:[[jmp?'Stop tracking as jump aircraft':'Set as jump aircraft',()=>{S.set.jumpAc=jmp?null:hex;save('set');drawAdsb();toast(jmp?'Jump aircraft cleared':'Jump aircraft set')},'primary'],['Centre map',()=>map.setView([a.lat,a.lon],Math.max(map.getZoom(),11))]]})}
 function g3Air(){if(!g3On())return;const C=Cesium;if(!G3.air){G3.air=new C.CustomDataSource('air');G3.v.dataSources.add(G3.air)}const E=G3.air.entities;E.removeAll();if(!S.ov.adsb)return;
@@ -1231,7 +1233,7 @@ function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode
 /* the POD HAMO summary under the dial: top SFs, jumpers, time between pods, off wind line, course, and any problem */
 function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the POD HAMO.';const h=hamo,n=h.order.length,bad=h.order.find(P=>!P.ok),K=['casSF','pod2Cas','pod3Cas'].slice(0,n),jm=[S.jump.jumpers,S.jump.pod2Jumpers,S.jump.pod3Jumpers].slice(0,n);
   const status=bad?`⚠ Pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'is outside its ring'}`:h.waits.some(t=>t<30)?'⚠ Under 30 s between pods: move the dial':'';
-  return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')} (last out to next first out)\nOff wind line: ${(()=>{const sp=Math.round(+(S.jump.hamoSpread??15));return sp?`Pod 1 ${sp}° L · Pod ${n} ${sp}° R`:'on the wind line'})()}\nAC course: ${fb(hamoHeading)} T${status?'\n'+status:''}`}
+  return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')}\nOff wind line: ${(()=>{const sp=Math.round(+(S.jump.hamoSpread??15));return sp?`Pod 1 ${sp}° L · Pod ${n} ${sp}° R`:'on the wind line'})()}\nAC course: ${fb(hamoHeading)} T${status?'\n'+status:''}`}
 // release solution for one pod (or the single jump)
 function calcDl(P,n){return `<dl class="res">
     <dd class="big" data-l="HARP">${fc(P.harp)}</dd>
@@ -1239,12 +1241,12 @@ function calcDl(P,n){return `<dl class="res">
     ${P.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${P.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===P.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${P.FS} + ${l.v}) ÷ ${+P.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
     <dd data-l="Jumper Heading">${fb(P.jumperHdgM)} M, OP to DIP</dd>
     <dd data-l="Aircraft Course">${bTM(P.heading)}</dd>
-    <dd data-l="PCOT">${fsec(P.pcot)}: (${n} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(P.stick)} m at ${Math.round(P.gsM/KT)} kt ground speed</dd>
+    <dd data-l="PCOT">${fsec(P.pcot)}: (${n} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(P.stick)} m at ${kts(Math.round(P.gsM/KT))} ground speed</dd>
     <dd data-l="Half stick">${Math.round(P.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
     <dd data-l="PRP (canopy opens)">${fc(P.op)}</dd>
     <dd data-l="HARP to PRP">${fd(dist(P.harp,P.op))} @ ${fb(brg(P.harp,P.op))} T, freefall drift</dd>
     <dd data-l="HARP to DIP">${fd(dist(P.harp,S.pi))} | ${(dist(P.harp,S.pi)/1852).toFixed(2)} NM</dd>
-    <dd data-l="Ground speed on run-in">${Math.round(P.gsM/KT)} kt (${S.jump.kias} KIAS, TAS ${Math.round(P.tas)} kt)</dd>
+    <dd data-l="Ground speed on run-in">${kts(Math.round(P.gsM/KT))} (${S.jump.kias} KIAS, TAS ${kts(Math.round(P.tas))})</dd>
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 /* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
 const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
@@ -1256,7 +1258,7 @@ function renderJump(){heatSync();exitHint();LY.jump.clearLayers();
   $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line, left/right as seen under canopy looking back at the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
   $('#harpBrgLbl').textContent=off===0?'(on mean wind line)':Math.abs(off)===180?'(180°, opposite the wind line)':`(${Math.abs(off)}° ${off>0?'L':'R'} of mean wind line)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
   {/* expected GPS ground speed for the AC settings */const g=$('#gsOut');if(g){const tl=J.tail/KT,cr=J.cross/KT,crab=Math.asin(Math.max(-1,Math.min(1,J.cross/(J.tas*KT||1))))*R2D;
-    g.innerHTML=`<b>GPS ground speed on run-in ≈ ${Math.round(J.gsM/KT)} kt</b><small>${+S.jump.kias||0} KIAS = ${Math.round(J.tas)} kt TAS at ${ff(+S.jump.exitAlt)} · ${Math.round(Math.abs(tl))<1?'no head/tailwind':`${Math.round(Math.abs(tl))} kt ${tl>=0?'tailwind':'headwind'}`} · ${Math.round(Math.abs(cr))<1?'no crosswind':`${Math.round(Math.abs(cr))} kt crosswind from the ${cr>0?'left':'right'}, crab ${Math.round(Math.abs(crab))}° ${cr>0?'left':'right'}`} · course ${fb(J.heading)} T</small>`}}
+    g.innerHTML=`<b>GPS ground speed on run-in ≈ ${kts(Math.round(J.gsM/KT))}</b><small>${+S.jump.kias||0} KIAS = ${kts(Math.round(J.tas))} TAS at ${ff(+S.jump.exitAlt)} · ${Math.round(Math.abs(tl))<1?'no head/tailwind':`${kts(Math.round(Math.abs(tl)))} ${tl>=0?'tailwind':'headwind'}`} · ${Math.round(Math.abs(cr))<1?'no crosswind':`${kts(Math.round(Math.abs(cr)))} crosswind from the ${cr>0?'left':'right'}, crab ${Math.round(Math.abs(crab))}° ${cr>0?'left':'right'}`} · course ${fb(J.heading)} T</small>`}}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
   /* freefall (amber dashes) and canopy trackback (white) with height dots, wind lines and 2K/3K phase lines; drawn the same for each pod */
@@ -1265,7 +1267,7 @@ function renderJump(){heatSync();exitHint();LY.jump.clearLayers();
   {/* with the landing pattern on, the canopy line stops at the 2K mark (the pattern takes over from there) */let cp=P.path.slice(P.openIdx);const k2=S.pattern&&S.pattern.on&&(P.marks||[]).find(m=>m.agl===2000);
     if(k2&&cp.length>1){const k=map.project(LL(k2.p),15);let bi=0,bd=Infinity;for(let i=0;i<cp.length-1;i++){const a=map.project(LL(cp[i]),15),b=map.project(LL(cp[i+1]),15),dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy,t=l2?Math.max(0,Math.min(1,((k.x-a.x)*dx+(k.y-a.y)*dy)/l2)):0,d=Math.hypot(a.x+t*dx-k.x,a.y+t*dy-k.y);if(d<bd){bd=d;bi=i}}cp=[...cp.slice(0,bi+1),k2.p]}
     L.polyline(cp.map(LL),{color:'#FFFFFF',weight:3,opacity:.95,interactive:false}).addTo(LY.jump)}
-  P.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);{const wb=brg(tail,m.p);L.marker(LL(dest(tail,wb,dist(tail,m.p)*.6)),{icon:L.divIcon({className:'pin',iconSize:[10,10],iconAnchor:[5,5],html:`<svg viewBox="-5 -5 10 10" width="10" height="10" style="display:block;transform:rotate(${wb}deg);overflow:visible"><path d="M0-4.5 3.5 3.5 0 1.8-3.5 3.5Z" fill="#FF8C1A" stroke="#141414" stroke-width=".6"/></svg>`}),interactive:false}).addTo(LY.jump)}L.marker(LL(tail),{icon:textPin(`${Math.round(m.spd)} kt`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);
+  P.marks.forEach((m,i)=>{if(m.agl===2000||m.agl===3000){const nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi;const trk=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(trk+90),450)),LL(dest(m.p,norm(trk-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}const from=norm(m.dir+180);const tail=dest(m.p,from,Math.max(60,m.spd*KT*30));L.polyline([LL(tail),LL(m.p)],{color:'#FF8C1A',weight:2,interactive:false}).addTo(LY.jump);{const wb=brg(tail,m.p);L.marker(LL(dest(tail,wb,dist(tail,m.p)*.6)),{icon:L.divIcon({className:'pin',iconSize:[10,10],iconAnchor:[5,5],html:`<svg viewBox="-5 -5 10 10" width="10" height="10" style="display:block;transform:rotate(${wb}deg);overflow:visible"><path d="M0-4.5 3.5 3.5 0 1.8-3.5 3.5Z" fill="#FF8C1A" stroke="#141414" stroke-width=".6"/></svg>`}),interactive:false}).addTo(LY.jump)}L.marker(LL(tail),{icon:textPin(`${kts(Math.round(m.spd))}`,'wlbl'),interactive:false}).addTo(LY.jump);L.circleMarker(LL(m.p),{radius:5,color:'#141414',weight:1.5,fillColor:'#FFFFFF',fillOpacity:1,interactive:false}).addTo(LY.jump);
     {/* height label sits along the top of the white line, just before the marker */const nx=i+1<P.marks.length?P.marks[i+1].p:S.pi,tb=brg(m.p,nx);let th=tb-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;const flip=th>90||th<=-90;if(th>90)th-=180;else if(th<=-90)th+=180;
       L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:#fff;font-size:12px;transform:rotate(${th}deg) translate(${flip?'9px':'calc(-100% - 9px)'},calc(-100% - 3px))">${m.agl/1000}K</div>`}),interactive:false}).addTo(LY.jump)}});
   (P.ffMarks||[]).forEach(m=>{L.circleMarker(LL(m.p),{radius:2.5,color:'#141414',weight:1,opacity:.35,fillColor:'#FFFFFF',fillOpacity:.35,interactive:false}).addTo(LY.jump);L.marker(LL(m.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl faint">${m.agl/1000}K</span>`}),interactive:false}).addTo(LY.jump)});
@@ -1376,7 +1378,7 @@ const altHist=[];function vsNow(){if(altHist.length<2)return null;const a=altHis
 function onFix(f){const prev=me;f.t=Date.now();me=f;phaseFromFix(f);if(f.alt!=null){altHist.push({t:f.t,a:f.alt});while(altHist.length>2&&f.t-altHist[0].t>4000)altHist.shift()}
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
   drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow&&Date.now()>followHold)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
-function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
+function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}$('#bSpd').textContent=me.spd!=null?`${kts(me.spd/KT)}`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
 let geoWatch=null,orientOn=false;
 /* hide / show the jumper box (status); remembered */
 function applyStatusVis(){const h=!!S.set.statusHidden;$('#status').classList.toggle('collapsed',h);$('#statusToggle').textContent=h?'Show jumper details':'Hide jumper details';if(typeof placeHud==='function')placeHud()}
@@ -1406,8 +1408,8 @@ const METRICS={
   rel:{l:'Relative bearing',f:d=>d.ht?`${Math.round(((norm(d.B-d.ht.h)+180)%360)-180)}°`:'–'},
   hdg:{l:'My heading °T',f:d=>d.ht?fb(d.ht.h):'–'},
   eta:{l:'Time to target',f:d=>closing>0.3?fsec(d.R/closing):'–'},
-  closing:{l:'Closing speed',f:d=>`${Math.round(closing/KT)} kt`},
-  gs:{l:'Ground speed',f:d=>me.spd!=null?`${Math.round(me.spd/KT)} kt`:'–'},
+  closing:{l:'Closing speed',f:d=>`${kts(Math.round(closing/KT))}`},
+  gs:{l:'Ground speed',f:d=>me.spd!=null?`${kts(Math.round(me.spd/KT))}`:'–'},
   agl:{l:'Altitude AGL',f:d=>me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0)):'–'},
   amsl:{l:'Altitude AMSL',f:d=>me.alt!=null?ff(me.alt/FT):'–'},
   glide:{l:'Glide needed',f:d=>{const h=me.alt!=null?me.alt-(+S.jump.dzElev||0)*FT:null;return h>5?`1 : ${(d.R/h).toFixed(1)}`:'–'}},
@@ -1453,7 +1455,7 @@ function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();cons
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
   const hud=$('#hud');hud.classList.toggle('st-outer',st==='outer');hud.classList.toggle('st-inner',st==='inner');const col=cssv(st==='inner'?'--stop':st==='outer'?'--amber':'--go');
   if(!houndLine)houndLine=L.polyline([LL(me),LL(r.p)],{color:col,weight:4,dashArray:'10 8',interactive:false});/* kept off the map: no line from my position to the target */houndLine.setLatLngs([LL(me),LL(r.p)]);houndLine.setStyle({color:col});const el=houndLine.getElement();if(el)el.classList.toggle('hound-inner',st==='inner');
-  live={R,B,p:r.p,ht:headingTrue()};S.hound.tiles.forEach((k,i)=>{const m=METRICS[k]||METRICS.range;const e=$('#tile'+i);if(e)e.textContent=m.f(live)});$('#hNote').textContent=closing<-0.3?`Opening ${Math.round(-closing/KT)} kt`:'';updateDial()}
+  live={R,B,p:r.p,ht:headingTrue()};S.hound.tiles.forEach((k,i)=>{const m=METRICS[k]||METRICS.range;const e=$('#tile'+i);if(e)e.textContent=m.f(live)});$('#hNote').textContent=closing<-0.3?`Opening ${kts(Math.round(-closing/KT))}`:'';updateDial()}
 $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-dock]');if(d){S.hound.dock=d.dataset.dock;save('hound');renderTiles();updateHound();setTimeout(()=>map.invalidateSize(),50);return}
   const pr=e.target.closest('[data-preset]');if(pr){const P=PRESETS[pr.dataset.preset];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else toast(`${P.note}: set the DIP first`);updateHound();return}
   const t=e.target.closest('[data-tile]');if(t){const i=+t.dataset.tile;sheet({title:'Show in this tile',buttons:Object.entries(METRICS).map(([k,m])=>[m.l,()=>{S.hound.tiles[i]=k;save('hound');renderTiles();updateHound()},k===S.hound.tiles[i]?'primary':''])})}});
@@ -1587,7 +1589,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
     if(ws>0.3){const from=norm(Math.atan2(-w.u,-w.v)*R2D),tail=dest(S.pi,from,1000*FT),tip=dest(S.pi,from,450*FT),hd=norm(from+180);
       L.polyline([LL(tail),LL(tip)],{color:oc,weight:2,interactive:false}).addTo(LY.jump);
       L.polyline([LL(dest(tip,norm(hd+155),22)),LL(tip),LL(dest(tip,norm(hd-155),22))],{color:oc,weight:2,interactive:false}).addTo(LY.jump);
-      L.marker(LL(dest(S.pi,from,725*FT)),{icon:lineTag(tail,tip,`${Math.round(ws/KT)} kt`,oc,2),interactive:false}).addTo(LY.jump)}
+      L.marker(LL(dest(S.pi,from,725*FT)),{icon:lineTag(tail,tip,`${kts(Math.round(ws/KT))}`,oc,2),interactive:false}).addTo(LY.jump)}
     if(warn)L.marker(LL(fromSY(s0,off*3)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#FFB020">${esc(warn)}</span>`}),interactive:false}).addTo(LY.jump)}}
 
 
@@ -1750,7 +1752,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
     <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
     <div><span>DZ Elev</span><b>${ff(j.dzElev)}</b></div>
-    <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${Math.round(J.tas)} kt</b> <span>GS on run-in</span><b>${Math.round(J.gsM/KT)} kt</b></div>
+    <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${kts(Math.round(J.tas))}</b> <span>GS on run-in</span><b>${kts(Math.round(J.gsM/KT))}</b></div>
   </div>${vitalAlt()}
   <dl class="res">
     <dd data-l="Free Fall">${J.ffLegs.length?J.ffLegs.map(l=>`${Math.round(l.m)} m @ ${fb(l.d)} T`).join(", then "):"disregarded"}</dd>
