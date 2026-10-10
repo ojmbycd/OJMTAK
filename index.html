@@ -284,6 +284,7 @@ table.winds td small{font-size:11px}
 #act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center}
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 #act.side{align-items:stretch;justify-content:flex-end}#act.side .box{width:50%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
+#act .dipalt{color:#9a9a9a;font-weight:400}
 #act h4{margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
@@ -1319,7 +1320,7 @@ $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===
 // JM button: choose to place a DIP, pick a saved one, or go straight to the plan
 // JM button: two see-through buttons drop down under it; tap anywhere else to hide them
 function jmMenu(){const pop=$('#jmPop');if(!pop.hidden){pop.hidden=true;return}const b=$('.qb[data-tool="jump"]').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();pop.style.top=Math.round(b.bottom-mw.top+6)+'px';pop.style.right=Math.max(4,Math.round(mw.right-b.right))+'px';pop.hidden=false}
-$('#jmPop').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#jmPop').hidden=true;if(b.dataset.jm==='saved')savedDipsSheet();else{openTool('jump');setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')}};
+$('#jmPop').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#jmPop').hidden=true;if(b.dataset.jm==='saved')savedDipsSheet();else{if(tool)closeTool();setMode('pi','Tap the ground to set the DIP')}};
 document.addEventListener('pointerdown',e=>{const pop=$('#jmPop');if(!pop.hidden&&!e.target.closest('#jmPop')&&!e.target.closest('.qb[data-tool="jump"]'))pop.hidden=true},true);
 function savedDipsSheet(){const L_=S.savedDips;sheet({title:'Saved DIPs',sub:L_.length?'Tap one to use it.':'None saved yet. Set a DIP, then save it here.',buttons:[
   ...(S.pi?[['Save current DIP',()=>sheet({title:'Save DIP',sub:fc(S.pi),input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.savedDips.push({id:Date.now(),name:v.trim()||'DIP',lat:S.pi.lat,lon:S.pi.lon,dzElev:+S.jump.dzElev||null});save('savedDips');toast('DIP saved')}},buttons:[]}),'primary']]:[]),
@@ -1551,8 +1552,10 @@ $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool'
 // long-press (or right-click) anywhere on the map offers to put the DIP there
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
 // placing a DIP: set it, then ask for a name while showing the ground altitude there
-function placeDipAt(p){setDipAt(p);const g=fc(p);sheet({side:true,title:'Name this DIP',sub:`${g} · altitude: looking up…`,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump')}},buttons:[]});setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
-  groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;$('#actSub').textContent=`${g} · altitude ${m!=null?`${ff(m/FT)} AMSL`:'not available offline'}`})}
+/* placing a DIP: name it first (altitude shown in grey brackets, not editable); the planner opens in its space only after Save */
+function placeDipAt(p){if(tool)closeTool();setDipAt(p);const g=fc(p);sheet({side:true,title:'Name this DIP',sub:g,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump');showJm('plan')}},buttons:[]});
+  const lb=$('#actInLabel');lb.innerHTML='DIP name <span class="dipalt">(looking up altitude…)</span>';setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
+  groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;const a=lb.querySelector('.dipalt');if(a)a.textContent=m!=null?`(${ff(m/FT)} AMSL)`:'(altitude not available offline)'})}
 function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
 map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>placeDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
