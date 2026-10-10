@@ -603,7 +603,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -871,15 +871,22 @@ $('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))ret
 
 /* ================= DRAW ================= */
 let lineDraft=null;
-function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col}">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
+function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col};transform:translate(-50%,-50%) rotate(${+d.rot||0}deg)">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
+    if(d.label&&pts.length>1){let k=0,best=-1;for(let i=0;i<pts.length-1;i++){const l=dist(pts[i],pts[i+1]);if(l>best){best=l;k=i}}const a_=pts[k],b_=pts[k+1];
+      L.marker(LL({lat:(a_.lat+b_.lat)/2,lon:(a_.lon+b_.lon)/2}),{icon:lineTag(a_,b_,esc(d.label),col,w),interactive:false}).addTo(LY.draw)}
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
 
       [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
-function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
+/* turn a text label to any angle: slide to preview on the map, Save to keep */
+function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
+  sheet({title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()}},buttons:[['Level (0°)',()=>{d.rot=0;save('draws');renderDraws()}],['Cancel',()=>{d.rot=was;renderDraws()}]]});
+  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;renderDraws()}}
+function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;if(d.kind==='text'){sheet({title:'Text label',sub:fc(d.p),input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[['Angle',()=>textAngle(id)],['Delete',()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()},'danger']]});return}const upd=f=>()=>{f();save('draws');renderDraws();drawActions(id)},b=d.pts[d.pts.length-1];
   sheet({title:d.kind==='line'?'Line':'Freehand',sub:`${fd(pathLen(d.pts))} · ${fb(brg(d.pts[0],b))} T · from ${fc(d.pts[0])}${d.kind==='line'?' · drag the ends to move':''}`,buttons:[
+    [d.label?'Edit text on line':'Add text on line',()=>sheet({title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})],
     ['Colour',()=>sheet({title:'Line colour',buttons:[...COLORS.map(([v,n])=>[n,upd(()=>{d.color=v}),d.color===v?'primary':''])]})],
     ['Thickness',()=>sheet({title:'Line thickness',buttons:[['Thin',2],['Medium',4],['Thick',7]].map(([n,w])=>[n,upd(()=>{d.w=w}),(d.w||2)===w?'primary':''])})],
     [d.dash?'Make solid':'Make dashed',upd(()=>{d.dash=!d.dash})],
@@ -1405,7 +1412,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
 let viewMode='north';
 function applyView(){const w=$('#mapwrap');const want3d=viewMode==='3d',tilt=want3d&&g3Failed;w.classList.toggle('tilt',tilt);const was=view3d;view3d=tilt;if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}show3d(want3d&&!g3Failed);if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
 $('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
-map.on('rotate',()=>{if(S.rng.some(r=>r.kind!=='ring')){clearTimeout(window.__rd);window.__rd=setTimeout(renderRng,60)}$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
+map.on('rotate',()=>{if(S.rng.some(r=>r.kind!=='ring')||S.draws.some(d=>d.label)){clearTimeout(window.__rd);window.__rd=setTimeout(()=>{renderRng();renderDraws()},60)}$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
 /* ================= true 3D view: Cesium globe with terrain, loaded the first time 3D is opened ================= */
 const CES='https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/';
 var G3=null,g3Loading=null,g3Failed=false;
