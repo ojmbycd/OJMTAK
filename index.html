@@ -633,7 +633,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 22:25</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 22:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1515,9 +1515,13 @@ $('#hud').addEventListener('click',e=>{const d=e.target.closest('.docks [data-do
 function updateDial(){if(!S.target||!me)return;const r=resolve(S.target);if(!r)return;const B=brg(me,r.p),ht=headingTrue(),dip=S.target==='c:pi';$('#dialHarp').style.display=dip?'none':'';$('#dialDip').style.display=dip?'':'none';$('#dialArrow').setAttribute('transform','');if(ht){$('#dialTgt').setAttribute('transform',`rotate(${norm(B-ht.h)})`);$('#dialN').setAttribute('transform',`rotate(${norm(-ht.h)})`)}else{$('#dialTgt').setAttribute('transform',`rotate(${B})`);$('#dialN').setAttribute('transform','')}}
 $('#hStop').onclick=()=>{setTarget(null);setTimeout(()=>map.invalidateSize(),50)};
 /* + / − step the eye altitude along a ladder: 1,000, 2,500, then 5,000 ft steps to 20,000, 10,000 steps to 50,000, 25,000 steps to 100,000, then 50,000 steps; off a step it snaps to the next one */
-/* trackpad two-finger scroll / pinch and mouse wheel: zoom follows the fingers continuously around the cursor, one frame at a time, instead of in jumps */
-{let acc=0,at=null,raf=0;map.getContainer().addEventListener('wheel',e=>{if(g3On())return;e.preventDefault();let d=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?400:1);acc+=e.ctrlKey?-d*0.012:-d*0.0028;at=map.mouseEventToContainerPoint(e);
-  if(!raf)raf=requestAnimationFrame(()=>{raf=0;const z=Math.min(map.getMaxZoom(),Math.max(map.getMinZoom(),map.getZoom()+Math.max(-1,Math.min(1,acc))));acc=0;if(Math.abs(z-map.getZoom())>1e-4)map.setZoomAround(at,z,{animate:false})})},{passive:false})}
+/* trackpad two-finger scroll / pinch and mouse wheel: zoom follows the fingers around the cursor. Done the way the map's own touch pinch works
+   (the current tiles are stretched while the fingers move, then the new tiles load once they stop), so the map never blanks mid-zoom */
+{let wz=null,wc=null,wEnd=0;map.getContainer().addEventListener('wheel',e=>{if(g3On())return;e.preventDefault();
+  if(wz===null){map._stop();map._moveStart(true,false);wz=map.getZoom();wc=map.getCenter()}
+  const d=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?400:1),nz=Math.min(map.getMaxZoom(),Math.max(map.getMinZoom(),wz+Math.max(-1,Math.min(1,e.ctrlKey?-d*0.012:-d*0.0028))));
+  if(Math.abs(nz-wz)>1e-5){const P=map.containerPointToLatLng(map.mouseEventToContainerPoint(e)),v=map.project(wc,wz).subtract(map.project(P,wz));wc=map.unproject(map.project(P,nz).add(v),nz);wz=nz;map._move(wc,wz,{pinch:true,round:false})}
+  clearTimeout(wEnd);wEnd=setTimeout(()=>{const z=map._limitZoom(wz),c=wc;wz=null;if(map.options.zoomAnimation)map._animateZoom(c,z,true,map.options.zoomSnap);else map._resetView(c,z)},160)},{passive:false})}
 function eyeNowFt(){const c=map.getCenter(),h=map.getSize().y,mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,map.getZoom()+8);return (mpp*h/(2*Math.tan(30*D2R))+(centreElev||0))/FT}
 function setEyeFt(ft){const c=map.getCenter(),h=map.getSize().y,m=Math.max(30,ft*FT-(centreElev||0));const zr=Math.log2(40075016.686*Math.cos(c.lat*D2R)*h/(2*Math.tan(30*D2R)*m))-8,z=Math.min(map.getMaxZoom(),Math.max(map.getMinZoom(),zr));eyeLock=Math.abs(z-zr)<1e-6?{ft,z}:null;map.setZoom(z)}
 /* the step a button press is heading for: further presses count from it, and the readout shows it until the map is zoomed by hand */
