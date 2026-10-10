@@ -581,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1655,7 +1655,8 @@ function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat
 map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e.latlng.lng};sheet({title:'This point',sub:fc(p),buttons:[['Set DIP here',()=>placeDipAt(p),'primary'],['Copy grid',()=>copy(fc(p))]]})});
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=S.jump.exitAlt==null?30000:+S.jump.exitAlt||0;/* winds come first, so until the exit altitude is picked the table runs to 30,000 ft */const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
-function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].filter(wOk).sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:null,spd:near?near.spd:null}});save('winds')}
+/* new heights (e.g. a higher exit) start blank so the winds have to be imported again */
+function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));let added=0;S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;added++;return {alt:a,dir:null,spd:null}});save('winds');if(added&&S.winds.some(wOk)&&$('#windSrc'))$('#windSrc').textContent='Exit altitude raised: the new heights are blank. Import winds again.'}
 /* ATAK wind brackets: 0-2 Zero, 3-7 ¼, 8-12 ½, 13-17 ¾, 18-22 Full */
 function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';return v<=2?'Zero':v<=7?'¼':v<=12?'½':v<=17?'¾':v<=22?'FV':'FV+'}
 /* value colour: FV+ red, FV amber, the rest green */
