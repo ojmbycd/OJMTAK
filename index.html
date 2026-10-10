@@ -274,8 +274,13 @@ table.winds td small{font-size:11px}
 .sw{width:18px;height:18px;border-radius:4px}
 
 /* ---------- drawer (three-stripe menu) ---------- */
-#drawer{position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.35);display:flex;justify-content:flex-end}
-#drawer .dbox{background:var(--panel);width:min(92vw,400px);height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
+/* the menu docks on the right; the map shrinks to the space on its left */
+:root{--dw:min(400px,50vw)}
+#drawer{position:fixed;top:0;bottom:0;right:0;width:var(--dw);z-index:2500;display:flex;justify-content:flex-end}
+body.dopen #app{margin-right:var(--dw)}
+#drawer .seg button{white-space:normal;line-height:1.15;padding-left:4px;padding-right:4px}
+body.dopen #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
+#drawer .dbox{background:var(--panel);width:100%;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
 .dhead{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}
 .dhead b{flex:1;font:500 21px/1.1 var(--cond)}
 .dbody{overflow:auto;flex:1}
@@ -1338,7 +1343,7 @@ function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').
 $('#tipBtn').onclick=()=>{if(mode==='draw-line'&&lineDraft&&lineDraft.length){finishLine();return}if(['redx','draw-line','draw-free','draw-text','range'].includes(mode))closeTool();else setMode('none')};
 function enterToolMode(t){if(t==='redx')setMode('redx','Tap the map to plot a Red X');else if(t==='draw')setMode({line:'draw-line',free:'draw-free',text:'draw-text'}[S.set.drawMode],{line:'Tap the map to start a line',free:'Drag on the map to draw',text:'Tap the map where the text should go'}[S.set.drawMode]);else if(t==='range')setMode('range',rngTip());else setMode('none')}
 const TOOL_TITLES={redx:'Red X',draw:'Drawing',range:'Range tools',layers:'Map overlays',jump:'Jump Master Expert Tool'};
-function openTool(t){finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
+function openTool(t){closeDrawer();finishLine();rngA=null;tmpLayer.clearLayers();tool=t;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t));$('#tool').hidden=false;$('#tool').classList.remove('min');$('#tool').classList.toggle('tall',t==='jump');$('#toolTitle').textContent=TOOL_TITLES[t];$$('[data-tool-panel]').forEach(p=>p.hidden=p.dataset.toolPanel!==t);
   if(t==='redx')renderXs();if(t==='range')renderRngList();if(t==='layers'){renderOvList();setBase(S.set.base);$$('#cloudSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cl===clLayer()))}if(t==='jump')syncJumpInputs();enterToolMode(t);setTimeout(()=>map.invalidateSize(),50)}
 function closeTool(){if(tool==='redx'&&S.xs.length){S.xs=[];renderXs()}finishLine();rngA=null;tmpLayer.clearLayers();tool=null;$$('.qb[data-tool]').forEach(b=>b.setAttribute('aria-pressed','false'));$('#tool').hidden=true;setMode('none');setTimeout(()=>map.invalidateSize(),50)}
 $$('.qb[data-tool]').forEach(b=>b.onclick=()=>{const t=b.dataset.tool;if(tool===t)closeTool();else if(t==='jump')jmMenu();else openTool(t)});
@@ -1709,9 +1714,10 @@ $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions
 
 /* ================= drawer ================= */
 const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
-function openDrawer(page='root'){$('#drawer').hidden=false;goPage(page)}
+function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
+function openDrawer(page='root'){if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
 function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
-function closeDrawer(){$('#drawer').hidden=true}
+function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
 $('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
