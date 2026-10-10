@@ -543,7 +543,8 @@ table.winds td small{font-size:11px}
         <button data-go="missions"><b>Mission packages</b><small>Saved jump plans: DIP, parameters, winds and map markup</small></button>
         <button data-go="points"><b>Points and navigation</b><small>Add points by grid, pick a point to navigate to</small></button>
         <button data-go="sensors"><b>Sensors and simulation</b><small>GPS, compass, trail, rehearsal mode</small></button>
-        <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings, display</small></button>
+        <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
+        <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
       </div>
 
@@ -594,9 +595,15 @@ table.winds td small{font-size:11px}
           <label class="fld"><span style="white-space:nowrap">Outer (m, amber)</span><input type="number" id="sOuter"></label>
           <label class="fld"><span style="white-space:nowrap">Inner (m, red)</span><input type="number" id="sInner"></label>
         </div>
-        <h3>Display</h3>
+      </div>
+
+      <div class="panel" data-dpage="display" hidden>
+        <h3>Map</h3>
         <div class="fields"><label class="fld">Theme<select id="sTheme"><option value="auto">Match phone</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
         <label class="chk mt"><input type="checkbox" id="sNight"> Night mode (red only)</label>
+        <h3 class="mt">Projected location</h3>
+        <label class="chk"><input type="checkbox" id="sProj"> Show where I'll be ahead on my track</label>
+        <div class="fields mt"><label class="fld">Look ahead<select id="sProjSec"><option value="30">30 s</option><option value="60">60 s</option><option value="120">2 min</option></select></label></div>
       </div>
 
       <div class="panel" data-dpage="data" hidden>
@@ -651,7 +658,7 @@ function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?
 const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[{alt:200,dir:230,spd:8},{alt:2000,dir:240,spd:14},{alt:5000,dir:250,spd:20},{alt:10000,dir:260,spd:28},{alt:15000,dir:265,spd:34}];
 const DEF_OV={cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
-const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMPMASTER',drawMode:'line',drawColor:'--x',rngMode:'perm',ringStep:137.16,ringUnit:'ft',altRef:null};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMPMASTER',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
@@ -1130,6 +1137,12 @@ function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HA
 function setTarget(key){S.target=key;save('target');hState='';prevR=null;closing=0;LY.hound.clearLayers();houndLine=null;closeDrawer();if(key){const r=resolve(key);if(r)toast(`Navigating to ${r.name}`)}updateHound();renderPoints()}
 function renderTiles(){$('#tiles').innerHTML=S.hound.tiles.map((k,i)=>{const m=METRICS[k]||METRICS.range;return `<button class="tile" data-tile="${i}"><small>${m.l}</small><b id="tile${i}">–</b></button>`}).join('');$$('.docks button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dock===S.hound.dock));$('#hud').dataset.dock=S.hound.dock}
 // the box sits just right of the JUMPMASTER box, same height and bottom line, filling the space to the right
+var projLayer=null;
+function drawProj(){if(!projLayer)projLayer=L.layerGroup().addTo(map);projLayer.clearLayers();if(S.set.proj===false||!me||!(me.spd>1)||me.course==null)return;const T=+S.set.projSec||60,q=dest(me,me.course,me.spd*T),col=cssv('--self');
+  L.polyline([LL(me),LL(q)],{color:col,weight:2,dashArray:'6 6',opacity:.9,interactive:false}).addTo(projLayer);L.circleMarker(LL(q),{radius:6,color:col,weight:2,fill:false,interactive:false}).addTo(projLayer);
+  L.marker(LL(q),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${col}">${T>=60?T/60+' min':T+' s'}</span>`}),interactive:false}).addTo(projLayer)}
+$('#sProj').checked=S.set.proj!==false;$('#sProjSec').value=String(S.set.projSec||60);
+$('#sProj').onchange=e=>{S.set.proj=e.target.checked;save('set');drawProj()};$('#sProjSec').onchange=e=>{S.set.projSec=+e.target.value;save('set');drawProj()};
 function placeTool(){const t=$('#tool');if(t.hidden)return;const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
   t.style.left=Math.round(st.right-mw.left+6)+'px';t.style.bottom=Math.round(mw.bottom-st.bottom)+'px';t.style.height=t.classList.contains('min')?'auto':Math.round(tool==='jump'?Math.max(st.height,mw.height*.4):st.height)+'px'}/* JM planning panel opens taller */
 function placeHud(){const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
@@ -1281,7 +1294,7 @@ function g3FlyMe(){if(!g3On()||!me)return;const C=Cesium,cam=G3.v.camera,pos=C.C
 const col3=s=>Cesium.Color.fromCssColorString(s);
 function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!on);if(!on){el.hidden=true;updateEyeAlt();return}el.hidden=false;
   loadCesium().then(()=>{if($('#globe').hidden)return;if(!G3)initGlobe();G3.v.resize();globeSync();g3Air();g3Frame();g3SetMode('dip');g3Eye()}).catch(()=>{el.hidden=true;g3Failed=true;toast('True 3D needs internet to load the first time. Showing the tilted map instead.',4500);applyView()})}
-{const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);g3Me()}}
+{const rj=renderJump;renderJump=function(){rj.apply(this,arguments);if(g3On())globeSync()};const dm=drawMe;drawMe=function(){dm.apply(this,arguments);drawProj();g3Me()}}
 
 /* ================= modes / quick menu ================= */
 function setMode(m,tip){mode=m;$('#tip').hidden=m==='none';if(tip)$('#tipText').textContent=tip;$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
@@ -1623,7 +1636,7 @@ $('#pickBar').onclick=e=>{const b=e.target.closest('button');if(!b||!pick)return
 $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions(b.dataset.m)};
 
 /* ================= drawer ================= */
-const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',data:'Data'};
+const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
 function openDrawer(page='root'){$('#drawer').hidden=false;goPage(page)}
 function goPage(p){$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
 function closeDrawer(){$('#drawer').hidden=true}
