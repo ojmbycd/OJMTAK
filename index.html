@@ -601,7 +601,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -840,9 +840,15 @@ const relSub=p=>fc(p)+(me?` · ${fd(dist(me,p))} at ${fb(brg(me,p))} T`:'');
 
 /* ================= RED X ================= */
 let elevWarned=false;
-async function groundElevM(p){try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),5000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${p.lat.toFixed(5)}&longitude=${p.lon.toFixed(5)}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();const v=j&&j.elevation&&j.elevation[0];return isFinite(v)?v:null}catch(e){return null}}
+/* ground heights from the free AWS Terrain Tiles (Terrarium PNGs, zoom 14, about 7 m pixels; no daily limit and saved with Download map area) */
+const TERR_URL='https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',TZ=14,terrCache=new Map();
+function terrTile(x,y){const k=`${x}/${y}`;if(!terrCache.has(k)){terrCache.set(k,fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${TZ}/${x}/${y}.png`,{mode:'cors'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.blob()}).then(createImageBitmap).then(bm=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(bm,0,0);return g.getImageData(0,0,256,256).data}).catch(e=>{terrCache.delete(k);throw e}));if(terrCache.size>200)terrCache.delete(terrCache.keys().next().value)}return terrCache.get(k)}
+async function terrElevs(pts){const n=2**TZ;return Promise.all(pts.map(async p=>{const fx=(p.lon+180)/360*n*256,r=p.lat*D2R,fy=(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n*256;
+  const h=async(X,Y)=>{const d=await terrTile(Math.floor(X/256),Math.floor(Y/256)),i=((Y%256)*256+(X%256))*4;return d[i]*256+d[i+1]+d[i+2]/256-32768};
+  const x0=Math.floor(fx-.5),y0=Math.floor(fy-.5),tx=fx-.5-x0,ty=fy-.5-y0;const [a,b,c,e]=await Promise.all([h(x0,y0),h(x0+1,y0),h(x0,y0+1),h(x0+1,y0+1)]);return (a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+e*tx)*ty}))}
+async function groundElevM(p){try{const v=(await terrElevs([p]))[0];return isFinite(v)?v:null}catch(e){return null}}
 async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
-  if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Ground elevation lookup is blocked on this page. Tap a Red X to enter its altitude, or host the file to get it automatically.',6500)}save('xs');renderXs()}}
+  if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Could not get the ground height (no signal?). Tap the Red X to enter its altitude.',6000)}save('xs');renderXs()}}
 function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="position:relative;width:26px;height:26px"><svg viewBox="-13 -13 26 26" width="26" height="26" style="overflow:visible"><path d="M-6-6 6 6M6-6-6 6" stroke="${bg}" stroke-width="4.5" stroke-linecap="round"/><path d="M-6-6 6 6M6-6-6 6" stroke="${col}" stroke-width="2.2" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:22px;top:-2px;font-size:12px;line-height:1.2">${esc(fc(x))}<br>${x.alt!=null?`${ff(x.alt)} AMSL`:'Alt …'}</span></div>`})}).on('click',()=>{S.xs=S.xs.filter(y=>y.id!==x.id);renderXs()}).addTo(LY.xs)});
   $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>${esc(x.name||`X${i+1}`)} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
 function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;const nm=x.name||`X${i+1}`;sheet({title:nm,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:' · Alt –'),input:{label:'Name',value:nm,save:v=>{x.name=v.trim()||nm;save('xs');renderXs()}},
@@ -1294,7 +1300,7 @@ $('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected autom
 
 
 
-async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Terrain lookup blocked here; host the page to auto-fill.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
+async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Could not get the DZ height (no signal?). Enter it in the planner.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DZ elevation set to ${ff(ft)} from terrain`)}}
 /* ================= DIP radial menu ================= */
 const RI={uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
 /* point options (DIP, HARP, alternates…) open in the docked panel like the Menu, with the map re-centred on the point */
@@ -1560,7 +1566,7 @@ function cypCalc(){const j=S.jump,dz=+j.dzElev||0,unk=!!j.qnhUnknown,v=vdzElev()
   return {dz,unk,v,base,altUsed,cypFt,cypMb,daf,offset,qfeDz,sets,mixed:sets.length>1,minDep,minWhy,lowOpen,highOpen,despAgl,depOk:lowOpen>=minDep,sepOk:despAgl>=highOpen+1000}}
 const sgnFt=n=>n==null?'–':`${n>0?'+':n<0?'−':'±'}${Math.abs(Math.round(n)).toLocaleString('en-GB')} ft`;
 function hrpoRadius(){const exAGL=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);return exAGL>13000?1000:500}
-async function elevMany(pts){const out=[];for(let i=0;i<pts.length;i+=100){const c=pts.slice(i,i+100);const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${c.map(p=>p.lat.toFixed(5)).join(',')}&longitude=${c.map(p=>p.lon.toFixed(5)).join(',')}`,{signal:ctl.signal});clearTimeout(t);const j=await r.json();out.push(...j.elevation)}return out}
+async function elevMany(pts){return terrElevs(pts)}
 // the terrain check runs on its own whenever the HARP, PRP or DZ moves; key records which plan a result belongs to
 function hrpoKey(){if(!J||J.err)return null;const f=p=>p.lat.toFixed(4)+','+p.lon.toFixed(4);return [f(J.harp),f(J.op),f(J.gl),f(J.rl),J2?f(J2.harp)+f(J2.op)+f(J2.gl)+f(J2.rl):'',hrpoRadius(),+S.jump.dzElev||0].join('|')}
 let hrpoT=null,hrpoBusy=null,hrpoFailKey=null;
@@ -1875,7 +1881,7 @@ let offBusy=false;
 async function offDownload(){if(offBusy)return;if(!window.caches){toast('This browser cannot save maps offline.');return}if(!S.pi){toast('Place the DIP first.');return}const L_=offLayers();if(L_.err){toast(L_.err,6000);return}
   /* the plan (DIP, release and run-in to 2 minutes out, alternates) at full detail, 1.5 km round the DIP closest in, 60 km round it for context */
   const P=(J&&!J.err)?[S.pi,J.harp,J.gl,J.rl,J.op,J.runEnd,...(J.timePts||[]).filter(t=>t.t<=120).map(t=>t.p),...(J.marks||[]).map(m=>m.p),...(J2&&!J2.err?[J2.harp,J2.gl,J2.rl,J2.op]:[])]:[S.pi];P.push(...S.altDips);
-  const list=[...new Set([...tilesFor(boxAround(P,2000),10,Math.min(16,L_.max),L_.urls),...(L_.max>=17?tilesFor(boxAround([S.pi],1500),17,17,L_.urls):[]),...tilesFor(boxAround([S.pi],60000),6,9,L_.urls)])];
+  const list=[...new Set([...tilesFor(boxAround(P,2000),12,TZ,[TERR_URL]),...tilesFor(boxAround(P,2000),10,Math.min(16,L_.max),L_.urls),...(L_.max>=17?tilesFor(boxAround([S.pi],1500),17,17,L_.urls):[]),...tilesFor(boxAround([S.pi],60000),6,9,L_.urls)])];
   if(list.length>6000){toast(`That area needs ${list.length.toLocaleString('en-GB')} tiles, too many. Move alternates closer or clear some of the plan.`,6000);return}
   offBusy=true;const el=$('#offStat'),c=await caches.open(TILE_CACHE);let done=0,fail=0,i=0;
   const work=async()=>{while(i<list.length){const u=list[i++];try{if(!(await c.match(tileKey(u)))){const r=await fetch(u,{mode:'cors'});if(r.ok)await c.put(tileKey(u),r);else fail++}}catch(_){fail++}done++;if(done%20===0||done===list.length)el.textContent=`Downloading map area… ${done.toLocaleString('en-GB')} of ${list.length.toLocaleString('en-GB')} tiles`}};

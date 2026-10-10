@@ -17,7 +17,7 @@ self.addEventListener('activate', e => {
 
 // one key per tile, whichever server letter (a/b/c) it came from
 const tileKey = u => u.replace(/\/\/[abc]\.tile\.opentopomap\.org/, '//a.tile.opentopomap.org');
-const isTile = u => /arcgisonline\.com\/.*\/tile\/|tile\.openstreetmap\.org\/|tile\.opentopomap\.org\//.test(u);
+const isTile = u => /arcgisonline\.com\/.*\/tile\/|tile\.openstreetmap\.org\/|tile\.opentopomap\.org\/|elevation-tiles-prod\/terrarium\//.test(u);
 
 self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
