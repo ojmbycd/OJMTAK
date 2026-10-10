@@ -348,8 +348,8 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
     <div id="status">
       <div class="cs"><span id="bCall">JUMP MASTER EXPERT TOOL</span> <span id="bSrc"></span></div>
       <div id="bPos">No fix</div>
-      <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span></div>
-      <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span></div>
+      <div class="srow"><span id="bAlt">–</span><span id="bAgl">–</span><span id="bVs"></span></div>
+      <div class="srow"><span id="bHdg">–</span><span id="bSpd">–</span><span id="bAcc">–</span><span id="bAge"></span></div>
       <button id="bPhase" class="phase">Phase: Ground</button>
       <button id="btnSensors" class="btn primary">Start sensors</button>
     </div>
@@ -580,8 +580,8 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="sensors"><b>Sensors and simulation</b><small>GPS, compass, trail, rehearsal mode</small></button>
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
-        <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:40</p>
+        <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 01:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -649,6 +649,11 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       <div class="panel" data-dpage="data" hidden>
         <h3>Stored on this device</h3>
         <p class="note">Red Xs, drawings, range tools, points, the jump plan, winds and settings are kept in this browser only. Nothing is sent anywhere, apart from ground elevation lookups for Red X where the page allows them.</p>
+        <h3>Offline maps</h3>
+        <p class="note">The app itself is kept on this phone after the first visit, so it opens with no signal. Map imagery is not: download the area around the plan while you have Wi-Fi so the map still shows at altitude.</p>
+        <div class="stackbtns"><button class="btn primary" id="offDl">Download map area</button><button class="btn" id="offClr">Clear offline maps</button></div>
+        <p class="note" id="offStat"></p>
+        <h3>Erase</h3>
         <button class="btn danger" id="sReset">Erase all data</button>
       </div>
     </div>
@@ -1147,11 +1152,15 @@ function headingTrue(){if(compass!=null)return {h:norm(compass+(+S.set.decl||0))
 function meHtml(){const ht=headingTrue(),col=cssv('--self'),bg=cssv('--bg');return `<svg viewBox="-20 -20 40 40" width="40" height="40" style="overflow:visible"><circle r="15" fill="${col}" fill-opacity=".18"/><g class="meRot" transform="rotate(${ht?ht.h:0})">${ht?`<path d="M0-15 10 11 0 5-10 11Z" fill="${col}" stroke="${bg}" stroke-width="2"/>`:`<circle r="7" fill="${col}" stroke="${bg}" stroke-width="3"/>`}</g></svg>`}
 function drawMe(){if(!me)return;const icon=L.divIcon({className:'pin',iconSize:[40,40],iconAnchor:[20,20],html:meHtml()});if(!meMarker){meMarker=L.marker(LL(me),{icon,zIndexOffset:1000,keyboard:false,interactive:false}).addTo(meLayer);accCircle=L.circle(LL(me),{radius:me.acc||0,color:cssv('--self'),weight:1,fillOpacity:.07,interactive:false}).addTo(meLayer)}else{meMarker.setLatLng(LL(me));meMarker.setIcon(icon);accCircle.setLatLng(LL(me)).setRadius(me.acc||0).setStyle({color:cssv('--self')})}}
 function rotateMe(){if(!meMarker)return;const el=meMarker.getElement();const g=el&&el.querySelector('.meRot');const ht=headingTrue();if(g&&ht)g.setAttribute('transform',`rotate(${ht.h})`)}
-function onFix(f){const prev=me;me=f;phaseFromFix(f);
+/* vertical speed from GPS altitude over the last few seconds (a guide only: GPS height is less precise than position) */
+const altHist=[];function vsNow(){if(altHist.length<2)return null;const a=altHist[0],b=altHist[altHist.length-1],dt=(b.t-a.t)/1000;return dt>=1.5?(b.a-a.a)/FT/dt:null}
+function onFix(f){const prev=me;f.t=Date.now();me=f;phaseFromFix(f);if(f.alt!=null){altHist.push({t:f.t,a:f.alt});while(altHist.length>2&&f.t-altHist[0].t>4000)altHist.shift()}
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon});if(trail.length>3000)trail.shift();if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
   drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow&&Date.now()>followHold)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
-function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0))+' AGL':'';$('#bAcc').textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
+function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';$('#bAgl').textContent=me.alt!=null?ff(me.alt/FT-(+S.jump.dzElev||0))+' AGL':'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}{const v=vsNow();$('#bVs').textContent=v==null||Math.abs(v)<2?'':`${v<0?'↓':'↑'} ${Math.round(Math.abs(v))} ft/s`}$('#bSpd').textContent=me.spd!=null?`${Math.round(me.spd/KT)} kts`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
 let geoWatch=null,orientOn=false;
+/* fix age and offline tag, refreshed every second: a stale fix turns red */
+setInterval(()=>{const g=$('#bAge');if(!g)return;const off=!navigator.onLine;if(!me||me.sim){g.textContent=off?'offline':'';g.style.color='#FFB020';return}const s_=Math.round((Date.now()-me.t)/1000);g.textContent=(s_<=1?'live':`${s_} s ago`)+(off?' · offline':'');g.style.color=s_>5?'#FF5A4F':off?'#FFB020':'#4DFF9A'},1000);
 async function startSensors(){
   if(!('geolocation' in navigator))toast('This browser has no location access. Use simulation in the menu.');
   else{if(geoWatch!=null)navigator.geolocation.clearWatch(geoWatch);geoWatch=navigator.geolocation.watchPosition(pos=>{if(S.set.sim)return;const c=pos.coords;onFix({lat:c.latitude,lon:c.longitude,acc:c.accuracy,alt:c.altitude,spd:c.speed,course:(c.heading!=null&&!isNaN(c.heading))?c.heading:null});$('#sensState').textContent='GPS live.'+(compass!=null?' Compass live.':'')},err=>{const m=err.code===1?'Location is blocked here. Allow location for this page, open it in its own browser tab, or use simulation.':'No GPS fix yet. Move to open sky and keep the screen on.';toast(m,6500);$('#sensState').textContent=m},{enableHighAccuracy:true,maximumAge:0,timeout:30000})}
@@ -1820,9 +1829,28 @@ window.addEventListener('resize',()=>{const was=document.body.className;applyDoc
 /* update check: phones can keep an old copy for a while, so look for a newer published version and offer to load it */
 function checkUpdate(){const mine=($('#appVer')||{}).textContent||'';if(!mine||!navigator.onLine)return;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=t.match(/id="appVer"[^>]*>([^<]*)</);if(m&&m[1].trim()&&m[1].trim()!==mine.trim()&&!$('#updBar')){const b=document.createElement('button');b.id='updBar';b.textContent='New version available · tap to update';b.onclick=()=>location.replace(location.pathname+'?v='+Date.now());document.body.appendChild(b)}}).catch(()=>{})}
 setTimeout(checkUpdate,3000);setInterval(checkUpdate,5*60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
+/* ---------- offline: the app is saved by sw.js; map tiles for the plan area are downloaded on request ---------- */
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='127.0.0.1'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+const TILE_CACHE='jmet-tiles',tileKey=u=>u.replace(/\/\/[abc]\.tile\.opentopomap\.org/,'//a.tile.opentopomap.org');
+function offLayers(){const k=S.set.base||'sat',b=BASES[k];if(!b||k==='none')return {err:'Choose a map in Overlays first.'};if(k==='osm')return {err:'OpenStreetMap does not allow area downloads. Switch the map to Satellite (Overlays) and download again.'};return {urls:[b.u,...(b.extra||[])],max:Math.min(17,b.o.maxZoom||17)}}
+function tilesFor(bb,z0,z1,urls){const out=[];for(let z=z0;z<=z1;z++){const n=2**z,X=lon=>Math.floor((lon+180)/360*n),Y=lat=>{const r=lat*D2R;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n)};
+  for(let x=X(bb.w);x<=X(bb.e);x++)for(let y=Y(bb.n);y<=Y(bb.s);y++)urls.forEach(u=>out.push(u.replace('{z}',z).replace('{x}',x).replace('{y}',y).replace('{s}','a')))}return out}
+function boxAround(pts,padM){const la=pts.map(p=>p.lat),lo=pts.map(p=>p.lon),c=Math.cos(Math.min(...la.map(Math.abs))*D2R)||1,dl=padM/111320,dn=padM/(111320*c);return {n:Math.max(...la)+dl,s:Math.min(...la)-dl,e:Math.max(...lo)+dn,w:Math.min(...lo)-dn}}
+async function offStatus(){const el=$('#offStat');if(!el||!window.caches)return;try{const n=(await (await caches.open(TILE_CACHE)).keys()).length;let mb='';if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();mb=` · about ${Math.round((e.usage||0)/1048576)} MB used on this phone`}el.textContent=n?`${n.toLocaleString('en-GB')} map tiles saved for offline use${mb}.`:'No map area downloaded yet.'}catch(_){}}
+let offBusy=false;
+async function offDownload(){if(offBusy)return;if(!window.caches){toast('This browser cannot save maps offline.');return}if(!S.pi){toast('Place the DIP first.');return}const L_=offLayers();if(L_.err){toast(L_.err,6000);return}
+  /* the plan (DIP, release and run-in to 2 minutes out, alternates) at full detail, 1.5 km round the DIP closest in, 60 km round it for context */
+  const P=(J&&!J.err)?[S.pi,J.harp,J.gl,J.rl,J.op,J.runEnd,...(J.timePts||[]).filter(t=>t.t<=120).map(t=>t.p),...(J.marks||[]).map(m=>m.p),...(J2&&!J2.err?[J2.harp,J2.gl,J2.rl,J2.op]:[])]:[S.pi];P.push(...S.altDips);
+  const list=[...new Set([...tilesFor(boxAround(P,2000),10,Math.min(16,L_.max),L_.urls),...(L_.max>=17?tilesFor(boxAround([S.pi],1500),17,17,L_.urls):[]),...tilesFor(boxAround([S.pi],60000),6,9,L_.urls)])];
+  if(list.length>6000){toast(`That area needs ${list.length.toLocaleString('en-GB')} tiles, too many. Move alternates closer or clear some of the plan.`,6000);return}
+  offBusy=true;const el=$('#offStat'),c=await caches.open(TILE_CACHE);let done=0,fail=0,i=0;
+  const work=async()=>{while(i<list.length){const u=list[i++];try{if(!(await c.match(tileKey(u)))){const r=await fetch(u,{mode:'cors'});if(r.ok)await c.put(tileKey(u),r);else fail++}}catch(_){fail++}done++;if(done%20===0||done===list.length)el.textContent=`Downloading map area… ${done.toLocaleString('en-GB')} of ${list.length.toLocaleString('en-GB')} tiles`}};
+  await Promise.all(Array.from({length:6},work));offBusy=false;toast(fail?`Map area saved, ${fail} tiles failed (try again on better Wi-Fi)`:'Map area saved for offline use');offStatus()}
+$('#offDl').onclick=offDownload;
+$('#offClr').onclick=async()=>{if(!window.caches)return;await caches.delete(TILE_CACHE);toast('Offline maps cleared');offStatus()};
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
-function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
+function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions();if(p==='data')offStatus()}
 function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
 $('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{S.set.land=!S.set.land;save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
