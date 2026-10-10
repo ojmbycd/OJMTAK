@@ -621,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 18:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 18:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1427,7 +1427,7 @@ const METRICS={
   acspd:{l:()=>`AC speed KIAS (plan ${Math.round(+S.jump.kias||0)})`,f:d=>{if(!me.spd||me.spd<1||me.course==null)return '–';const altFt=me.alt!=null?me.alt/FT:+S.jump.exitAlt||0,w=makeWind()(altFt),c=me.course*D2R,ax=me.spd*Math.sin(c)-w.u,ay=me.spd*Math.cos(c)-w.v;return `${Math.round(Math.hypot(ax,ay)/KT/(1+0.02*altFt/1000))}`}},
   accse:{l:()=>`AC course °T (plan ${J&&!J.err?fb(hamo?hamoHeading:J.heading):'–'})`,f:d=>`${me.course!=null&&me.spd>1?fb(me.course):'–'}`}
 };
-const PRESETS={ac:{tiles:['amsl','togl','acspd','accse','gs'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','gs'],target:'c:pi',note:'Canopy Data'}};
+const PRESETS={ac:{tiles:['amsl','togl','gs','accse'],target:'c:harp',note:'Jumpmaster Data'},canopy:{tiles:['range','brgT','agl','gs'],target:'c:pi',note:'Canopy Data'}};
 // Start Jump from the DIP: JM gets the aircraft-to-HARP display, a parachutist gets the canopy-back-to-DIP display
 /* Auto jump only arms 2 minutes from first out, so the climb can't be mistaken for an exit; Force jump works any time */
 var ajArmed=false;
