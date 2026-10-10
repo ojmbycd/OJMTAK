@@ -1661,7 +1661,7 @@ function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';re
 /* value colour: FV+ red, FV amber, the rest green */
 const wvCol=spd=>{if(spd==null||spd==='')return 'var(--mute)';const v=Math.round(+spd);return v>22?'#FF3B30':v>17?'#FFB020':'#39FF6A'};
 function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
-function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel ⇄ Dir':'Dir ⇄ Vel';$('#windOrder').textContent=S.set.windDesc?'Alt ⇅ high first':'Alt ⇅ low first';
+function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel ⇄ Dir':'Dir ⇄ Vel';$('#windOrder').textContent='Alt ⇅';$('#windOrder').title=S.set.windDesc?'Highest first, tap to switch':'Lowest first, tap to switch';
   $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Vel kt</th><th>Dir °T</th>':'<th>Dir °T</th><th>Vel kt</th>'}<th>Value</th><th></th>`;
   const cell=(i,f,v)=>`<td><input type="number" inputmode="decimal" data-w="${i}" data-f="${f}" value="${v??''}"></td>`;
   $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 13px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:500 13px var(--cond);white-space:nowrap;color:${wvCol(w.spd)}">${w.spd==null?'–':windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('')}
