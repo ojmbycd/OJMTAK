@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1317,7 +1317,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
       for(let t=0;t<=1.0001;t+=1/12){const u=1-t;sm.push({s:u*u*p0.s+2*u*t*b.s+t*t*p2.s,y:u*u*p0.y+2*u*t*b.y+t*t*p2.y})}
       if(i<3)DOT[i]=fromSY(.25*p0.s+.5*b.s+.25*p2.s,.25*p0.y+.5*b.y+.25*p2.y)}
     sm.push(pts[pts.length-1]);L.polyline(sm.map(q=>LL(fromSY(q.s,q.y))),{color:col,weight:3,interactive:false}).addTo(LY.jump)}
-  DOT.forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#2648F0">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
+  DOT.forEach((p,i)=>{L.circleMarker(LL(p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:#2648F0;text-shadow:none">${ff(Math.max(0,rnd(alts[i])))}</span>`}),interactive:false}).addTo(LY.jump)});
 
   /* long press a turn point, then drag it to move it */
   [['d',DOT[0]],['b',DOT[1]],['f',DOT[2]]].forEach(([k,p])=>{const m=L.marker(LL(p),{icon:L.divIcon({className:'pathandle',iconSize:[32,32]}),keyboard:false,zIndexOffset:500}).addTo(LY.jump),el=m.getElement();let t=null,sx=0,sy=0,drag=false;
