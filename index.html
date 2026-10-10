@@ -515,8 +515,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <label class="fld" style="grid-column:1/-1"><span style="white-space:nowrap">Exit interval <span id="intervalHint">(s)</span></span><input type="number" inputmode="decimal" data-j="interval"></label>
             </div>
           </section>
-          <h3>Release solution</h3>
-          <div id="jumpOut"></div>
+          <div id="jumpOut" class="mt"></div>
           </div>
         </div>
 
@@ -581,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1077,7 +1076,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
     L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
   if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...(J2?[J2.harp,J2.op,J2.gl,J2.rl]:[])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0">${h.isHrpo?'HRPO ':''}${ff(h.ft)}</span></div>`}),interactive:true}).on('click',hrpoSheet).addTo(LY.jump)}
   drawPI();
-  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}${hamo?`<h4 class="podh">Pod 1 · opens ${ff(S.jump.openAlt)} AGL · ${S.jump.jumpers} jumpers</h4>${calcDl(J,S.jump.jumpers)}<h4 class="podh">Pod 2 · opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</h4>${calcDl(J2,S.jump.pod2Jumpers)}`:calcDl(J,S.jump.jumpers)}
+  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>`;
   updateHound();renderPoints()}
 function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
