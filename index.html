@@ -281,7 +281,13 @@ body.dopen #app{margin-right:var(--dw)}
 body.dopen #menuBtn{display:none}
 body.dopen #hud{display:none}
 #drawer .seg button{white-space:normal;line-height:1.15;padding-left:4px;padding-right:4px}
-body.dopen #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
+body.dopen:not(.dbot) #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
+/* flipped: map on the top half, menu on the bottom half */
+body.dopen.dbot #app{margin-right:0;height:50%}
+body.dbot #drawer{top:50%;left:0;width:auto}
+body.dopen.dbot #status{display:none}
+body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);padding-top:0}
+#dFlip{font-size:18px}
 #drawer .dbox{background:var(--panel);width:100%;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
 .dhead{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}
 .dhead b{flex:1;font:500 21px/1.1 var(--cond)}
@@ -556,7 +562,7 @@ body.dopen #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
 <!-- three-stripe menu -->
 <div id="drawer" hidden>
   <div class="dbox" role="dialog" aria-modal="true" aria-labelledby="dTitle">
-    <div class="dhead"><button class="iconbtn" id="dBack" aria-label="Back" hidden>‹</button><b id="dTitle">Menu</b><button class="iconbtn" id="dClose" aria-label="Close menu">✕</button></div>
+    <div class="dhead"><button class="iconbtn" id="dBack" aria-label="Back" hidden>‹</button><b id="dTitle">Menu</b><button class="iconbtn" id="dFlip" aria-label="Flip view" title="Flip view: menu below the map">⇵</button><button class="iconbtn" id="dClose" aria-label="Close menu">✕</button></div>
     <div class="dbody">
       <div class="mlist" data-dpage="root">
         <button data-go="missions"><b>Mission packages</b><small>Saved jump plans: DIP, parameters, winds and map markup</small></button>
@@ -1717,10 +1723,10 @@ $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions
 /* ================= drawer ================= */
 const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
-function openDrawer(page='root'){if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
+function openDrawer(page='root'){document.body.classList.toggle('dbot',!!S.set.dbot);if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
 function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
 function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
-$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
+$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dFlip').onclick=()=>{S.set.dbot=!S.set.dbot;save('set');document.body.classList.toggle('dbot',S.set.dbot);drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
