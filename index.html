@@ -600,7 +600,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 03:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 03:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1196,7 +1196,7 @@ async function startSensors(){
   startMotion();
   if(!orientOn){orientOn=true;window.addEventListener('ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation',onOrient,true)}
   try{if('wakeLock' in navigator){await navigator.wakeLock.request('screen');document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){try{await navigator.wakeLock.request('screen')}catch(e){}}})}}catch(e){}
-  $('#btnSensors').hidden=true;$('#sensStart').textContent='Restart sensors';$('#sensState').textContent='Waiting for GPS fix…';toast('Sensors started. Hold the phone flat for the best compass.')}
+  $('#btnSensors').hidden=true;$('#sensStart').textContent='Restart sensors';$('#sensState').textContent='Waiting for GPS fix…';void 0}
 let cx=null,cy=null,raf=false;
 function onOrient(e){let h=null;if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading))h=e.webkitCompassHeading;else if((e.absolute||e.type==='deviceorientationabsolute')&&e.alpha!=null)h=norm(360-e.alpha);if(h==null)return;const so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=norm(h+so);const r=h*D2R;cx=cx==null?Math.sin(r):cx*0.8+Math.sin(r)*0.2;cy=cy==null?Math.cos(r):cy*0.8+Math.cos(r)*0.2;compass=norm(Math.atan2(cx,cy)*R2D);
   if(!raf){raf=true;requestAnimationFrame(()=>{raf=false;rotateMe();updateDial();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(me)$('#bHdg').textContent=`${fb(magOf(norm(compass+(+S.set.decl||0))))} M`})}}
