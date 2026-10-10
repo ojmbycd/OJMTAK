@@ -620,7 +620,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 12:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 12:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1168,6 +1168,13 @@ let hamoHeading=null,J2=null,J3=null,hamo=null;
 const pods3=()=>S.jump.mode==='HAMO'&&+S.jump.hamoPods===3;
 /* POD HAMO: each pod releases at maximum drift back for its opening altitude (on its HARP ring); the slider spreads the two
    descents either side of the mean wind line for horizontal separation; the common AC course is the line through both HARPs */
+/* the spread dial cannot go below the smallest spread that gives 30 s from each pod's last out to the next pod's first out */
+let hamoMinKey=null,hamoMinVal=null;
+function hamoMinSpread(){if(S.jump.mode!=='HAMO'||!S.pi)return null;const j=S.jump,key=JSON.stringify([S.pi.lat,S.pi.lon,j.exitAlt,j.openAlt,j.pod2Open,j.pod3Open,j.hamoPods,j.jumpers,j.pod2Jumpers,j.pod3Jumpers,j.interval,j.kias,j.k,j.canopySpeed,j.casSF,j.lpSF,j.pod2Cas,j.pod2Lp,j.pod3Cas,j.pod3Lp,j.dzElev,S.winds]);if(key===hamoMinKey)return hamoMinVal;
+  /* the 30 s rule can fail at both ends (too little spread squeezes pods 1 and 2, too much squeezes 2 and 3), so scan every degree for the band that works */
+  const keep=j.hamoSpread,okAt=sp=>{j.hamoSpread=sp;computeHamo();return !!(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))};const good=[];for(let sp=0;sp<=90;sp++)if(okAt(sp))good.push(sp);
+  let res=null;if(good.length){const cur=+(keep??15);let a=good.reduce((b,x)=>Math.abs(x-cur)<Math.abs(b-cur)?x:b,good[0]),lo=a,hi=a;while(good.includes(lo-1))lo--;while(good.includes(hi+1))hi++;res={lo,hi}}
+  j.hamoSpread=keep;hamoMinKey=key;hamoMinVal=res;return res}
 function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(+S.jump.pod2Open<+S.jump.openAlt+3000&&$('#pod2Open'))fillPod2Sel();const three=pods3();if(three&&+S.jump.pod3Open<+S.jump.pod2Open+3000&&$('#pod3Open'))fillPod3Sel();
   const P1={mode:'HALO'},P2={mode:'HALO',openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers,casSF:Math.max(2000,+(S.jump.pod2Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod2Lp??1000))},
     P3={mode:'HALO',openAlt:+S.jump.pod3Open,jumpers:+S.jump.pod3Jumpers||4,casSF:Math.max(2000,+(S.jump.pod3Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod3Lp??1000))},PL=three?P3:P2;
@@ -1210,7 +1217,9 @@ function calcDl(P,n){return `<dl class="res">
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 /* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
 const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
-function renderJump(){heatSync();exitHint();LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J3=hamo.C;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
+function renderJump(){heatSync();exitHint();LY.jump.clearLayers();
+  if(S.jump.mode==='HAMO'){const m=hamoMinSpread(),sl=$('#hamoSlider');if(m){const v=Math.min(m.hi,Math.max(m.lo,+(S.jump.hamoSpread??15)));if(v!==+S.jump.hamoSpread){S.jump.hamoSpread=v;save('jump')}if(sl){sl.min=m.lo;sl.max=m.hi;sl.value=v}}else if(sl){sl.min=0;sl.max=90}}
+  computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J3=hamo.C;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(S.jump.calcOff&&!J.err){J={err:'Uncalculated: tap the DIP and choose Calculate to show the plan again.'};hamo=null;J2=null;J3=null}
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line, left/right as seen under canopy looking back at the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
@@ -1890,7 +1899,7 @@ $('#podCount').onclick=e=>{const b=e.target.closest('[data-pc]');if(!b)return;S.
 $('#pod3Open').onchange=e=>{S.jump.pod3Open=+e.target.value;save('jump');renderWinds();renderJump()};
 $('#pod3Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
 $('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
-$('#hamoSlider').oninput=e=>{S.jump.hamoSpread=+e.target.value;save('jump');renderJump()};
+$('#hamoSlider').oninput=e=>{S.jump.hamoSpread=Math.min(+e.target.max||90,Math.max(+e.target.min||0,+e.target.value));save('jump');renderJump()};
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
 // long-press (or right-click) anywhere on the map offers to put the DIP there
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
