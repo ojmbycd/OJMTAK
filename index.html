@@ -192,7 +192,7 @@ button,input,select{font:inherit;color:inherit}
 #cloudLbl{font:400 14px/1.1 var(--cond);white-space:nowrap;min-width:110px;text-align:right}
 #curPos{position:absolute;left:220px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums}#curX{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;z-index:850;pointer-events:none;background:linear-gradient(var(--ink),var(--ink)) center/1.5px 100% no-repeat,linear-gradient(var(--ink),var(--ink)) center/100% 1.5px no-repeat;opacity:.75;filter:drop-shadow(0 0 1px #000)}
 /* map text stays a fixed size; zoomed out past the planning scale it is hidden so the map stays readable */
-.leaflet-container.lowz .lbl,.leaflet-container.lowz .linelbl,.leaflet-container.lowz .tag,.leaflet-container.lowz .clbl,.leaflet-container.lowz .klbl,.leaflet-container.lowz .tlbl{display:none}
+.leaflet-container.lowz .lbl,.leaflet-container.lowz .linelbl,.leaflet-container.lowz .tag,.leaflet-container.lowz .clbl,.leaflet-container.lowz .klbl,.leaflet-container.lowz .tlbl,.leaflet-container.lowz .wlbl,.leaflet-container.lowz .glbl,.leaflet-container.lowz .xlbl{display:none}.leaflet-container.lowz .linelbl.keep{display:block}/* run-in timing calls stay readable zoomed out */
 /* small cross for the cursor over the map instead of the hand */
 .leaflet-container,.leaflet-grab,.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:crosshair}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
@@ -627,7 +627,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 21:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 21:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -860,8 +860,8 @@ function heatSync(){const dz=S.jump.dzElev!=null&&S.jump.dzElev!==''&&isFinite(+
 function applyOverlays(){heatSync();Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
 
 /* a label that sits along the top of the run-in (or any line on bearing hdg), just before the point, never upside down */
-function runTag(p,hdg,text,col){let th=hdg-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;const flip=th>90||th<=-90;if(th>90)th-=180;else if(th<=-90)th+=180;
-  return L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:${col};font-size:12px;transform:rotate(${th}deg) translate(${flip?'9px':'calc(-100% - 9px)'},calc(-100% - 3px))">${text}</div>`}),interactive:false}).addTo(LY.jump)}
+function runTag(p,hdg,text,col,keep){let th=hdg-90+(map.getBearing?map.getBearing():0);th=((th%360)+540)%360-180;const flip=th>90||th<=-90;if(th>90)th-=180;else if(th<=-90)th+=180;
+  return L.marker(LL(p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl${keep?' keep':''}" style="color:${col};font-size:12px;transform:rotate(${th}deg) translate(${flip?'9px':'calc(-100% - 9px)'},calc(-100% - 3px))">${text}</div>`}),interactive:false}).addTo(LY.jump)}
 function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
 const textPin=(text,cls='lbl')=>L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="${cls}">${text}</span>`});
 const tagPin=html=>L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tag">${html}</span>`});
@@ -1321,10 +1321,10 @@ function renderJump(){autoDecl();heatSync();exitHint();LY.jump.clearLayers();
   if(hamo&&!(jumpActive&&S.target==='c:pi'))[J,J2,J3].filter(Boolean).forEach((P,i)=>L.polygon(P.ring.map(LL),{color:P.ok?'#FFFFFF':'#FF2A2A',weight:1.2,opacity:.9,dashArray:i===1?'6 5':i===2?'1.5 5':null,fill:false,interactive:false}).addTo(LY.jump));
     const G='#39FF6A',Rd='#FF2A2A';const showRun=phase==='ground'||phase==='aircraft';
   if(showRun){L.polyline(runPts(J).map(LL),{color:"#FFD400",weight:2,dashArray:"10 6",interactive:false}).addTo(LY.jump);
-  L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);runTag(J.runEnd,hamo?hamoHeading:J.heading,'+1 min',c.amb);
+  L.circleMarker(LL(J.runEnd),{radius:4,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);runTag(J.runEnd,hamo?hamoHeading:J.heading,'+1 min',c.amb,true);
   J.timePts.forEach(tp=>{const col=c.amb;const half=false;const dotHtml=half?`<svg viewBox="-6 -6 12 12" width="12" height="12" style="display:block"><path d="M0-5A5 5 0 0 1 0 5Z" fill="${G}"/><path d="M0-5A5 5 0 0 0 0 5Z" fill="${Rd}"/><circle r="5" fill="none" stroke="#141414" stroke-width="1"/></svg>`:'';
     if(half)L.marker(LL(tp.p),{icon:L.divIcon({className:'pin',iconSize:[12,12],iconAnchor:[6,6],html:dotHtml}),interactive:false}).addTo(LY.jump);else L.circleMarker(LL(tp.p),{radius:4,color:'#141414',weight:1,fillColor:col,fillOpacity:1,interactive:false}).addTo(LY.jump);
-    runTag(tp.p,hamo?hamoHeading:J.heading,half?'4 min':tp.l,half?c.amb:col)});}
+    runTag(tp.p,hamo?hamoHeading:J.heading,half?'4 min':tp.l,half?c.amb:col,true)});}
   const calc=(p,svg,col,label,key)=>L.marker(LL(p),{icon:divPin(svg,col,label,24)}).on('click',()=>calcActions('c:'+key)).addTo(LY.jump);
   calc(J.op,'<path d="M-11 0A11 10 0 0 1 11 0Q5.5-2.5 0 0Q-5.5-2.5-11 0Z"/><path d="M-10 0 0 10M10 0 0 10M0 0V10" fill="none" stroke="'+c.amb+'" stroke-width="1.4"/><circle cy="11.5" r="2.3"/>',c.amb,'PRP','open');{const RH=hamo?hamoHeading:J.heading;if(showRun){calc(J.rl,'<circle r="8"/>',c.st,'','rl')}L.marker(LL(J.harp),{icon:divPin('<circle r="6"/>',hamo&&!J.ok?'#FF2A2A':c.go,'',18)}).on('click',harpRadial).addTo(LY.jump);runTag(J.harp,RH,hamo?'HARP 1':'HARP',hamo&&!J.ok?'#FF2A2A':c.go)}
   if(S.jump.harpRings&&showRun){const rc=hamo?hamo.first.gl:J.gl;// time rings count from first out, like the dots on the run-in
