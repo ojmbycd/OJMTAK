@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 09:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -985,7 +985,7 @@ function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--ambe
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.circle(LL(r.c),{radius:r.step*i,color:'#000',opacity:0,weight:20,fill:false,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Range rings'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
-    const lc=r.color?colOf(r.color):ink,lw=r.w||2,ld=r.style==='dot'?`0.1 ${lw*2.2}`:r.style==='dash'?`${lw*3} ${lw*2}`:r.style==='solid'?null:r.kind==='move'?'8 6':null;
+    const lc=r.color?colOf(r.color):ink,lw=r.w||2,ld=r.kind==='move'?`${lw*3} ${lw*2}`:null;/* moveable lines are dashed, fixed lines solid */
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:lc,weight:lw,dashArray:ld,lineCap:'round',bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);const hit=L.polyline([LL(r.a),LL(r.b)],{color:'#000',opacity:0,weight:20,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
     const tag=L.marker(LL(mid()),{icon:lineTag(r.a,r.b,lineLabel(r.a,r.b),lc,lw),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,lc),interactive:false}).addTo(LY.rng);
@@ -1016,7 +1016,6 @@ function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del=
     {l:'Reverse',icon:'swap',f:()=>{[r.a,r.b]=[r.b,r.a];save('rng');renderRng();rngActions(id)}},
     {l:'Colour',icon:'palette',f:()=>{if(!r.color)r.color='#FF0000';colourPanel(r,'Line colour',()=>{save('rng');renderRng()})}},
     {l:'Thickness',icon:'thick',f:()=>thickPanel(r,()=>{save('rng');renderRng()})},
-    {l:'Style',icon:'dash',f:()=>stylePanel(r,()=>r.style||(r.kind==='move'?'dash':'solid'),()=>{save('rng');renderRng()})},
     {l:'Navigate to end',icon:'hound',f:()=>setTarget('r:'+id)},del],r.kind==='move'?'Moveable line':'Fixed line',[r.a,r.b])}
 function delRng(id){S.rng=S.rng.filter(x=>x.id!==id);if(selRing===id)selRing=null;if(S.target==='r:'+id)setTarget(null);save('rng');renderRng()}
 function rangeTap(p){const m=S.set.rngMode;if(m==='ring'){if(Date.now()-shapeDragAt<500)return;const r={id:uid(),kind:'ring',c:p,step:+S.set.ringStep||450*FT,u:S.set.ringUnit||'ft',n:1};S.rng.push(r);selRing=r.id;save('rng');renderRng();rngActions(r.id);return}
