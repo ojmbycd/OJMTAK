@@ -1,4 +1,4 @@
-// Offline support for Jump Master Expert Tool.
+// Offline support for JUMPMASTER PRO.
 // The app page and its map library are kept on the phone so the app opens with no signal.
 // Map tiles saved with "Download map area" are served from the phone first.
 const APP = 'jmet-app-v1', TILES = 'jmet-tiles';
