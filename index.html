@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 10:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 10:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -986,7 +986,7 @@ function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--ambe
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.circle(LL(r.c),{radius:r.step*i,color:'#000',opacity:0,weight:20,fill:false,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Range rings'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
-      if(r.hrpo){const hc='#FFFFFF';L.marker(LL(r.hrpo),{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${hc}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${hc};left:22px;top:0;line-height:1.1">${ff(r.hrpo.ft)}<br><small style="font-size:9px;opacity:.85">(highest in ring)</small></span></div>`}),pickName:'Ring high point'}).on('click',()=>ringHrpo(r.id)).addTo(LY.rng)}
+      if(r.hrpo){const hc='#FFFFFF';L.marker(LL(r.hrpo),{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${hc}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${hc};left:22px;top:0;line-height:1.1">${ff(r.hrpo.ft)}<br><small style="font-size:9px;opacity:.85">(High Point)</small></span></div>`}),pickName:'Ring high point'}).on('click',()=>ringHrpo(r.id)).addTo(LY.rng)}
       return}
     const lc=r.color?colOf(r.color):ink,lw=r.w||2,ld=r.kind==='move'?`${lw*3} ${lw*2}`:null;/* moveable lines are dashed, fixed lines solid */
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:lc,weight:lw,dashArray:ld,lineCap:'round',bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);const hit=L.polyline([LL(r.a),LL(r.b)],{color:'#000',opacity:0,weight:20,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
@@ -1015,7 +1015,7 @@ async function ringHrpo(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const 
   let h;try{h=await terrElevs(pts)}catch(e){sheet({side:true,title:'HRPO check',sub:'Terrain could not load (no signal?). Download the map area while you have signal to check offline.',buttons:[]});return}
   let k=0;h.forEach((v,i)=>{if(v>h[k])k=i});const top=pts[k],ft=Math.round(h[k]/FT),dz=S.jump.dzElev!=null&&S.jump.dzElev!==''?+S.jump.dzElev:null,above=dz!=null?ft-dz:null,isH=above!=null&&above>=200;
   r.hrpo={lat:top.lat,lon:top.lon,ft,isH};save('rng');renderRng();
-  sheet({side:true,title:`${ff(ft)} AMSL`,sub:`(highest in ring)\n${fc(top)}`,buttons:[['Navigate to it',()=>setTarget('rh:'+id)],['Copy grid',()=>copy(fc(top))],['Clear marker',()=>{delete r.hrpo;save('rng');renderRng()}]]})}
+  sheet({side:true,title:`${ff(ft)} AMSL`,sub:`(High Point)\n${fc(top)}`,buttons:[['Navigate to it',()=>setTarget('rh:'+id)],['Copy grid',()=>copy(fc(top))],['Clear marker',()=>{delete r.hrpo;save('rng');renderRng()}]]})}
 function rngActions(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>delRng(id)};
   if(r.kind==='ring'){selRing=id;renderRng();const outer=Array.from({length:49},(_,i)=>dest(r.c,i*7.5,r.n*r.step));
     openRadial(r.c,[{l:'Interval',icon:'params',f:()=>sheet({title:'Ring interval',sub:`${r.n} ring${r.n===1?'':'s'} × ${fmtU(r.step,ru(r))} · outer ${fmtU(r.n*r.step,ru(r))}`,input:{label:`Ring interval, ${ru(r).l}`,type:'number',value:inU(r.step,ru(r)),save:v=>{const n=parseFloat(v);if(n>0){r.step=n*ru(r).f;save('rng');renderRng()}}},buttons:[]})},
