@@ -572,6 +572,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <h3>Military CYPRES setting</h3>
             <div class="fields">
               <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option><option value="mix1500">Mixed: Non Standard 1000 + MJ 1500</option><option value="mix1900">Mixed: Non Standard 1000 + MJ 1900</option></select></label>
+              <div class="row" id="cypCustomRow" hidden><button class="btn sm" id="cypEdit">Edit custom</button><button class="btn sm danger" id="cypDel">Delete custom</button></div>
               <label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
               <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
             </div>
@@ -623,7 +624,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 15:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -760,6 +761,7 @@ const S={
   altDips:store.get('altDips',[]),
   savedDips:store.get('savedDips',[]),
   canopies:store.get('canopies',[]),
+  cypCustom:store.get('cypCustom',[]),
   pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{}),{alts:[1000,600,300]}),
   set:Object.assign({},DEF_SET,store.get('set',{})),
   ov:Object.assign({},DEF_OV,store.get('ov',{})),
@@ -1774,6 +1776,13 @@ document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds'
 /* ================= Military CYPRES ================= */
 const CYP={mj1900:{n:'MJ (1900 35A)',act:1900,sep:2000,dep:1500,min:5000},mj1500:{n:'MJ (1500 35A)',act:1500,sep:2000,dep:1500,min:5000},pns1000:{n:'Non Standard (1000 35A)',act:1000,sep:1300,dep:1700,min:4000}};
 const CYP_SEL={mj1900:['mj1900'],mj1500:['mj1500'],pns1000:['pns1000'],mix1500:['pns1000','mj1500'],mix1900:['pns1000','mj1900']};
+/* custom CYPRES settings: name, reserve activation altitude, decision altitude and minimum deployment (ft above the CYPRES setting) */
+function loadCypCustom(){Object.keys(CYP).filter(k=>k.startsWith('c:')).forEach(k=>{delete CYP[k];delete CYP_SEL[k]});(S.cypCustom||[]).forEach(c=>{const k='c:'+c.id;CYP[k]={n:c.name,act:+c.raa,sep:Math.max(0,+c.da-(+c.raa)),dep:Math.max(0,+c.md-(+c.da)),min:+c.md};CYP_SEL[k]=[k]})}
+function fillCypSel(){const sel=$('#cypModel');if(!sel)return;sel.querySelectorAll('option[data-c]').forEach(o=>o.remove());(S.cypCustom||[]).forEach(c=>{const o=document.createElement('option');o.value='c:'+c.id;o.dataset.c=1;o.textContent=`Custom: ${c.name} (${ff(c.raa)} / ${ff(c.da)} / ${ff(c.md)})`;sel.appendChild(o)});const a=document.createElement('option');a.value='__addcyp';a.dataset.c=1;a.textContent='Add custom CYPRES…';sel.appendChild(a);
+  sel.value=CYP_SEL[S.jump.cypModel]?S.jump.cypModel:'mj1900';$('#cypCustomRow').hidden=!String(sel.value).startsWith('c:')}
+function cypCustomSheet(c){const d=c||{name:'',raa:'',da:'',md:''},ask=(title,label,val,next)=>sheet({title,input:{label,type:label==='Name'?'text':'number',value:val,save:next},buttons:[]});
+  ask(c?'Edit custom CYPRES':'Custom CYPRES','Name',d.name,n=>{if(!n.trim())return;ask(n.trim(),'Reserve activation altitude (ft)',d.raa,r=>{if(!(+r>0))return;ask(n.trim(),'Decision altitude (ft)',d.da,da=>{if(!(+da>+r)){toast('Decision altitude must be above the reserve activation altitude');return}ask(n.trim(),'Minimum deployment (ft)',d.md,md=>{if(!(+md>+da)){toast('Minimum deployment must be above the decision altitude');return}
+    const o={id:c?c.id:Date.now(),name:n.trim(),raa:Math.round(+r),da:Math.round(+da),md:Math.round(+md)};S.cypCustom=c?S.cypCustom.map(x=>x.id===c.id?o:x):[...S.cypCustom,o];save('cypCustom');loadCypCustom();S.jump.cypModel='c:'+o.id;save('jump');fillCypSel();renderMilCypres();renderJump();toast(`${o.name} saved`)})})})})}
 /* altitude maths (same as the manifest & pilot brief sheet):
    setting in inHg (unknown = 29.92); pressure altitude = elevation + (29.92 - setting) x 1000; station pressure = 1013.25 x (1 - 6.8756e-6 x PA)^5.2559, rounded down to whole mb.
    CYPRES input = higher of VDZ / DZ (+500 ft if the setting is unknown). Ladder: RAA = input + activation, decision = RAA + separation,
@@ -1834,7 +1843,10 @@ async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const 
   catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
   finally{b.disabled=false;b.textContent='Nearest station QNH (within 100 nm)'}}
 $('#qnhNearest').onclick=nearestQnh;
-$('#cypModel').onchange=e=>{S.jump.cypModel=e.target.value;save('jump');renderMilCypres()};
+$('#cypModel').onchange=e=>{if(e.target.value==='__addcyp'){fillCypSel();cypCustomSheet(null);return}S.jump.cypModel=e.target.value;save('jump');$('#cypCustomRow').hidden=!e.target.value.startsWith('c:');renderMilCypres();renderJump()};
+$('#cypEdit').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(c)cypCustomSheet(c)};
+$('#cypDel').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(!c)return;sheet({title:`Delete ${c.name}?`,buttons:[['Delete',()=>{S.cypCustom=S.cypCustom.filter(x=>x.id!==c.id);save('cypCustom');loadCypCustom();S.jump.cypModel='mj1900';save('jump');fillCypSel();renderMilCypres();renderJump()},'danger']]})};
+loadCypCustom();fillCypSel();
 $('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;S.jump.qnhSrc=null;save('jump');renderMilCypres()}};
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
 $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
@@ -1862,7 +1874,7 @@ $('#hrpoHeat').onclick=()=>{closeTool();showHeat()};$('#heatKey').onclick=hideHe
 $('#hrpoCheck').onclick=()=>{hrpoFailKey=null;checkHrpo(false)};
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);autoHrpo()}}
 setTimeout(autoHrpo,1500);
-function syncCypInputs(){$('#cypModel').value=S.jump.cypModel||'mj1900';$('#qnhUnit').value=S.jump.qnhUnit||'mb';$('#qnhVal').value=S.jump.qnh;$('#qnhUnknown').checked=!!S.jump.qnhUnknown;$('#vdzManual').value=S.jump.vdzManual??''}
+function syncCypInputs(){try{fillCypSel()}catch(_){$('#cypModel').value=S.jump.cypModel||'mj1900'}$('#qnhUnit').value=S.jump.qnhUnit||'mb';$('#qnhVal').value=S.jump.qnh;$('#qnhUnknown').checked=!!S.jump.qnhUnknown;$('#vdzManual').value=S.jump.vdzManual??''}
 
 
 /* ================= cloud forecast overlay (Open-Meteo) ================= */
