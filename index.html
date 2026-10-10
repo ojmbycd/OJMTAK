@@ -330,6 +330,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act.side{left:auto;width:var(--dw);background:none;align-items:stretch;justify-content:flex-end}body.dbot #act.side{left:0;width:auto;top:50%}body.dbot #act.side .box{border-left:none;border-top:1px solid var(--line);padding-top:14px}#act.side .box{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
 #act .dipalt{color:#9a9a9a;font-weight:400}
 .fullbtns{display:flex;flex-wrap:nowrap}.fullbtns .btn{flex:1}.fullbtns .btn[hidden]{display:none}
+.stylelist{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.stylelist .btn{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.stylelist .btn span{width:64px;flex:none}.stylelist .btn svg{flex:1;height:16px}.stylelist .btn.on{outline:2px solid var(--ink)}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}
 #act p{white-space:pre-line;margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -605,7 +606,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:25</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 07:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -907,7 +908,11 @@ function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const d
     {l:d.label?'Edit text on line':'Text on line',icon:'text',f:()=>popSheet({side:true,title:'Text on the line',sub:'Shown along the top of the line, in its colour. Leave blank to remove.',input:{clear:true,label:'Text',value:d.label||'',save:v=>{d.label=v.trim()||undefined;save('draws');renderDraws()}},buttons:[]})},
     {l:'Colour',icon:'palette',f:colour},
     {l:'Thickness',icon:'thick',f:()=>lineThick(id)},
-    {l:'Style',icon:'dash',f:()=>{const pick=()=>{const cur=d.style==='dot'?'dot':d.dash?'dash':'solid';popSheet({side:true,title:'Line style',buttons:[['Solid','solid'],['Dashed','dash'],['Dotted','dot']].map(([n,v])=>[n,()=>{d.style=v;d.dash=v!=='solid';save('draws');renderDraws();pick()},cur===v?'primary':''])})};pick()}},del],d.kind==='line'?'Line':'Freehand')}
+    {l:'Style',icon:'dash',f:()=>{popSheet({side:true,title:'Line style',buttons:[]});const g=document.createElement('div');g.className='stylelist';
+      /* each option shows an example line in this line's colour and thickness; stays open to compare */
+      const ex=v=>{const c=colOf(d.color),w=Math.max(2,Math.min(8,d.w||2));return `<svg viewBox="0 0 160 16" preserveAspectRatio="none"><line x1="6" y1="8" x2="154" y2="8" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${v==='dash'?`stroke-dasharray="${w*3} ${w*2}"`:v==='dot'?`stroke-dasharray="0.1 ${w*2.2}"`:''}/></svg>`};
+      const paint=()=>{const cur=d.style==='dot'?'dot':d.dash?'dash':'solid';g.innerHTML=[['Solid','solid'],['Dashed','dash'],['Dotted','dot']].map(([n,v])=>`<button class="btn${cur===v?' on':''}" data-st="${v}"><span>${n}</span>${ex(v)}</button>`).join('')};paint();
+      g.onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;d.style=b.dataset.st;d.dash=d.style!=='solid';save('draws');renderDraws();paint()};$('#actBtns').appendChild(g)}},del],d.kind==='line'?'Line':'Freehand')}
 function drawTextTap(p){sheet({title:'Add text label',sub:fc(p),input:{clear:true,label:'Text',value:'',save:v=>{if(!v.trim())return;S.draws.push({id:uid(),kind:'text',color:S.set.drawColor,p,text:v.trim()});save('draws');renderDraws()}},buttons:[]});setTimeout(()=>$('#actIn').focus(),50)}
 function drawLineTap(p){if(!lineDraft){lineDraft=[p];renderDraft();$('#tipText').textContent='Start set. Tap the end of the line.';return}
   S.draws.push({id:uid(),kind:'line',color:S.set.drawColor||'--x',w:2,dash:false,pts:[lineDraft[0],p]});save('draws');lineDraft=null;tmpLayer.clearLayers();renderDraws();$('#tipText').textContent='Line added. Tap the map to start another.'}
