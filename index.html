@@ -263,7 +263,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .fldnote{display:block;font-size:11px;color:var(--mute);margin-top:2px;min-height:13px}
 .btn.sm{padding:3px 10px;font-size:12px;margin-left:6px}
 #hamoBox .fields{grid-template-columns:repeat(3,minmax(0,1fr))}
-body.navlock #quick .qb:not(#layoutBtn){opacity:.35}
+body.navlock #quick .qb:not(#layoutBtn){opacity:.3;filter:grayscale(1);pointer-events:none}
 .drawtip{margin:8px 0 2px;font-weight:600;color:var(--amber)}.drawtip:empty{display:none}
 .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;justify-items:center}
 .swatch{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
@@ -620,7 +620,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 17:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
