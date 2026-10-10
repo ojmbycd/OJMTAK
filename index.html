@@ -609,7 +609,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 08:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 08:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -983,7 +983,7 @@ function lineTag(a,b,text,col,w=2){let th=brg(a,b)-90+(map.getBearing?map.getBea
   return L.divIcon({className:'pin',iconSize:[0,0],html:`<div class="linelbl" style="color:${col};transform:rotate(${th}deg) translate(-50%,calc(-100% - ${Math.ceil(w/2)+1}px))">${text}</div>`})}
 function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--amber');
   S.rng.forEach(r=>{
-    if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
+    if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.circle(LL(r.c),{radius:r.step*i,color:'#000',opacity:0,weight:20,fill:false,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Range rings'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
     const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);const hit=L.polyline([LL(r.a),LL(r.b)],{color:'#000',opacity:0,weight:20,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
