@@ -635,7 +635,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -699,6 +699,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <h3>Map</h3>
         <div class="fields"><label class="fld">Theme<select id="sTheme"><option value="auto">Match phone</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
         <label class="chk mt"><input type="checkbox" id="sNight"> Night mode (red only)</label>
+        <label class="chk"><input type="checkbox" id="sJhdg"> Show jumper trackback (red dashed line)</label>
         <h3 class="mt">Projected location</h3>
         <label class="chk"><input type="checkbox" id="sProj"> Show where I'll be ahead on my track</label>
         <div class="fields mt"><label class="fld">Look ahead<select id="sProjSec"><option value="30">30 s</option><option value="60">60 s</option><option value="120">2 min</option></select></label></div>
@@ -853,7 +854,7 @@ function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}extr
 
 const LY={heat:L.layerGroup(),cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup(),adsb:L.layerGroup()};
 const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
-const OV_NAMES={heat:'Altitude heatmap',cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Navigation line',jhdg:'Jumper heading line (PRP to DIP)'};
+const OV_NAMES={heat:'Altitude heatmap',cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Navigation line',jhdg:'Jumper trackback (red dashed line, PRP to DIP)'};
 // live aircraft switch hidden until a feed accepts the Cloudflare relay; add adsb:'Live aircraft (ADS-B)' back above to show it
 /* altitude heatmap: terrain tiles coloured by height above the DZ (yellow = 200 ft above, the HRPO line), or by height above sea level when no DZ is set */
 const HSTOPS_DZ=[[-500,[20,40,160]],[-100,[40,120,230]],[0,[30,170,80]],[100,[140,210,60]],[200,[255,225,0]],[500,[255,140,0]],[1000,[230,30,30]],[2000,[170,0,170]]];
@@ -1099,7 +1100,7 @@ $('#rngList').onclick=e=>{const b=e.target.closest('[data-r]');if(b)rngActions(b
 
 /* ================= OVERLAYS ================= */
 function renderOvList(){$('#ovList').innerHTML=Object.entries(OV_NAMES).map(([k,n])=>`<label class="chk"><input type="checkbox" data-ov="${k}" ${S.ov[k]?'checked':''}> ${n}</label>`).join('')}
-$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='cloud')$('#cloudBar').hidden=!(e.target.checked&&CL);if(k==='grid')drawGrid();if(k==='adsb')adsbSync();if(k==='jhdg')renderJump()};
+$('#ovList').onchange=e=>{const k=e.target.dataset.ov;if(!k)return;S.ov[k]=e.target.checked;save('ov');applyOverlays();if(k==='cloud')$('#cloudBar').hidden=!(e.target.checked&&CL);if(k==='grid')drawGrid();if(k==='adsb')adsbSync();if(k==='jhdg'){renderJump();$('#sJhdg').checked=e.target.checked}};
 $('#baseSeg').onclick=e=>{const b=e.target.closest('[data-b]');if(b)setBase(b.dataset.b)};
 /* ================= live aircraft: adsb.lol feed through the Cloudflare relay (adsb-worker.js) ================= */
 const ADSB_URL='https://adsb-relay.sraigchuts.workers.dev/';
@@ -1320,7 +1321,7 @@ function renderJump(){autoDecl();heatSync();exitHint();LY.jump.clearLayers();
       for(let d=tot/2;d>50;d/=2){const q=at(d);if(!q||q.h<3500)break;const h=Math.round(q.h/1000)*1000;if(done.has(h))continue;done.add(h);const i=P.marks.findIndex(m=>m.agl===h);if(i<0)continue;const m=P.marks[i],nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi,b=brg(m.p,nxt);L.polyline([LL(dest(m.p,norm(b+90),450)),LL(dest(m.p,norm(b-90),450))],{color:'#FF2A2A',weight:2.5,interactive:false}).addTo(LY.jump)}}
   };drawTrack(J);if(hamo){if(J2)drawTrack(J2);if(J3)drawTrack(J3)}
   /* overlay: the canopy heading to hold from the PRP, as a thin red dotted line run out the PRP-to-DIP distance (the canopy drifts off it with the wind but holds this heading) */
-  if(S.ov.jhdg)[J,J2,J3].filter(P=>P&&!P.err&&P.driveH!=null&&(P===J||hamo)).forEach(P=>{const a=P.op,b=dest(a,P.driveH,dist(a,S.pi));L.polyline([LL(a),LL(b)],{color:'#FF2A2A',weight:1,dashArray:'2 5',interactive:false}).addTo(LY.jump);
+  if(S.ov.jhdg)[J,J2,J3].filter(P=>P&&!P.err&&P.driveH!=null&&(P===J||hamo)).forEach(P=>{const a=P.op,b=dest(a,P.driveH,dist(a,S.pi));L.polyline([LL(a),LL(b)],{color:'#FF2A2A',weight:1.2,dashArray:'7 5',interactive:false}).addTo(LY.jump);
     const mid=dest(a,P.driveH,dist(a,S.pi)*.5);L.marker(LL(mid),{icon:lineTag(a,b,`<span class="holdlbl">Hold ${String(Math.round(P.jumperHdgM)).padStart(3,'0')}° M</span>`,'#FF2A2A',1),interactive:false}).addTo(LY.jump)});
   /* POD HAMO: each pod's 2K and 3K phase lines are joined to the next pod's by a bowed line curving round the DIP */
   if(hamo&&J2)[2000,3000].forEach(h=>{const ms=[J,J2,J3].filter(Boolean).map(P=>(P.marks||[]).find(m=>m.agl===h)).filter(Boolean).map(m=>({p:m.p,b:brg(S.pi,m.p),d:dist(S.pi,m.p)}));if(ms.length<2)return;
@@ -1603,7 +1604,7 @@ function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${
 function altDipSheet(){sheet({side:true,title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>swapDip(d.id)])]})}
 function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.lat,lon:p.lon};S.altDips.push(d);save('altDips');renderAltDips();toast(`${d.name} added`)}
 function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old=S.pi;S.pi={lat:d.lat,lon:d.lon};d.lat=old.lat;d.lon=old.lon;save('pi');save('altDips');renderJump();renderAltDips();autoDzElev();toast(`${d.name} is now the DIP`)}
-function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});S.altDips.forEach(d=>{L.circle([d.lat,d.lon],{radius:450*FT,color:'#FF2A2A',weight:1.5,dashArray:'6 6',fill:false,interactive:false,altdip:true}).addTo(LY.jump);L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[24,24],iconAnchor:[12,12],html:`<div style="position:relative;width:24px;height:24px"><svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="8" fill="none" stroke="#FF2A2A" stroke-width="2.5" stroke-dasharray="4 3"/></svg><span class="lbl" style="position:absolute;left:24px;top:5px">${esc(d.name)}</span></div>`})}).on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>swapDip(d.id)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
+function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});S.altDips.forEach(d=>{L.circle([d.lat,d.lon],{radius:450*FT,color:'#FF2A2A',weight:1.5,dashArray:'6 6',fill:false,interactive:false,altdip:true}).addTo(LY.jump);L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[24,24],iconAnchor:[12,12],html:`<div style="position:relative;width:24px;height:24px"><svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="8" fill="none" stroke="#FF2A2A" stroke-width="2.5" stroke-dasharray="4 3"/><circle r="2.2" fill="#FF2A2A"/></svg><span class="lbl" style="position:absolute;left:24px;top:5px">${esc(d.name)}</span></div>`})}).on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>swapDip(d.id)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
 /* landing pattern */
 /* landing direction: manual, or into the surface wind; a Z pattern lands along the trackback (2K mark to the DIP) */
 function patDir(){const P=S.pattern,w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const PJ=patJ(),k2=P.type==='z'&&P.dirAuto&&PJ&&!PJ.err&&(PJ.marks||[]).find(m=>m.agl===2000);if(k2)return brg(k2.p,S.pi);return P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):null):P.dir}
@@ -2285,13 +2286,14 @@ $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer(
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
 function redrawAll(){renderJump();renderMarkers();renderXs();renderDraws();renderRng();drawGrid();if(trailLine)trailLine.setStyle({color:cssv('--self')});drawMe();updateBar();updateHound();renderPoints()}
-function syncSetup(){const s=S.set;$('#sCall').value=s.callsign||'';renderCall();$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sDeclAuto').checked=s.declAuto!==false;$('#sDeclNote').textContent=s.declAuto!==false?'':'Typed by hand. Tick the box to work it out from the DIP.';autoDecl();$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
+function syncSetup(){const s=S.set;$('#sCall').value=s.callsign||'';renderCall();$('#sCoord').value=s.coord;$('#sDist').value=s.dist;$('#sDecl').value=s.decl;$('#sJhdg').checked=!!S.ov.jhdg;$('#sDeclAuto').checked=s.declAuto!==false;$('#sDeclNote').textContent=s.declAuto!==false?'':'Typed by hand. Tick the box to work it out from the DIP.';autoDecl();$('#sOuter').value=s.outer;$('#sInner').value=s.inner;$('#sTrail').checked=s.trail;$('#sTheme').value=s.theme;$('#sNight').checked=s.night;$('#sSim').checked=s.sim;$('#sSimSpd').value=s.simSpd;$('#sSimMove').checked=s.simMove}
 const setS=(k,v,after)=>{S.set[k]=v;save('set');after&&after()};
 function renderCall(){$('#bCall').textContent=(S.set.callsign||'').trim()||'JumpMaster Pro'}
 $('#sCall').oninput=e=>setS('callsign',e.target.value,renderCall);
 $('#sCoord').onchange=e=>setS('coord',e.target.value,redrawAll);
 $('#sDist').onchange=e=>setS('dist',e.target.value,redrawAll);
 $('#sDecl').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.set.declAuto=false;$('#sDeclAuto').checked=false;$('#sDeclNote').textContent='Typed by hand. Tick the box to work it out from the DIP.';setS('decl',v,redrawAll)}};
+$('#sJhdg').onchange=e=>{S.ov.jhdg=e.target.checked;save('ov');if(typeof renderOvList==='function')renderOvList();renderJump()};
 $('#sDeclAuto').onchange=e=>{S.set.declAuto=e.target.checked;save('set');if(e.target.checked){autoDecl();$('#sDecl').value=S.set.decl;redrawAll();renderJump()}else $('#sDeclNote').textContent='Typed by hand. Tick the box to work it out from the DIP.'};
 $('#sOuter').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('outer',v,updateHound)};
 $('#sInner').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('inner',v,updateHound)};
