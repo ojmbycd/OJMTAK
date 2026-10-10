@@ -133,7 +133,7 @@ button,input,select{font:inherit;color:inherit}
 #tip button{background:none;border:1px solid currentColor;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
 
 /* ---------- bloodhound ---------- */
-#hJump{display:contents}#hJump[hidden]{display:none}#autoJump[data-state="wait"]{background:#2D6BD8;color:#fff;border-color:#2D6BD8}#autoJump[aria-pressed="true"]{background:var(--go);color:#141414;border-color:var(--go)}
+#hJump{display:contents}#hAlt{display:contents}#hAlt[hidden],#altList[hidden]{display:none}#altList{display:contents}#altList .btn{border-color:#FF2A2A}#hJump[hidden]{display:none}#autoJump[data-state="wait"]{background:#2D6BD8;color:#fff;border-color:#2D6BD8}#autoJump[aria-pressed="true"]{background:var(--go);color:#141414;border-color:var(--go)}
 #hud{position:absolute;z-index:1100;background:rgba(16,16,16,.45);border:1px solid rgba(255,255,255,.14);border-left:8px solid var(--go);display:flex;flex-direction:column;color:#F2F2F2;backdrop-filter:blur(6px)}
 #hud[data-dock="box"]{right:8px;border-radius:10px;border-left-width:5px;min-height:0}
 #hud[data-dock="box"] .docks,#hud[data-dock="box"] .hfoot [data-preset],#hud[data-dock="box"] .hfoot .note{display:none}
@@ -411,7 +411,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         </svg>
         <div class="tiles" id="tiles"></div>
       </div>
-      <div class="hfoot"><button class="btn" data-preset="ac">Jumpmaster Data</button><button class="btn" data-preset="canopy">Canopy Data</button><span id="hJump" hidden><button class="btn" id="autoJump" aria-pressed="true">Auto jump: ON</button><button class="btn danger" id="forceJump">Force jump</button></span><span class="note" id="hNote"></span></div>
+      <div class="hfoot"><button class="btn" data-preset="ac">Jumpmaster Data</button><button class="btn" data-preset="canopy">Canopy Data</button><span id="hJump" hidden><button class="btn" id="autoJump" aria-pressed="true">Auto jump: ON</button><button class="btn danger" id="forceJump">Force jump</button></span><span id="hAlt" hidden><button class="btn" id="altBtn">Switch to ALT ▾</button><span id="altList" hidden></span></span><span class="note" id="hNote"></span></div>
     </div>
     <div id="radial" hidden></div>
     <div id="eyeAlt">Eye alt –</div>
@@ -635,7 +635,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 00:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -696,11 +696,11 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
       </div>
 
       <div class="panel" data-dpage="display" hidden>
-        <h3>Map</h3>
+        <h3>Map settings</h3>
         <div class="fields"><label class="fld">Theme<select id="sTheme"><option value="auto">Match phone</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
         <label class="chk mt"><input type="checkbox" id="sNight"> Night mode (red only)</label>
+        <h3 class="mt">Jumper settings</h3>
         <label class="chk"><input type="checkbox" id="sJhdg"> Show jumper trackback (red dashed line)</label>
-        <h3 class="mt">Projected location</h3>
         <label class="chk"><input type="checkbox" id="sProj"> Show where I'll be ahead on my track</label>
         <div class="fields mt"><label class="fld">Look ahead<select id="sProjSec"><option value="30">30 s</option><option value="60">60 s</option><option value="120">2 min</option></select></label></div>
       </div>
@@ -1507,7 +1507,7 @@ function placeHud(){placeZoom();const h=$('#hud');if(h.hidden||h.dataset.dock!==
   /* jumper box hidden or folded: the navigation box sits along the bottom of the map */if(st.width<120||st.height<60){h.style.left='6px';h.style.right='6px';h.style.bottom='6px';h.style.height='auto';placeZoom();return}h.style.right='';
   h.style.left=Math.round(st.right-mw.left+6)+'px';h.style.bottom=Math.round(mw.bottom-st.bottom)+'px';h.style.height=Math.round(st.height)+'px'}
 if(window.ResizeObserver)new ResizeObserver(()=>{placeHud();placeTool()}).observe($('#status'));new MutationObserver(placeTool).observe($('#tool'),{attributes:true,attributeFilter:['class','hidden']});window.addEventListener('resize',()=>{placeHud();placeTool()});
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=!(tl===PRESETS.ac.tiles.join()||/^c:harp/.test(S.target||''));renderAutoJump();$('#hName').innerHTML=`<b>NAVIGATE MODE - TO ${esc((S.target==='c:pi'?`DIP${S.pi&&S.pi.name&&S.pi.name!=='DIP'?' ('+S.pi.name+')':''}`:String(r.name)).toUpperCase())}</b><small>${tl===PRESETS.ac.tiles.join()?'Jumpmaster data':tl===PRESETS.canopy.tiles.join()?'Canopy data':'Navigation'}</small>`}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=!(tl===PRESETS.ac.tiles.join()||/^c:harp/.test(S.target||''));$('#hAlt').hidden=!(S.target==='c:pi'&&S.altDips.length);if($('#hAlt').hidden)$('#altList').hidden=true;renderAutoJump();$('#hName').innerHTML=`<b>NAVIGATE MODE - TO ${esc((S.target==='c:pi'?`DIP${S.pi&&S.pi.name&&S.pi.name!=='DIP'?' ('+S.pi.name+')':''}`:String(r.name)).toUpperCase())}</b><small>${tl===PRESETS.ac.tiles.join()?'Jumpmaster data':tl===PRESETS.canopy.tiles.join()?'Canopy data':'Navigation'}</small>`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
@@ -1603,6 +1603,11 @@ function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${
 /* alternate DIPs */
 function altDipSheet(){sheet({side:true,title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>swapDip(d.id)])]})}
 function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.lat,lon:p.lon};S.altDips.push(d);save('altDips');renderAltDips();toast(`${d.name} added`)}
+/* navigating to the DIP: switch to an alternate. The alternate becomes the DIP (names swap with it) and the whole plan, trackback and landing pattern are worked out for it */
+function useAltAsDip(id){const d=S.altDips.find(x=>x.id===id);if(!d||!S.pi)return;const old=S.pi;S.pi={name:d.name,lat:d.lat,lon:d.lon};d.name=old.name||'DIP';d.lat=old.lat;d.lon=old.lon;
+  if(S.pattern)S.pattern.mv=null;save('pi');save('altDips');save('pattern');autoDzElev();renderAltDips();renderJump();setTarget('c:pi');toast(`Now navigating to ${S.pi.name}`)}
+$('#altBtn').onclick=()=>{const L_=$('#altList');if(!L_.hidden){L_.hidden=true;return}L_.innerHTML=S.altDips.map(d=>`<button class="btn" data-alt="${d.id}">${esc(d.name)}</button>`).join('');L_.hidden=false};
+$('#altList').onclick=e=>{const b=e.target.closest('[data-alt]');if(!b)return;$('#altList').hidden=true;useAltAsDip(isNaN(+b.dataset.alt)?b.dataset.alt:(S.altDips.some(x=>x.id===b.dataset.alt)?b.dataset.alt:+b.dataset.alt))};
 function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old=S.pi;S.pi={lat:d.lat,lon:d.lon};d.lat=old.lat;d.lon=old.lon;save('pi');save('altDips');renderJump();renderAltDips();autoDzElev();toast(`${d.name} is now the DIP`)}
 function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});S.altDips.forEach(d=>{L.circle([d.lat,d.lon],{radius:450*FT,color:'#FF2A2A',weight:1.5,dashArray:'6 6',fill:false,interactive:false,altdip:true}).addTo(LY.jump);L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[24,24],iconAnchor:[12,12],html:`<div style="position:relative;width:24px;height:24px"><svg viewBox="-12 -12 24 24" width="24" height="24"><circle r="8" fill="none" stroke="#FF2A2A" stroke-width="2.5" stroke-dasharray="4 3"/><circle r="2.2" fill="#FF2A2A"/></svg><span class="lbl" style="position:absolute;left:24px;top:5px">${esc(d.name)}</span></div>`})}).on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>swapDip(d.id)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
 /* landing pattern */
@@ -2046,7 +2051,7 @@ map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=S.jump.exitAlt==null?30000:+S.jump.exitAlt||0;/* winds come first, so until the exit altitude is picked the table runs to 30,000 ft */const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
 /* new heights (e.g. a higher exit) start blank so the winds have to be imported again */
-function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));let added=0;S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;added++;return {alt:a,dir:null,spd:null}});save('winds');if(added&&S.winds.some(wOk)&&$('#windSrc'))$('#windSrc').textContent='Exit altitude raised: the new heights are blank. Import winds again.'}
+function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));let added=0;/* a new level inside (or just under) the winds already held, e.g. after the DZ height changes, is filled from the layers either side */const ok_=S.winds.filter(wOk),lo_=ok_.length?Math.min(...ok_.map(w=>+w.alt)):0,hi_=ok_.length?Math.max(...ok_.map(w=>+w.alt)):-1,W_=makeWind();S.winds=windLevels().map(a=>{const w=have.get(a);if(w&&wOk(w))return w;if(ok_.length>1&&a>=lo_-1000&&a<=hi_){const x=W_(a);return {alt:a,dir:Math.round(norm(Math.atan2(-x.u,-x.v)*R2D))||360,spd:Math.round(Math.hypot(x.u,x.v)/KT)}}added++;return {alt:a,dir:null,spd:null}});save('winds');if(added&&S.winds.some(wOk)&&$('#windSrc'))$('#windSrc').textContent='Exit altitude raised: the new heights are blank. Import winds again.'}
 /* ATAK wind brackets: 0-2 Zero, 3-7 ¼, 8-12 ½, 13-17 ¾, 18-22 Full */
 function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';return v<=2?'Zero':v<=7?'¼':v<=12?'½':v<=17?'¾':v<=22?'FV':'FV+'}
 /* value colour: FV+ red, FV amber, the rest green */
