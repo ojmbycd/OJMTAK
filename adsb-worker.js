@@ -55,6 +55,22 @@ export default {
 
     const u = new URL(req.url);
     const lat = parseFloat(u.searchParams.get('lat')), lon = parseFloat(u.searchParams.get('lon'));
+
+    // /metar?lat=&lon= : latest METARs (QNH) for stations within about 100 nm, from the official aviationweather.gov feed (same source as AeroWeather)
+    if (u.pathname.startsWith('/metar')) {
+      if (!isFinite(lat) || !isFinite(lon)) return new Response(JSON.stringify({ error: 'lat and lon needed' }), { status: 400, headers: cors });
+      const dLat = 110 / 60, dLon = 110 / (60 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+      const bbox = [lat - dLat, lon - dLon, lat + dLat, lon + dLon].map(v => v.toFixed(2)).join(',');
+      try {
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?bbox=${bbox}&format=json`, { headers: { 'User-Agent': 'JumpMasterExpertTool/1.0' } });
+        if (!r.ok) throw new Error(`aviationweather.gov ${r.status}`);
+        const j = await r.json();
+        const st = (Array.isArray(j) ? j : []).filter(m => isFinite(m.lat) && isFinite(m.lon) && isFinite(m.altim))
+          .map(m => ({ icao: m.icaoId, name: m.name, lat: m.lat, lon: m.lon, qnh: m.altim, time: m.reportTime, raw: m.rawOb }));
+        return new Response(JSON.stringify({ stations: st }), { headers: cors });
+      } catch (e) { return new Response(JSON.stringify({ error: String(e.message || e) }), { status: 502, headers: cors }); }
+    }
+
     const nm = Math.round(Math.min(150, Math.max(1, parseFloat(u.searchParams.get('r')) || 40)));
     if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
       return new Response(JSON.stringify({ error: 'lat and lon needed' }), { status: 400, headers: cors });

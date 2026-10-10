@@ -505,6 +505,8 @@ table.winds td small{font-size:11px}
               <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
             </div>
             <label class="chk mt"><input type="checkbox" id="qnhUnknown"> Altimeter setting unknown (use combat 1013 mb / 29.92 inHg, +500 ft and +1,000 ft on the ladder)</label>
+            <div class="row mt"><button class="btn" id="qnhNearest">Nearest station QNH (within 100 nm)</button></div>
+            <p class="note" id="qnhSrc"></p>
           </section>
           <section class="sec">
             <h3>VDZ / HRPO check</h3>
@@ -1349,7 +1351,7 @@ function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Plann
   c.sets.forEach(t=>{const x=c.mixed?' ('+t.T+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
   return `<div class="vsum"><div class="sh">Altimeters</div>
-    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}
+    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',qnhSrcText()):''}
     ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
     ${r('STRATOS',c.offset!=null?`${sgnFt(-c.offset)} / ${c.qfeDz} mb`:'–')}
     ${r('CYPRES setting',`${c.cypMb} mb`)}
@@ -1417,7 +1419,7 @@ async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first
     hrpoBusy=null;hrpoFailKey=null;if(key!==hrpoKey())return autoHrpo();S.jump.hrpo={lat:top.lat,lon:top.lon,ft:maxFt,near:top.c,isHrpo:maxFt-dz>=200,r:R,at:Date.now(),key};save('jump');renderJump();if(!auto||S.jump.hrpo.isHrpo)toast(S.jump.hrpo.isHrpo?`HRPO found: ${ff(maxFt)}`:'No HRPO',S.jump.hrpo.isHrpo?6000:3200)}
   catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed.'}}
 function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
-function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,c=cypCalc(),dz=c.dz,unk=c.unk;
+function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSrc');if(qs)qs.textContent=qnhSrcText()}const j=S.jump,c=cypCalc(),dz=c.dz,unk=c.unk;
   const R=hrpoRadius();$('#hrpoRule').textContent=`Checked automatically: highest ground within ${R} m of the HARP, PRP, first out and last out (${R===1000?'1,000 m, exit above':'500 m, exit below'} 13,000 ft AGL). Ground 200 ft or more above the DZ is an HRPO and becomes the VDZ.`;
   const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
   ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`;
@@ -1441,8 +1443,18 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;const j=S.jump,c=cy
     <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
     <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
+/* nearest weather station QNH: latest METARs within 100 nm of the DIP via the Cloudflare relay (official aviationweather.gov data, as used by AeroWeather) */
+function qnhSrcText(){const q=S.jump.qnhSrc;if(!q||S.jump.qnhUnknown)return '';return `${q.icao} ${q.name||''} · ${q.nm.toFixed(0)} nm ${fb(q.b)} T of the DIP · METAR ${String(q.time||'').slice(11,16)}Z`}
+async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const b=$('#qnhNearest');b.disabled=true;b.textContent='Looking up stations…';
+  try{const r=await fetch(`${ADSB_URL}metar?lat=${S.pi.lat.toFixed(3)}&lon=${S.pi.lon.toFixed(3)}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||r.status);
+    const L=(j.stations||[]).map(m=>({...m,nm:dist(S.pi,m)/1852,b:brg(S.pi,m),age:Math.max(0,Math.round((Date.now()-Date.parse(m.time))/60000))})).filter(m=>m.nm<=100).sort((a,b)=>a.nm-b.nm).slice(0,6);
+    if(!L.length)sheet({title:'No station within 100 nm',sub:'There is no weather station reporting within 100 nm of the DIP, so treat the altimeter setting as unknown.',buttons:[['Use setting unknown',()=>{S.jump.qnhUnknown=true;S.jump.qnhSrc=null;save('jump');syncCypInputs();renderJump()},'primary']]});
+    else sheet({title:'Nearest weather stations',sub:'Within 100 nm of the DIP, nearest first. Tap one to use its QNH.',buttons:L.map((m,i)=>[`${m.icao} · ${m.nm.toFixed(0)} nm ${fb(m.b)} · Q${Math.round(m.qnh)} · ${m.age<2?'just in':m.age<120?m.age+' min old':Math.round(m.age/60)+' h old'}`,()=>{S.jump.qnh=Math.round(m.qnh);S.jump.qnhUnit='mb';S.jump.qnhUnknown=false;S.jump.qnhSrc={icao:m.icao,name:m.name,nm:m.nm,b:m.b,time:m.time};save('jump');syncCypInputs();renderJump();toast(`QNH ${Math.round(m.qnh)} mb from ${m.icao}, ${m.nm.toFixed(0)} nm from the DIP`)},i===0?'primary':''])})}
+  catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
+  finally{b.disabled=false;b.textContent='Nearest station QNH (within 100 nm)'}}
+$('#qnhNearest').onclick=nearestQnh;
 $('#cypModel').onchange=e=>{S.jump.cypModel=e.target.value;save('jump');renderMilCypres()};
-$('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;save('jump');renderMilCypres()}};
+$('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;S.jump.qnhSrc=null;save('jump');renderMilCypres()}};
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
 $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
