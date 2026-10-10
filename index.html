@@ -259,6 +259,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
 .stepper output{min-width:110px;text-align:center;font:500 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
 .fldnote{display:block;font-size:11px;color:var(--mute);margin-top:2px;min-height:13px}
+.btn.sm{padding:3px 10px;font-size:12px;margin-left:6px}
 .drawtip{margin:8px 0 2px;font-weight:600;color:var(--amber)}.drawtip:empty{display:none}
 .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;justify-items:center}
 .swatch{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
@@ -620,7 +621,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 12:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 13:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1175,6 +1176,14 @@ function hamoMinSpread(){if(S.jump.mode!=='HAMO'||!S.pi)return null;const j=S.ju
   const keep=j.hamoSpread,okAt=sp=>{j.hamoSpread=sp;computeHamo();return !!(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))};const good=[];for(let sp=0;sp<=90;sp++)if(okAt(sp))good.push(sp);
   let res=null;if(good.length){const cur=+(keep??15);let a=good.reduce((b,x)=>Math.abs(x-cur)<Math.abs(b-cur)?x:b,good[0]),lo=a,hi=a;while(good.includes(lo-1))lo--;while(good.includes(hi+1))hi++;res={lo,hi}}
   j.hamoSpread=keep;hamoMinKey=key;hamoMinVal=res;return res}
+/* when no spread gives 30 s between pods, try raising each pod's top SF (500 ft steps, up to +3,000 ft) and suggest the first that works */
+let hamoSugKey=null,hamoSugVal=null;
+function hamoSuggest(){const key=hamoMinKey;if(key===hamoSugKey)return hamoSugVal;const j=S.jump,keep=j.hamoSpread,F=['casSF','pod2Cas',...(pods3()?['pod3Cas']:[])],base=F.map(k=>Math.max(2000,+(j[k]??2000)));let res=null;const t0=Date.now();
+  const works=()=>{for(const sp of [+(keep??15),0,10,20,30,40,50,60,75,90]){j.hamoSpread=sp;computeHamo();if(hamo&&hamo.waits.every(t=>t>=30)&&hamo.order.every(P=>P.ok))return sp}return null};
+  /* smallest total increase first, in 500 ft steps, up to +3,000 ft on any one pod */
+  const combos=[];const rec=(i,acc)=>{if(i===F.length){const t=acc.reduce((a,b)=>a+b,0);if(t>0)combos.push(acc.slice());return}for(let a=0;a<=3000;a+=500){acc.push(a);rec(i+1,acc);acc.pop()}};rec(0,[]);combos.sort((x,y)=>x.reduce((a,b)=>a+b,0)-y.reduce((a,b)=>a+b,0)||Math.max(...x)-Math.max(...y));
+  for(const c of combos){if(Date.now()-t0>2500)break;F.forEach((k,i)=>j[k]=base[i]+c[i]);const sp=works();F.forEach((k,i)=>j[k]=base[i]);if(sp!=null){res={set:F.map((k,i)=>[k,base[i]+c[i],c[i]]).filter(x=>x[2]>0),sp};break}}
+  j.hamoSpread=keep;computeHamo();hamoSugKey=key;hamoSugVal=res;return res}
 function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(+S.jump.pod2Open<+S.jump.openAlt+3000&&$('#pod2Open'))fillPod2Sel();const three=pods3();if(three&&+S.jump.pod3Open<+S.jump.pod2Open+3000&&$('#pod3Open'))fillPod3Sel();
   const P1={mode:'HALO'},P2={mode:'HALO',openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers,casSF:Math.max(2000,+(S.jump.pod2Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod2Lp??1000))},
     P3={mode:'HALO',openAlt:+S.jump.pod3Open,jumpers:+S.jump.pod3Jumpers||4,casSF:Math.max(2000,+(S.jump.pod3Cas??2000)),lpSF:Math.max(1000,+(S.jump.pod3Lp??1000))},PL=three?P3:P2;
@@ -1274,7 +1283,7 @@ function renderJump(){heatSync();exitHint();LY.jump.clearLayers();
     L.marker(LL(up(J.op,pull)),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl">Open ${ff(pull)} AGL</span>`}),interactive:false}).addTo(LY.jump)}
   if(S.jump.hrpo){const h=S.jump.hrpo,col=h.isHrpo?'#FF2A2A':'#9E9E9E';L.polygon(hullLL([J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(c=>Array.from({length:36},(_,i)=>dest(c,i*10,h.r)))).map(LL),{color:col,weight:1.5,dashArray:'6 6',fill:false,interactive:false}).addTo(LY.jump);L.marker([h.lat,h.lon],{icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,16],html:`<div style="position:relative"><svg viewBox="0 0 22 18" width="22" height="18"><path d="M1 17 8 5l4 6 3-4 6 10Z" fill="${col}" stroke="#141414" stroke-width="1.2"/></svg><span class="klbl" style="color:${col};left:22px;top:0;line-height:1.1">${h.isHrpo?'HRPO ':''}${ff(h.ft)}<br><small style="font-size:10px;opacity:.85">(DZ altitude ${ff(+S.jump.dzElev||0)})</small></span></div>`}),interactive:true}).on('click',hrpoSheet).addTo(LY.jump)}
   drawPI();
-  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">POD HAMO, course ${fb(hamoHeading)} T. ${hamo.order.map(P=>`Pod ${P.pod} opens ${ff(P.podOpen)} AGL, ${P.pod===1?S.jump.jumpers:P.pod===2?S.jump.pod2Jumpers:S.jump.pod3Jumpers} jumpers`).join('; ')}. Pod 1 exits first; ${hamo.gaps.map((g,i)=>`pod ${i+1} to ${i+2} ${fsec(g)}`).join(', ')}. ${(()=>{const bad=hamo.order.find(P=>!P.ok);return bad?`Pod ${bad.pod} release point is OUTSIDE its HARP ring${bad.pod===2&&hamo.C?' or off the run-in':''}: adjust the spread.`:hamo.waits.some(t=>t<30)?`Last out to next first out ${hamo.waits.map(t=>Math.round(t)+' s').join(' / ')}: needs at least 30 s. Increase the spread or reduce jumpers.`:`All pods release inside their HARP rings, ${hamo.waits.map(t=>Math.round(t)+' s').join(' / ')} between pods.`})()}</div>`:''}
+  out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">POD HAMO, course ${fb(hamoHeading)} T. ${hamo.order.map(P=>`Pod ${P.pod} opens ${ff(P.podOpen)} AGL, ${P.pod===1?S.jump.jumpers:P.pod===2?S.jump.pod2Jumpers:S.jump.pod3Jumpers} jumpers`).join('; ')}. Pod 1 exits first; ${hamo.gaps.map((g,i)=>`pod ${i+1} to ${i+2} ${fsec(g)}`).join(', ')}. ${(()=>{const bad=hamo.order.find(P=>!P.ok);return bad?`Pod ${bad.pod} release point is OUTSIDE its HARP ring${bad.pod===2&&hamo.C?' or off the run-in':''}: adjust the spread.`:hamo.waits.some(t=>t<30)?`Last out to next first out ${hamo.waits.map(t=>Math.round(t)+' s').join(' / ')}: needs at least 30 s. ${(()=>{if(hamoMinSpread())return 'Increase the spread or reduce jumpers.';const g=hamoSuggest(),nm={casSF:1,pod2Cas:2,pod3Cas:3};return g?`No spread works as planned. Raising ${g.set.map(([k,v])=>`pod ${nm[k]} top SF to ${ff(v)}`).join(' and ')} would give 30 s between pods. <button class="btn sm" data-sfsug="${g.set.map(([k,v])=>k+':'+v).join(',')}|${g.sp}">Apply</button>`:'No spread works: reduce jumpers, shorten the exit interval or change the openings.'})()}`:`All pods release inside their HARP rings, ${hamo.waits.map(t=>Math.round(t)+' s').join(' / ')} between pods.`})()}</div>`:''}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>`;
   updateHound();renderPoints()}
 function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
@@ -1899,6 +1908,7 @@ $('#podCount').onclick=e=>{const b=e.target.closest('[data-pc]');if(!b)return;S.
 $('#pod3Open').onchange=e=>{S.jump.pod3Open=+e.target.value;save('jump');renderWinds();renderJump()};
 $('#pod3Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod3Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
 $('#pod2Jumpers').oninput=e=>{const v=parseInt(e.target.value);if(v>0){S.jump.pod2Jumpers=v;save('jump');clearTimeout(jt);jt=setTimeout(renderJump,150)}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-sfsug]');if(!b)return;const [sets,sp]=b.dataset.sfsug.split('|');sets.split(',').forEach(x=>{const [k,v]=x.split(':');S.jump[k]=+v});S.jump.hamoSpread=+sp;save('jump');syncJumpInputs();renderJump();toast('Top SF raised to give 30 s between pods')});
 $('#hamoSlider').oninput=e=>{S.jump.hamoSpread=Math.min(+e.target.max||90,Math.max(+e.target.min||0,+e.target.value));save('jump');renderJump()};
 $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool').classList.add('min')};
 // long-press (or right-click) anywhere on the map offers to put the DIP there
