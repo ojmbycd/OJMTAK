@@ -202,7 +202,7 @@ button,input,select{font:inherit;color:inherit}
 /* DZ items (DIP name, DZ height, compass ring numbers) only from 15,000 ft eye altitude down */
 .leaflet-container.hi5k .clbl,.leaflet-container.hi5k .dipname{display:none}
 /* landing pattern turn heights: small but crisp (thin outline, no soft glow) */
-.plbl{font:700 11px/1 Arial,sans-serif;color:#5B8CFF;-webkit-font-smoothing:antialiased;text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000}.leaflet-container.lowz .plbl{display:none}
+.plbl{font:700 11px/1 Arial,sans-serif;color:#5B8CFF;-webkit-font-smoothing:antialiased;text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000}.leaflet-container.lowz .plbl,.leaflet-container.hi10k .plbl{display:none}/* only from 10,000 ft eye altitude down */
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
 #radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
@@ -635,7 +635,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -883,7 +883,7 @@ map.on('moveend zoomend',drawGrid);
 /* eye altitude: height a camera with a 60 deg field of view would need to see this much ground */
 let centreElev=null,elevKey='',elevT=null;
 function updateEyeAlt(){if(g3On())return;const c=map.getCenter(),z=map.getZoom(),h=map.getSize().y;const mpp=40075016.686*Math.cos(c.lat*D2R)/Math.pow(2,z+8);if(eyeLock&&Math.abs(z-eyeLock.z)>1e-3)eyeLock=null;const eye=eyeLock?eyeLock.ft*FT:mpp*h/(2*Math.tan(30*D2R))+(centreElev||0);
-  $('#eyeAlt').textContent=`Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`;map.getContainer().classList.toggle('hi5k',eye>15000*FT);map.getContainer().classList.toggle('hi30k',eye>30000*FT);/* same figure as the Eye alt readout */{const sc=document.querySelector('.leaflet-control-scale-line'),ea=$('#eyeAlt'),mw=ea.offsetParent;if(sc&&mw){const r=sc.getBoundingClientRect(),m=mw.getBoundingClientRect();ea.style.left=Math.round(r.right-m.left+4)+'px';ea.style.bottom=Math.max(2,Math.round(m.bottom-r.bottom))+'px'}if(typeof curPlace==='function')curPlace()}
+  $('#eyeAlt').textContent=`Eye alt ${Math.round(eye/FT).toLocaleString('en-GB')} ft`;map.getContainer().classList.toggle('hi5k',eye>15000*FT);map.getContainer().classList.toggle('hi30k',eye>30000*FT);map.getContainer().classList.toggle('hi10k',eye>10000*FT);/* same figure as the Eye alt readout */{const sc=document.querySelector('.leaflet-control-scale-line'),ea=$('#eyeAlt'),mw=ea.offsetParent;if(sc&&mw){const r=sc.getBoundingClientRect(),m=mw.getBoundingClientRect();ea.style.left=Math.round(r.right-m.left+4)+'px';ea.style.bottom=Math.max(2,Math.round(m.bottom-r.bottom))+'px'}if(typeof curPlace==='function')curPlace()}
   // ground elevation under the map centre, looked up once the map settles
   const key=c.lat.toFixed(3)+','+c.lng.toFixed(3);if(key===elevKey)return;elevKey=key;clearTimeout(elevT);
   elevT=setTimeout(async()=>{const m=await groundElevM({lat:c.lat,lon:c.lng});if(key!==elevKey)return;centreElev=m;elevKey=key;updateEyeAlt()},600)}
