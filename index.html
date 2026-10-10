@@ -581,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1302,7 +1302,7 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
   /* heights at each turn from the time on each leg and the canopy rate of descent */
   /* worked back from the DIP (0 ft), so moving a point changes the turn heights rather than leaving height over */
   const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1])*cr/FT;
-  const rnd=a=>Math.round(a/50)*50;if(k2&&!(P.mv&&P.mv.d)){if(alts[0]>2050)warn=`Downwind needs ${ff(rnd(alts[0]))} at the 2K mark`;alts[0]=2000}
+  const rnd=a=>Math.round(a/50)*50;/* the downwind start shows the height needed there to reach the 600 ft turn; only flag it if that is above the 2,000 ft you have at the 2K mark */if(k2&&!(P.mv&&P.mv.d)&&alts[0]>2050)warn='More than the 2,000 ft available at the 2K mark';
   const LLs=pts.map(q=>fromSY(q.s,q.y));
   {/* rounded turns: each corner is eased with a curve that starts and ends up to 150 m either side of the turn point */
     const sm=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1],la=Math.hypot(b.s-a.s,b.y-a.y),lc=Math.hypot(c.s-b.s,c.y-b.y),r=Math.min(150,la*.45,lc*.45);
