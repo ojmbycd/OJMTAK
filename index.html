@@ -634,13 +634,21 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="missions"><b>Mission packages</b><small>Saved jump plans: DIP, parameters, winds and map markup</small></button>
         <button data-go="points"><b>Points and navigation</b><small>Add points by grid, pick a point to navigate to</small></button>
         <button data-go="sensors"><b>Sensors and simulation</b><small>GPS, compass, trail, rehearsal mode</small></button>
+        <button data-go="tracks"><b>Jump history</b><small>Breadcrumbs recorded from the run-in to landing</small></button>
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 00:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 00:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
+      <div class="panel" data-dpage="tracks" hidden>
+        <label class="chk"><input type="checkbox" id="sAutoTrk"> Record automatically from the run-in to landing</label>
+        <p class="note">Starts when you are in the aircraft on the run-in (within 1.5 km of the run-in line, flying its course), carries on through freefall and canopy, and stops after landing. Keep the app open: phones pause web apps when the screen locks.</p>
+        <div class="stackbtns mt"><button class="btn" id="trkNow">Start recording now</button></div>
+        <h3 class="mt">Recorded jumps</h3>
+        <div class="list" id="trkList"></div>
+      </div>
       <div class="panel" data-dpage="missions" hidden>
         <h3>Save current plan</h3>
         <div class="row"><input type="text" id="mInput" placeholder="Package name, e.g. POD1" style="flex:1;min-width:160px"><button class="btn primary" id="mSaveNew">Save as new</button></div>
@@ -716,7 +724,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <label class="chk"><input type="checkbox" id="sRings"> Show timing rings</label>
         <label class="chk"><input type="checkbox" id="sPat"> Show landing pattern</label>
         <div class="fields"><label class="fld">Landing pattern<select id="sPatHand"><option value="left">Left-hand</option><option value="right">Right-hand</option></select></label></div>
-        <label class="chk mt"><input type="checkbox" id="sAlts"> Show alternate DIPs (yellow)</label>
+        <label class="chk mt"><input type="checkbox" id="sAlts"> Show alternate DIPs (small yellow rings)</label>
         <label class="chk"><input type="checkbox" id="sTrail2"> Breadcrumb trail</label>
         <div class="fields"><label class="fld">Keep trail for<select id="sTrailMin"><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="0">Whole session</option></select></label></div>
         <label class="chk mt"><input type="checkbox" id="sProj"> Show where I'll be ahead on my track</label>
@@ -782,7 +790,7 @@ function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?
 const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[];/* winds start blank until imported, loaded or typed in */
 const DEF_OV={heat:false,cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true,jhdg:false};
-const DEF_SET={coord:'mgrs',dist:'m',decl:0,declAuto:true,lblScale:1,mapB:100,gridW:'normal',viewStart:'north',cutW:30000,cutD:15000,cutP:10000,showTrack:true,windArrows:true,showAlts:true,trailMin:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JumpMaster Pro',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
+const DEF_SET={coord:'mgrs',dist:'m',decl:0,declAuto:true,lblScale:1,mapB:100,gridW:'normal',viewStart:'north',cutW:30000,cutD:15000,cutP:10000,showTrack:true,windArrows:true,showAlts:true,trailMin:0,autoTrack:true,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JumpMaster Pro',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
   winds:store.get('winds',DEF_WINDS),
@@ -798,7 +806,7 @@ const S={
   cypCustom:store.get('cypCustom',[]),
   pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{}),{alts:[1000,600,300]}),
   set:Object.assign({},DEF_SET,store.get('set',{})),
-  ov:Object.assign({},DEF_OV,store.get('ov',{})),
+  tracks:store.get('tracks',[]),ov:Object.assign({},DEF_OV,store.get('ov',{})),
   target:store.get('target',null),
   hound:Object.assign({dock:'box',tiles:['range','brgT','eta','agl']},store.get('hound',{})),
   missions:store.get('missions',[]),
@@ -1446,6 +1454,7 @@ function rotateMe(){if(!meMarker)return;const el=meMarker.getElement();const g=e
 /* vertical speed from GPS altitude over the last few seconds (a guide only: GPS height is less precise than position) */
 const altHist=[];function vsNow(){if(altHist.length<2)return null;const a=altHist[0],b=altHist[altHist.length-1],dt=(b.t-a.t)/1000;return dt>=1.5?(b.a-a.a)/FT/dt:null}
 function onFix(f){const prev=me;f.t=Date.now();me=f;phaseFromFix(f);if(f.alt!=null){altHist.push({t:f.t,a:f.alt});while(altHist.length>2&&f.t-altHist[0].t>4000)altHist.shift()}
+  jtFix(f);
   if(S.set.trail&&(!trail.length||dist(trail[trail.length-1],me)>3)){trail.push({lat:me.lat,lon:me.lon,t:Date.now()});if(trail.length>3000)trail.shift();if(S.set.trailMin>0){const cut=Date.now()-S.set.trailMin*60000;while(trail.length&&trail[0].t&&trail[0].t<cut)trail.shift()}if(!trailLine)trailLine=L.polyline([],{color:cssv('--self'),weight:3,opacity:.7,interactive:false}).addTo(LY.trail);trailLine.setLatLngs(trail.map(LL))}
   drawMe();if(viewMode==='heading'){const ht=headingTrue();if(ht)map.setBearing(-ht.h)}if(follow&&Date.now()>followHold)map.panTo(LL(me),{animate:true});if(!prev&&!S.pi&&!follow)map.setView(LL(me),15);updateBar();updateHound();if(Date.now()-lastPts>2000){renderPoints();if(tool==='redx')renderXs()}}
 function updateBar(){if(!me)return;$('#bSrc').textContent=me.sim?'· sim':'';$('#bPos').textContent=fc(me);$('#bAlt').textContent=me.alt!=null?ff(me.alt/FT)+' AMSL':'';{const a=$('#bAcc');a.textContent=me.acc!=null?`±${Math.round(me.acc)} m`:'';a.style.color=me.acc==null?'':me.acc<=10?'#4DFF9A':me.acc<=30?'#FFB020':'#FF5A4F'}$('#bSpd').textContent=me.spd!=null?`${kts(me.spd/KT)}`:'';const ht=headingTrue();$('#bHdg').textContent=ht?`${fb(magOf(ht.h))} M`:''}
@@ -1559,10 +1568,35 @@ document.addEventListener('click',e=>{const sj=e.target.closest('[data-start]');
 /* ================= jump phase detection ================= */
 let phase='ground',phaseAuto=true,vs=0,lastAltFix=null,lowGSince=null,shockAt=0,ffSince=null,canopySince=null,motionOn=false;
 const PH={ground:'Ground',aircraft:'Aircraft',freefall:'Freefall',canopy:'Canopy',landed:'Landed'};
-function setPhase(p,manual){if(manual){phaseAuto=false}if(p===phase){renderPhase();return}phase=p;renderPhase();renderJump();
+function setPhase(p,manual){if(manual){phaseAuto=false}if(p===phase){renderPhase();return}phase=p;renderPhase();renderJump();if(jtCur)jtCur.ev.push({t:Date.now(),p});
   if((p==='freefall'||p==='canopy')&&S.target&&S.hound.tiles.join()===PRESETS.ac.tiles.join()&&(manual||(S.hound.autoJump!==false&&ajArmed))){startJumpAs('canopy');toast('Exit detected: Canopy Data to the DIP',4000);if(navigator.vibrate)navigator.vibrate([300,100,300]);return}
   if(p==='canopy'&&phaseAuto){const P=PRESETS.canopy;S.hound.tiles=P.tiles.slice();save('hound');if(resolve('c:pi'))setTarget('c:pi');renderTiles();updateHound()}
   if(navigator.vibrate&&(p==='freefall'||p==='canopy'))navigator.vibrate([120,80,120]);toast(`Phase: ${PH[p]}`)}
+/* ---------- jump history: breadcrumbs from the run-in to landing ---------- */
+var jtCur=null,jtLowSince=null,jtSaveAt=0;LY.hist=L.layerGroup().addTo(map);
+function onRunIn(f){if(!J||J.err||!S.pi)return false;const a=J.runStart,b=J.runEnd,L_=dist(a,b),d1=dist(a,f),t1=brg(a,f),t2=brg(a,b),x=Math.asin(Math.sin(d1/RE)*Math.sin((t1-t2)*D2R))*RE,al=d1*Math.cos((t1-t2)*D2R);
+  const crsOk=f.course==null||!(f.spd>15)||Math.abs(((f.course-J.heading)%360+540)%360-180)<45;return Math.abs(x)<1500&&al>-500&&al<L_+500&&crsOk}
+function jtStart(why){if(jtCur)return;jtCur={id:uid(),name:`${(S.pi&&S.pi.name)||'Jump'} · ${new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}`,start:Date.now(),dip:S.pi?{name:S.pi.name,lat:S.pi.lat,lon:S.pi.lon}:null,pts:[],ev:[{t:Date.now(),p:phase}]};jtLowSince=null;toast(`Recording jump track (${why})`,3500)}
+function jtStop(){if(!jtCur)return;const t=jtCur;jtCur=null;t.end=Date.now();S.tracks=S.tracks.filter(x=>x.id!==t.id);if(t.pts.length>5){S.tracks.unshift(t);if(S.tracks.length>15)S.tracks.length=15;toast(`Jump track saved: ${t.name}`,4000)}save('tracks');if($('#trkList'))renderTracks()}
+function jtFix(f){if(!jtCur&&S.set.autoTrack!==false&&(phase==='aircraft'||/^c:(harp|gl)/.test(S.target||''))&&onRunIn(f))jtStart('on the run-in');if(!jtCur)return;
+  const last=jtCur.pts[jtCur.pts.length-1],now=Date.now();if(!last||now-last[3]*1000-jtCur.start>=2000||dist({lat:last[0],lon:last[1]},f)>5)jtCur.pts.push([+f.lat.toFixed(6),+f.lon.toFixed(6),f.alt!=null?Math.round(f.alt):null,Math.round((now-jtCur.start)/1000)]);
+  /* stops once landed: the landed phase, or still on the ground for 2 minutes, or after 3 hours */
+  const still=(f.spd||0)<0.8;if(phase==='landed'||(phase==='ground'&&still)){if(!jtLowSince)jtLowSince=now}else jtLowSince=null;
+  if((jtLowSince&&now-jtLowSince>(phase==='landed'?30000:120000))||now-jtCur.start>3*3600e3){jtStop();return}
+  if(now-jtSaveAt>30000){jtSaveAt=now;S.tracks=[jtCur,...S.tracks.filter(x=>x.id!==jtCur.id)].slice(0,16);save('tracks')}}
+function fmtDur(ms){const m=Math.round(ms/60000);return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60} min`}
+function renderTracks(){const el=$('#trkList');if(!el)return;$('#sAutoTrk').checked=S.set.autoTrack!==false;$('#trkNow').textContent=jtCur?'Stop recording':'Start recording now';
+  el.innerHTML=S.tracks.length?S.tracks.map(t=>`<button class="item" data-trk="${t.id}"><span class="sw" style="background:${t.id===(jtCur&&jtCur.id)?'var(--stop)':'#FF4FD8'}"></span><span><b>${esc(t.name)}</b><small>${t.id===(jtCur&&jtCur.id)?'recording · ':''}${fmtDur((t.end||Date.now())-t.start)} · ${t.pts.length} points${t.dip?' · DIP '+esc(t.dip.name||''):''}</small></span></button>`).join(''):'<p class="note">No jumps recorded yet.</p>'}
+function showTrack(t){LY.hist.clearLayers();const ll=t.pts.map(q=>[q[0],q[1]]);if(ll.length<2)return;L.polyline(ll,{color:'#FF4FD8',weight:3,opacity:.9,interactive:false}).addTo(LY.hist);
+  L.circleMarker(ll[0],{radius:5,color:'#141414',weight:1,fillColor:'#39FF6A',fillOpacity:1,interactive:false}).addTo(LY.hist);L.circleMarker(ll[ll.length-1],{radius:5,color:'#141414',weight:1,fillColor:'#FF2A2A',fillOpacity:1,interactive:false}).addTo(LY.hist);
+  (t.ev||[]).slice(1).forEach(e=>{let best=null,bd=Infinity;t.pts.forEach(q=>{const d=Math.abs(t.start+q[3]*1000-e.t);if(d<bd){bd=d;best=q}});if(best)L.marker([best[0],best[1]],{icon:textPin(PH[e.p]||e.p,'lbl'),interactive:false}).addTo(LY.hist)});
+  map.fitBounds(L.latLngBounds(ll),{padding:[40,40]})}
+function trackGpx(t){const pts=t.pts.map(q=>`<trkpt lat="${q[0]}" lon="${q[1]}">${q[2]!=null?`<ele>${q[2]}</ele>`:''}<time>${new Date(t.start+q[3]*1000).toISOString()}</time></trkpt>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="JumpMaster Pro" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${xe(t.name)}</name><trkseg>${pts}</trkseg></trk></gpx>`}
+$('#sAutoTrk').onchange=e=>{S.set.autoTrack=e.target.checked;save('set')};
+$('#trkNow').onclick=()=>{if(jtCur)jtStop();else jtStart('started by hand');renderTracks()};
+$('#trkList').onclick=e=>{const b=e.target.closest('[data-trk]');if(!b)return;const t=S.tracks.find(x=>String(x.id)===b.dataset.trk);if(!t)return;
+  sheet({title:t.name,sub:`${new Date(t.start).toLocaleString('en-GB')} · ${fmtDur((t.end||Date.now())-t.start)} · ${t.pts.length} points`,buttons:[['Show on map',()=>{closeDrawer();showTrack(t)},'primary'],['Hide from map',()=>LY.hist.clearLayers()],['Export GPX',()=>shareFile(new Blob([trackGpx(t)],{type:'application/gpx+xml'}),`${t.name.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'jump'}.gpx`,t.name)],['Rename',()=>sheet({title:t.name,input:{label:'Name',value:t.name,save:v=>{t.name=v.trim()||t.name;save('tracks');renderTracks()}},buttons:[]})],['Delete',()=>{S.tracks=S.tracks.filter(x=>x!==t);save('tracks');renderTracks()},'danger']]})};
 function renderPhase(){const b=$('#bPhase');b.textContent=`Phase: ${PH[phase]}`;b.dataset.auto=phaseAuto?'1':'0'}
 function phaseFromFix(f){if(f.alt==null)return;const now=Date.now();if(lastAltFix){const dt=(now-lastAltFix.t)/1000;if(dt>0.5){const v=(f.alt-lastAltFix.alt)/dt;vs=vs*0.6+v*0.4;lastAltFix={alt:f.alt,t:now}}}else lastAltFix={alt:f.alt,t:now};
   if(!phaseAuto||f.sim)return;const agl=f.alt-(+S.jump.dzElev||0)*FT,gs=f.spd||0;
@@ -1627,10 +1661,10 @@ function useAltAsDip(id,nav=true){const d=S.altDips.find(x=>String(x.id)===Strin
 $('#altBtn').onclick=()=>{const L_=$('#altList');if(!L_.hidden){L_.hidden=true;return}L_.innerHTML=S.altDips.map(d=>`<button class="btn" data-alt="${d.id}">${esc(d.name)}</button>`).join('');L_.hidden=false};
 $('#altList').onclick=e=>{const b=e.target.closest('[data-alt]');if(!b)return;$('#altList').hidden=true;useAltAsDip(b.dataset.alt)};
 function swapDip(id){const d=S.altDips.find(x=>x.id===id);if(!d)return;const old=S.pi;S.pi={lat:d.lat,lon:d.lon};d.lat=old.lat;d.lon=old.lon;save('pi');save('altDips');renderJump();renderAltDips();autoDzElev();toast(`${d.name} is now the DIP`)}
-function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});if(S.set.showAlts===false)return;
-  S.altDips.forEach(d=>{const before=new Set(LY.jump.getLayers());
-    drawDipRings(d,d.name,d.dzElev??null,{col:'#FFD400',click:()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>useAltAsDip(d.id,false)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])});
-    LY.jump.eachLayer(l=>{if(!before.has(l))l.options.altdip=true})})}
+/* alternate DIPs: a small yellow ring with a centre dot and the name. The full DIP rings and compass only appear once one is switched to as the DIP */
+function renderAltDips(){LY.jump.eachLayer(l=>{if(l.options&&l.options.altdip)LY.jump.removeLayer(l)});if(S.set.showAlts===false)return;const Y='#FFD400';
+  S.altDips.forEach(d=>{L.marker([d.lat,d.lon],{altdip:true,icon:L.divIcon({className:'pin',iconSize:[22,22],iconAnchor:[11,11],html:`<div style="position:relative;width:22px;height:22px"><svg viewBox="-11 -11 22 22" width="22" height="22"><circle r="7.5" fill="none" stroke="#141414" stroke-width="4"/><circle r="7.5" fill="none" stroke="${Y}" stroke-width="2.2"/><circle r="2.4" fill="${Y}" stroke="#141414" stroke-width=".8"/></svg><span class="lbl" style="position:absolute;left:22px;top:4px;color:${Y}">${esc(d.name)}</span></div>`})})
+    .on('click',()=>openRadial(d,[{l:'Make primary',icon:'primary',f:()=>useAltAsDip(d.id,false)},{l:'Navigate to',icon:'hound',f:()=>setTarget('a:'+d.id)},{l:'Rename',icon:'edit',f:()=>sheet({title:d.name,input:{label:'Name',value:d.name,save:v=>{d.name=v.trim()||d.name;save('altDips');renderAltDips()}},buttons:[]})},{l:'Delete',icon:'del',f:()=>{S.altDips=S.altDips.filter(x=>x.id!==d.id);save('altDips');renderAltDips()}}])).addTo(LY.jump)})}
 /* landing pattern */
 /* landing direction: manual, or into the surface wind; a Z pattern lands along the trackback (2K mark to the DIP) */
 function patDir(){const P=S.pattern,w=makeWind()(+S.jump.dzElev||0),ws=Math.hypot(w.u,w.v);const PJ=patJ(),k2=P.type==='z'&&P.dirAuto&&PJ&&!PJ.err&&(PJ.marks||[]).find(m=>m.agl===2000);if(k2)return brg(k2.p,S.pi);return P.dirAuto?(ws>0.3?norm(Math.atan2(-w.u,-w.v)*R2D):null):P.dir}
@@ -2264,7 +2298,7 @@ $('#pickBar').onclick=e=>{const b=e.target.closest('button');if(!b||!pick)return
 $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions(b.dataset.m)};
 
 /* ================= drawer ================= */
-const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
+const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data',tracks:'Jump history'};
 /* phones (narrow screens) always put the menu and tool panels on the bottom half; wider screens can flip */
 /* Portrait / Landscape. On a phone held upright, Landscape turns the whole app 90° (works with rotation lock on) so the phone is held on its side:
    map on the left, panels on the right. Taps and element positions are translated so the map, 3D and buttons still work. */
@@ -2305,7 +2339,7 @@ $('#offDl').onclick=offDownload;
 $('#offClr').onclick=async()=>{if(!window.caches)return;await caches.delete(TILE_CACHE);toast('Offline maps cleared');offStatus()};
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
-function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions();if(p==='data')offStatus()}
+function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions();if(p==='data')offStatus();if(p==='tracks')renderTracks()}
 function closeDrawer(){if($('#drawer').hidden)return;$('#drawer').hidden=true;document.body.classList.remove('dopen');drawerResize()}
 $('#menuBtn').onclick=()=>{if(navLock())return;openDrawer()};$('#dClose').onclick=closeDrawer;$('#layoutBtn').onclick=()=>{S.set.land=!S.set.land;save('set');applyDock();drawerResize()};$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
