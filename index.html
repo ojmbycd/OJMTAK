@@ -560,6 +560,7 @@ table.winds td small{font-size:11px}
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
       </div>
 
+      <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
       <div class="panel" data-dpage="missions" hidden>
         <h3>Save current plan</h3>
         <div class="row"><input type="text" id="mInput" placeholder="Package name, e.g. POD1" style="flex:1;min-width:160px"><button class="btn primary" id="mSaveNew">Save as new</button></div>
@@ -768,7 +769,15 @@ map.on('zoomend moveend resize',updateEyeAlt);
 
 
 /* ================= action sheet ================= */
-function sheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
+/* while the menu is open, a choice list replaces the current menu page in the same place (Back returns) instead of popping up */
+function sheet(o){if(!o.side&&!$('#drawer').hidden)return dsheet(o);popSheet(o)}
+let dParent='root',dSeq=0;
+function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;if(cur&&cur!=='sub')dParent=cur;const seq=++dSeq;
+  $$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!=='sub');$('#dTitle').textContent=title;$('#dBack').hidden=false;$('#dSubSub').textContent=sub||'';$('#drawer .dbody')?.scrollTo?.(0,0);
+  const done=leave=>{if(!$('#drawer').hidden&&seq===dSeq){if(leave)closeDrawer();else goPage(dParent)}};
+  $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
+  const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
+function popSheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
   $('#actBtns').innerHTML='';[...buttons,['Close',()=>{}]].forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true}
 $('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});
@@ -1095,7 +1104,7 @@ $('#dipList').onclick=e=>{const b=e.target.closest('[data-dip]');if(b)dipMenu(b.
 $('#ptSeg').onclick=e=>{const b=e.target.closest('[data-pt2]');if(!b)return;$$('#ptSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#ptDips').hidden=b.dataset.pt2!=='dips';$('#ptGm').hidden=b.dataset.pt2!=='gm'};
 function renderPoints(){lastPts=Date.now();renderDipList();const rows=[...S.xs.map((x,i)=>({key:'x:'+x.id,name:x.name||`X${i+1}`,p:x,col:'--x'})),...S.markers.map(m=>({key:'m:'+m.id,name:m.name,p:m,col:(TYPES[m.type]||TYPES.wp).c}))];
   $('#ptList').innerHTML=rows.length?rows.map(r=>`<button class="item" data-act="${r.key}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}${S.target===r.key?' · tracking':''}</b><small>${esc(fc(r.p))}${me?` · ${fd(dist(me,r.p))} ${fb(brg(me,r.p))}`:''}</small></span><span class="btn" data-hound="${r.key}">Go</span></button>`).join(''):'<p class="note">No ground markers yet. Add one above.</p>'}
-$('#ptList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;closeDrawer();if(k.startsWith('m:'))markerActions(k.slice(2));else if(k.startsWith('x:'))xActions(k.slice(2));else calcActions(k)});
+$('#ptList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))return;const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;if(k.startsWith('m:'))markerActions(k.slice(2));else if(k.startsWith('x:'))xActions(k.slice(2));else calcActions(k)});
 $('#ptType').innerHTML=Object.entries(TYPES).map(([k,t])=>`<option value="${k}">${t.n}</option>`).join('');
 $('#ptAddGrid').onclick=()=>{const p=parseCoord($('#ptGrid').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}addMarker(p,$('#ptType').value,$('#ptName').value.trim());$('#ptGrid').value='';$('#ptName').value='';map.setView(LL(p),Math.max(map.getZoom(),14))};
 $('#ptAddMe').onclick=()=>{if(!me){toast('No position yet.');return}addMarker(me,$('#ptType').value,$('#ptName').value.trim());$('#ptName').value=''};
@@ -1701,9 +1710,9 @@ $('#mList').onclick=e=>{const b=e.target.closest('[data-m]');if(b)missionActions
 /* ================= drawer ================= */
 const DTITLES={root:'Menu',missions:'Mission packages',points:'Points and navigation',sensors:'Sensors and simulation',settings:'Settings',display:'Display',data:'Data'};
 function openDrawer(page='root'){$('#drawer').hidden=false;goPage(page)}
-function goPage(p){$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
+function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
 function closeDrawer(){$('#drawer').hidden=true}
-$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>goPage('root');
+$('#menuBtn').onclick=()=>openDrawer();$('#dClose').onclick=closeDrawer;$('#dBack').onclick=()=>{const cur=[...$$('[data-dpage]')].find(x=>!x.hidden)?.dataset.dpage;dSeq++;goPage(cur==='sub'?dParent:'root')};
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer')closeDrawer();const g=e.target.closest('[data-go]');if(g)goPage(g.dataset.go)});
 
 function applyTheme(){const r=document.documentElement;if(S.set.theme==='auto')r.removeAttribute('data-theme');else r.dataset.theme=S.set.theme;if(S.set.night)r.dataset.night='1';else r.removeAttribute('data-night');requestAnimationFrame(redrawAll)}
