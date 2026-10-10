@@ -306,7 +306,7 @@ table.winds td small{font-size:11px}
 #drawer{position:fixed;top:0;bottom:0;right:0;width:var(--dw);z-index:2500;display:flex;justify-content:flex-end}
 body.dopen #app,body.topen #app,body.aopen #app{margin-right:var(--dw)}
 body.dopen #menuBtn{display:none}
-body.dopen #hud,body.topen #hud,body.aopen #hud{display:none}
+/* the navigation box stays open while navigating; only STOP JUMP closes it */
 body.topen:not(.dbot) #tip,body.dopen:not(.dbot) #tip,body.aopen:not(.dbot) #tip{right:8px;left:8px;font-size:13px;padding:7px 9px}
 #updBar{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4000;background:#FFB020;color:#141414;border:none;border-radius:20px;padding:9px 16px;font:600 14px var(--body);box-shadow:0 2px 10px rgba(0,0,0,.4);cursor:pointer}
 #drawer .seg button,#tool.dock .seg button{white-space:normal;line-height:1.15;padding-left:4px;padding-right:4px}
@@ -619,7 +619,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 16:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1444,10 +1444,11 @@ function placeTool(){const t=$('#tool');if(t.hidden)return;if(!t.classList.conta
   if(tool==='jump'){const mw=$('#mapwrap').getBoundingClientRect(),qb=$('#quick').getBoundingClientRect(),top=Math.round(qb.bottom-mw.top+8);t.style.left=Math.round(mw.width/2)+'px';t.style.bottom='0px';t.style.height=t.classList.contains('min')?'auto':Math.round(mw.height-top)+'px';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
   t.style.left=Math.round(st.right-mw.left+6)+'px';t.style.bottom=Math.round(mw.bottom-st.bottom)+'px';t.style.height=t.classList.contains('min')?'auto':Math.round(tool==='jump'?Math.max(st.height,mw.height*.4):st.height)+'px'}/* JM planning panel opens taller */
 function placeZoom(){const z=$('#zoom'),st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();if(!st.width){z.style.width='';z.style.bottom='36px';return}z.style.width=Math.round(st.width)+'px';z.style.bottom=Math.round(mw.bottom-st.top+6)+'px'}
-function placeHud(){placeZoom();const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
+function placeHud(){placeZoom();const h=$('#hud');if(h.hidden||h.dataset.dock!=='box'){h.style.left=h.style.bottom=h.style.height=h.style.right='';return}const st=$('#status').getBoundingClientRect(),mw=$('#mapwrap').getBoundingClientRect();
+  /* jumper box hidden or folded: the navigation box sits along the bottom of the map */if(st.width<120||st.height<60){h.style.left='6px';h.style.right='6px';h.style.bottom='6px';h.style.height='auto';return}h.style.right='';
   h.style.left=Math.round(st.right-mw.left+6)+'px';h.style.bottom=Math.round(mw.bottom-st.bottom)+'px';h.style.height=Math.round(st.height)+'px'}
 if(window.ResizeObserver)new ResizeObserver(()=>{placeHud();placeTool()}).observe($('#status'));new MutationObserver(placeTool).observe($('#tool'),{attributes:true,attributeFilter:['class','hidden']});window.addEventListener('resize',()=>{placeHud();placeTool()});
-function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=tl!==PRESETS.ac.tiles.join();renderAutoJump();$('#hName').innerHTML=`<b>NAVIGATE MODE - TO ${esc((S.target==='c:pi'?`DIP${S.pi&&S.pi.name&&S.pi.name!=='DIP'?' ('+S.pi.name+')':''}`:String(r.name)).toUpperCase())}</b><small>${tl===PRESETS.ac.tiles.join()?'Jumpmaster data':tl===PRESETS.canopy.tiles.join()?'Canopy data':'Navigation'}</small>`}
+function updateHound(){if(!S.target){$('#hud').hidden=true;return}ajCheck();const r=resolve(S.target);if(!r){$('#hud').hidden=true;LY.hound.clearLayers();houndLine=null;return}const wasHidden=$('#hud').hidden;$('#hud').hidden=false;if(wasHidden){renderTiles();setTimeout(()=>map.invalidateSize(),50)}placeHud();{const tl=S.hound.tiles.join();$('#hJump').hidden=!(tl===PRESETS.ac.tiles.join()||/^c:harp/.test(S.target||''));renderAutoJump();$('#hName').innerHTML=`<b>NAVIGATE MODE - TO ${esc((S.target==='c:pi'?`DIP${S.pi&&S.pi.name&&S.pi.name!=='DIP'?' ('+S.pi.name+')':''}`:String(r.name)).toUpperCase())}</b><small>${tl===PRESETS.ac.tiles.join()?'Jumpmaster data':tl===PRESETS.canopy.tiles.join()?'Canopy data':'Navigation'}</small>`}
   if(!me){S.hound.tiles.forEach((k,i)=>{$('#tile'+i).textContent=k==='grid'?fc(r.p):'–'});$('#hNote').textContent='No fix. Start sensors or simulate.';return}
   const R=dist(me,r.p),B=brg(me,r.p),now=Date.now();if(prevR!=null&&now-prevT>400){const v=(prevR-R)/((now-prevT)/1000);closing=closing*0.7+v*0.3;prevR=R;prevT=now}else if(prevR==null){prevR=R;prevT=now}
   const st=R<=+S.set.inner?'inner':R<=+S.set.outer?'outer':'far';if(st!==hState){if(hState&&navigator.vibrate)navigator.vibrate(st==='inner'?[250,120,250,120,250]:st==='outer'?[300]:[80]);hState=st}
