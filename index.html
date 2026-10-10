@@ -281,8 +281,8 @@ table.winds td small{font-size:11px}
 .mlist small{color:var(--mute);font-size:14px}
 
 /* ---------- action sheet + toast ---------- */
-#act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center}
-#act .box{background:var(--panel);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center}
+#act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 #act h4{margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
