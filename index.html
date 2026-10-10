@@ -317,7 +317,8 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 #act.side{left:auto;width:var(--dw);background:none;align-items:stretch;justify-content:flex-end}body.dbot #act.side{left:0;width:auto;top:50%}body.dbot #act.side .box{border-left:none;border-top:1px solid var(--line);padding-top:14px}#act.side .box{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
 #act .dipalt{color:#9a9a9a;font-weight:400}
-#act h4{margin:0;font:500 22px/1.2 var(--cond)}
+#act .box{position:relative}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
+#act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}
 #act p{margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
 #actInput{margin-bottom:10px}
@@ -589,7 +590,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 02:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -670,6 +671,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
 <div id="act" hidden>
   <div class="box" role="dialog" aria-modal="true" aria-labelledby="actTitle">
+    <button class="iconbtn" id="actX" aria-label="Close">✕</button>
     <h4 id="actTitle"></h4>
     <p id="actSub"></p>
     <div id="actInput" hidden><label class="fld"><span id="actInLabel"></span><div class="row"><input type="text" id="actIn" style="flex:1"><button class="btn primary" id="actSave">Save</button></div></label></div>
@@ -819,9 +821,9 @@ function dsheet({title,sub,input,buttons}){const cur=[...$$('[data-dpage]')].fin
   $('#dSubIn').hidden=!input;if(input){$('#dSubLbl').textContent=input.label;const i=$('#dSubInput');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#dSubSave').onclick=()=>{input.save(i.value);done(false)}}
   const bx=$('#dSubBtns');bx.innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{f();done(/^(Navigate|Centre|Fly)/.test(t))};bx.appendChild(e)})}
 function popSheet({title,sub,input,buttons,side}){$('#act').classList.toggle('side',!!side);if(side){closeDrawer();if(tool)closeTool();$('#jmPop').hidden=true;document.body.classList.add('aopen');drawerResize()}else if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}$('#actTitle').textContent=title;$('#actSub').textContent=sub||'';const ib=$('#actInput');if(input){ib.hidden=false;$('#actInLabel').textContent=input.label;const i=$('#actIn');i.type=input.type||'text';i.inputMode=input.type==='number'?'decimal':'text';i.value=input.value??'';$('#actSave').onclick=()=>{closeSheet();input.save(i.value)}}else ib.hidden=true;
-  $('#actBtns').innerHTML='';[...buttons,['Close',()=>{}]].forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
+  $('#actBtns').innerHTML='';buttons.forEach(([t,f,cls])=>{const e=document.createElement('button');e.className='btn '+(cls||'');e.textContent=t;e.onclick=()=>{closeSheet();f()};$('#actBtns').appendChild(e)});$('#act').hidden=false}
 function closeSheet(){$('#act').hidden=true;if(document.body.classList.contains('aopen')){document.body.classList.remove('aopen');drawerResize()}}
-$('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});
+$('#act').addEventListener('click',e=>{if(e.target.id==='act')closeSheet()});$('#actX').onclick=closeSheet;
 function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copied')).catch(()=>toast(t,5000))}
 const relSub=p=>fc(p)+(me?` · ${fd(dist(me,p))} at ${fb(brg(me,p))} T`:'');
 
