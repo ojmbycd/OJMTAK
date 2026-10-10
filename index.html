@@ -189,7 +189,7 @@ button,input,select{font:inherit;color:inherit}
 #cloudLbl{font:400 14px/1.1 var(--cond);white-space:nowrap;min-width:110px;text-align:right}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 12px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
-#radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.92);border:1px solid rgba(255,255,255,.35);color:#F2F2F2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
+#radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
 #radial .rb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #radial .rb span{font:400 9px/1 var(--cond);white-space:nowrap}
 #radial .rb:active{background:#F2F2F2;color:#141414}
@@ -604,7 +604,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 05:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 06:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -872,14 +872,14 @@ $('#xList').addEventListener('click',e=>{if(e.target.closest('[data-hound]'))ret
 
 /* ================= DRAW ================= */
 let lineDraft=null;
-function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col};transform:translate(-50%,-50%) rotate(${+d.rot||0}deg)">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
+function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf(d.color);if(d.kind==='text'){L.marker(LL(d.p),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="tlbl" style="color:${col};transform:translate(-50%,-50%) rotate(${+d.rot||0}deg)">${esc(d.text)}</span>`})}).on('click',()=>drawActions(d.id)).addTo(LY.draw);return}const w=d.w||2,pts=d.pts;const pl=L.polyline(pts.map(LL),{color:col,weight:w,dashArray:d.dash?`${w*3} ${w*2}`:null,lineCap:'round',lineJoin:'round',bubblingMouseEvents:false,pickId:'d:'+d.id,pickName:d.label?`Line: ${d.label}`:d.kind==='free'?'Freehand line':'Drawn line'}).on('click',()=>drawActions(d.id)).addTo(LY.draw);
     if(d.label&&pts.length>1){let k=0,best=-1;for(let i=0;i<pts.length-1;i++){const l=dist(pts[i],pts[i+1]);if(l>best){best=l;k=i}}const a_=pts[k],b_=pts[k+1];
       L.marker(LL({lat:(a_.lat+b_.lat)/2,lon:(a_.lon+b_.lon)/2}),{icon:lineTag(a_,b_,esc(d.label),col,w),interactive:false}).addTo(LY.draw)}
     if(d.kind==='line'&&pts.length>1){
       // length and direction always shown mid-line, arrowhead near the end, both ends draggable
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
 
-      [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
+      [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,pickId:'d:'+d.id,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
         .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 /* turn a text label to any angle: slide to preview on the map, Save to keep */
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
@@ -890,7 +890,10 @@ function lineThick(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was
   sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()}},buttons:[['Cancel',()=>{d.w=was;renderDraws()}]]});
   const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=12;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;renderDraws()}}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()}};
-  const colour=()=>{popSheet({side:true,title:d.kind==='text'?'Text colour':'Line colour',buttons:COLORS.map(([v,n])=>[n,()=>{d.color=v;save('draws');renderDraws();drawActions(id)},d.color===v?'primary':''])});[...$('#actBtns').children].forEach((b,k)=>{if(COLORS[k])b.style.boxShadow=`inset 8px 0 0 ${COLORS[k][0]}`})};
+  /* colour: the same small circles as the Draw panel; tap to try colours, the panel stays open until the X */
+  const colour=()=>{popSheet({side:true,title:d.kind==='text'?'Text colour':'Line colour',buttons:[]});const g=document.createElement('div');g.className='swatches';g.style.gridColumn='1/-1';
+    const paint=()=>{g.innerHTML=COLORS.map(([v,n])=>`<button class="swatch" data-c="${v}" title="${n}" aria-label="${n}" aria-pressed="${colOf(d.color)===v}" style="background:${v}"></button>`).join('')};paint();
+    g.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;d.color=b.dataset.c;save('draws');renderDraws();paint()};$('#actBtns').appendChild(g)};
   if(d.kind==='text'){openRadial(d.p,[{l:'Edit text',icon:'text',f:()=>popSheet({side:true,title:'Text label',input:{label:'Text',value:d.text,save:v=>{d.text=v.trim()||d.text;save('draws');renderDraws()}},buttons:[]})},{l:'Angle',icon:'angle',f:()=>textAngle(id)},{l:'Colour',icon:'palette',f:colour},del],`Text: ${d.text}`);return}
   const a=d.pts[0],b=d.pts[d.pts.length-1],mid=d.pts[Math.floor(d.pts.length/2)];
   openRadial(d.pts.length===2?{lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2}:mid,[
@@ -933,10 +936,10 @@ function renderRng(){LY.rng.clearLayers();const ink=cssv('--x'),amb=cssv('--ambe
   S.rng.forEach(r=>{
     if(r.kind==='ring'){const col=r.id===selRing?amb:ink;for(let i=1;i<=r.n;i++){L.circle(LL(r.c),{radius:r.step*i,color:col,weight:1.5,fill:false,interactive:false}).addTo(LY.rng);L.marker(LL(dest(r.c,0,r.step*i)),{icon:tagPin(fmtU(r.step*i,ru(r))),interactive:false}).addTo(LY.rng)}
       L.marker(LL(r.c),{icon:divPin('<circle r="6"/>',col,'',20)}).on('click',()=>rngActions(r.id)).addTo(LY.rng);return}
-    const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
+    const pl=L.polyline([LL(r.a),LL(r.b)],{color:ink,weight:2,dashArray:r.kind==='move'?'8 6':null,bubblingMouseEvents:false,pickId:'r:'+r.id,pickName:'Measure line'}).on('click',()=>rngActions(r.id)).addTo(LY.rng);
     const mid=()=>({lat:(r.a.lat+r.b.lat)/2,lon:(r.a.lon+r.b.lon)/2});
     const tag=L.marker(LL(mid()),{icon:lineTag(r.a,r.b,lineLabel(r.a,r.b),ink),interactive:false}).addTo(LY.rng),arw=L.marker(LL(arrowPt(r.a,r.b)),{icon:arrowIcon(r.a,r.b,ink),interactive:false}).addTo(LY.rng);
-    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(ink)}).addTo(LY.rng);
+    ['a','b'].forEach(k=>{const m=L.marker(LL(r[k]),{draggable:r.kind==='move',icon:endDot(ink),pickId:'r:'+r.id,pickName:'Measure line'}).addTo(LY.rng);
       if(r.kind==='move'){m.on('drag',ev=>{const ll=ev.target.getLatLng();r[k]={lat:ll.lat,lon:ll.lng};pl.setLatLngs([LL(r.a),LL(r.b)]);tag.setLatLng(LL(mid()));tag.setIcon(lineTag(r.a,r.b,lineLabel(r.a,r.b),ink));arw.setLatLng(LL(arrowPt(r.a,r.b)));arw.setIcon(arrowIcon(r.a,r.b,ink))});m.on('dragend',()=>{save('rng');renderRngList()})}else m.on('click',()=>rngActions(r.id))})});
   renderRngList()}
 function rngText(r){return r.kind==='ring'?`Rings ${r.n} × ${fd(r.step)} · ${fc(r.c)}`:`${r.kind==='move'?'Moveable':'Fixed'} · ${fd(dist(r.a,r.b))} ${fb(brg(r.a,r.b))} T`}
@@ -1332,6 +1335,16 @@ async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.
 const RI={palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
 /* options for a point, line or label: a circle of buttons around it; whatever is picked opens in the docked panel with the map centred on the item */
 let radialCtx=null;
+/* a tap that lands on two or more items asks which one was meant */
+function pickName(l){if(l.options.pickName)return l.options.pickName;const el=l.getElement&&l.getElement();const t=el?(el.innerText.split('\n').find(x=>x.trim())||'').trim():'';if(t)return t.length>40?t.slice(0,40)+'…':t;if(el&&el.querySelector('svg path[d*="M5 5"]'))return 'Red X';return 'Map item'}
+function segDistPx(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;let t=l2?((p.x-a.x)*dx+(p.y-a.y)*dy)/l2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)}
+function itemsAt(pt){const out=[],seen=new Set();map.eachLayer(l=>{if(!l.listens||!l.listens('click')||l.options.interactive===false)return;let hit=false;
+  if(l instanceof L.Marker){const q=map.latLngToContainerPoint(l.getLatLng());hit=Math.hypot(q.x-pt.x,q.y-pt.y)<=22}
+  else if(l instanceof L.Polyline&&!(l instanceof L.Polygon)){const ll=l.getLatLngs().flat(2).map(x=>map.latLngToContainerPoint(x));for(let i=0;i<ll.length-1&&!hit;i++)hit=segDistPx(pt,ll[i],ll[i+1])<=12+(l.options.weight||2)/2}
+  if(!hit)return;const key=l.options.pickId||L.stamp(l);if(seen.has(key))return;seen.add(key);out.push({l,name:pickName(l)})});return out}
+map.getContainer().addEventListener('click',e=>{if(e.__picked||(mode&&!['none','draw-line','draw-free','draw-text','redx','range'].includes(mode)))return;if(e.target.closest&&e.target.closest('#radial,.leaflet-control-container,#quick,#status,#zoom,#hud,#tool,#tip'))return;
+  const items=itemsAt(map.mouseEventToContainerPoint(e));if(items.length<2)return;e.stopPropagation();e.preventDefault();closeRadial();
+  popSheet({side:true,title:'Which one?',sub:'More than one item here',buttons:items.map(it=>[it.name,()=>setTimeout(()=>it.l.fire('click',{latlng:it.l.getLatLng?it.l.getLatLng():map.mouseEventToLatLng(e)}),120)])})},true);
 function openRadial(latlon,items,title){closeRadial();const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=92,n=items.length;r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f()}}
 function closeRadial(){$('#radial').hidden=true}
 map.on('movestart zoomstart click',closeRadial);
