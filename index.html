@@ -633,7 +633,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 22:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 23:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1620,7 +1620,7 @@ function drawPattern(){const P=S.pattern,PJ=patJ();if(!P.on||!S.pi||!PJ||PJ.err)
   const legT=(a,b,h)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy,h)};
   const k2=PJ&&!PJ.err&&(PJ.marks||[]).find(m=>m.agl===2000);let pts,startAlt,warn='';
   if(k2){/* downwind from the 2K mark; turn crosswind (base) at 600 ft and into wind (final) at 300 ft, each 300 ft leg sized from the canopy descent and the surface wind */
-    const A=toSY(k2.p),sg=Math.abs(A.y)>=50?Math.sign(A.y):(P.hand==='left'?1:-1),t=300*FT/cr,R2=Math.SQRT1_2;
+    const A=toSY(k2.p),sg=P.hand==='left'?1:-1,/* left-hand: base on the right of the landing line, left turn onto final; right-hand the mirror */t=300*FT/cr,R2=Math.SQRT1_2;
     const mk=f=>{const fS={s:-gs(1,0,150)*t*f,y:0};let bS;
       if(P.type==='z'){/* Z: first leg alongside the trackback in the landing direction to the 600 ft turn, diagonal back to the 300 ft point behind the DIP, final along the trackback */const l=gs(-1,-sg,450)*t*f;bS={s:fS.s+l*R2,y:sg*l*R2}}
       else bS={s:fS.s,y:sg*gs(0,-sg,450)*t*f};return [A,bS,fS,{s:0,y:0}]};
