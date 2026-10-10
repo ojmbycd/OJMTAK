@@ -288,6 +288,7 @@ body.dopen #app,body.topen #app,body.aopen #app{margin-right:var(--dw)}
 body.dopen #menuBtn{display:none}
 body.dopen #hud,body.topen #hud,body.aopen #hud{display:none}
 body.topen:not(.dbot) #tip,body.dopen:not(.dbot) #tip,body.aopen:not(.dbot) #tip{right:8px;left:8px;font-size:13px;padding:7px 9px}
+#updBar{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:4000;background:#FFB020;color:#141414;border:none;border-radius:20px;padding:9px 16px;font:600 14px var(--body);box-shadow:0 2px 10px rgba(0,0,0,.4);cursor:pointer}
 #drawer .seg button,#tool.dock .seg button{white-space:normal;line-height:1.15;padding-left:4px;padding-right:4px}
 body.dopen:not(.dbot) #quick,body.topen:not(.dbot) #quick,body.aopen:not(.dbot) #quick{left:64px;flex-wrap:wrap;justify-content:flex-end}
 /* flipped: map on the top half, menu on the bottom half */
@@ -580,7 +581,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 00:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1811,6 +1812,9 @@ function applyDock(){const up=phoneUpright();if(S.set.land==null)S.set.land=!up;
   document.body.classList.toggle('dbot',!land);
   $('#layoutBtn').setAttribute('aria-label',land?'Landscape':'Portrait');$('#layoutBtn span').textContent=land?'Landscape':'Portrait';$('#layoutBtn').classList.toggle('land',land);if(was!==rotOn)setTimeout(()=>{map.invalidateSize();if(G3&&G3.v)G3.v.resize()},60)}
 window.addEventListener('resize',()=>{const was=document.body.className;applyDock();if(was!==document.body.className)drawerResize();else if(rotOn)drawerResize()});applyDock();
+/* update check: phones can keep an old copy for a while, so look for a newer published version and offer to load it */
+function checkUpdate(){const mine=($('#appVer')||{}).textContent||'';if(!mine||!navigator.onLine)return;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=t.match(/id="appVer"[^>]*>([^<]*)</);if(m&&m[1].trim()&&m[1].trim()!==mine.trim()&&!$('#updBar')){const b=document.createElement('button');b.id='updBar';b.textContent='New version available · tap to update';b.onclick=()=>location.replace(location.pathname+'?v='+Date.now());document.body.appendChild(b)}}).catch(()=>{})}
+setTimeout(checkUpdate,3000);setInterval(checkUpdate,5*60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
 function drawerResize(){setTimeout(()=>{map.invalidateSize();if(typeof placeTool==='function')placeTool();if(typeof placeHud==='function')placeHud()},30)}
 function openDrawer(page='root'){applyDock();if(tool)closeTool();$('#jmPop').hidden=true;const was=$('#drawer').hidden;$('#drawer').hidden=false;document.body.classList.add('dopen');goPage(page);if(was)drawerResize()}
 function goPage(p){if(p!=='sub')dSeq++;$$('[data-dpage]').forEach(x=>x.hidden=x.dataset.dpage!==p);$('#dTitle').textContent=DTITLES[p];$('#dBack').hidden=p==='root';if(p==='points')renderPoints();if(p==='missions')renderMissions()}
