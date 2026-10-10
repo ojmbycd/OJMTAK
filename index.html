@@ -1026,7 +1026,7 @@ function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=h
   drawPI();
   out.innerHTML=`${hamo?`<div class="warn" style="border-left-color:${hamo.ok?'var(--go)':'var(--stop)'}">Single pass, course ${fb(hamoHeading)} T. Pod 1 opens ${ff(S.jump.openAlt)} AGL, ${S.jump.jumpers} jumpers; pod 2 opens ${ff(S.jump.pod2Open)} AGL, ${S.jump.pod2Jumpers} jumpers. Pod ${hamo.first.pod} exits first; HARP to HARP ${fd(hamo.second.along-hamo.first.along)}, ${fsec(hamo.gap)}. ${!J.ok||!J2.ok?`Pod ${!J.ok?1:2} release point is OUTSIDE its HARP ring: adjust the course.`:hamo.clear<0?'Sticks overlap: adjust the course or reduce jumpers.':'Both pods release inside their HARP rings.'}</div>`:''}${hamo?`<h4 class="podh">Pod 1 · opens ${ff(S.jump.openAlt)} AGL · ${S.jump.jumpers} jumpers</h4>${calcDl(J,S.jump.jumpers)}<h4 class="podh">Pod 2 · opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</h4>${calcDl(J2,S.jump.pod2Jumpers)}`:calcDl(J,S.jump.jumpers)}
     <div class="row"><button class="btn primary" id="finishPlan">Finish plan → Summary</button></div>
-    <div class="warn">Calculated by the D = KAV method ( wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
+    <div class="warn">Calculated by the D = KAV method (wind phenomena, truncation as specified). HARP shown at mid-stick. Check against the manual and current met before use.</div>`;
   updateHound();renderPoints()}
 function drawDipRings(pi,name,elev){const red='#FF2A2A',grn='#39FF6A',R=1000*FT;
   [450*FT,900*FT].forEach(r=>L.circle(LL(pi),{radius:r,color:red,weight:1.5,fill:false,interactive:false}).addTo(LY.jump));
