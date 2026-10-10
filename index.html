@@ -473,7 +473,7 @@ table.winds td small{font-size:11px}
           </div>
           <div data-pp="2" hidden>
           <h3>Wind layers</h3>
-          <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value is the wind as a fraction of the canopy's forward speed.</p>
+          <p class="note">Surface, then every 1,000 ft AMSL up to exit altitude. Direction is where the wind blows from, °T. Speed in knots. Value uses the ATAK brackets: 0–2 kt Zero, 3–7 ¼, 8–12 ½, 13–17 ¾, 18–22 Full.</p>
           <div class="row"><select id="windHour" style="width:auto"><option value="0">Now</option><option value="1">+1 h</option><option value="2">+2 h</option><option value="3">+3 h</option><option value="4">+4 h</option><option value="6">+6 h</option><option value="12">+12 h</option><option value="24">+24 h</option></select><select id="windModel" style="width:auto"><option value="ukmo_seamless">Met Office UK</option><option value="gfs_seamless">GFS (as Mark Schulze)</option><option value="ecmwf_ifs025">ECMWF</option><option value="icon_seamless">DWD ICON</option><option value="best_match">Best match</option></select><button class="btn primary" id="windImport">Import winds</button></div>
           <div class="row mt"><button class="btn" id="windSchulze">Open winds aloft at DIP</button><button class="btn" id="windFileBtn">Load winds file</button><input type="file" id="windFile" accept=".txt,.csv,text/plain,text/csv" hidden></div>
           <p class="note" id="windSrc"></p>
@@ -1488,7 +1488,8 @@ map.on('contextmenu',e=>{if(mode!=='none')return;const p={lat:e.latlng.lat,lon:e
 $('#piSet').onclick=()=>{const p=parseCoord($('#piInput').value);if(!p){toast('Grid not recognised. Use MGRS like 30U WB 12345 67890, or lat, long.');return}S.pi=p;save('pi');renderJump();autoDzElev();map.setView(LL(p),14);toast('DIP set')};
 function windLevels(){const g=Math.round(+S.jump.dzElev||0),top=+S.jump.exitAlt||0;const L_=[g];for(let a=Math.ceil((g+1)/1000)*1000;a<=top;a+=1000)L_.push(a);if(L_[L_.length-1]<top)L_.push(Math.ceil(top/1000)*1000);return L_}
 function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w]));S.winds=windLevels().map(a=>{const w=have.get(a);if(w)return w;const near=[...have.values()].sort((x,y)=>Math.abs(x.alt-a)-Math.abs(y.alt-a))[0];return {alt:a,dir:near?near.dir:270,spd:near?near.spd:10}});save('winds')}
-function windValue(spd){const cs=+S.jump.canopySpeed||0;if(!(cs>0))return '–';const r=spd/cs;return r<0.05?'Zero':r<0.375?'¼':r<0.625?'½':r<0.875?'¾':r<=1.05?'Full':'Full+'}
+/* ATAK wind brackets: 0-2 Zero, 3-7 ¼, 8-12 ½, 13-17 ¾, 18-22 Full */
+function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';return v<=2?'Zero':v<=7?'¼':v<=12?'½':v<=17?'¾':v<=22?'Full':'Full+'}
 function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
 function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Kt / Dir ⇄':'Dir / Kt ⇄';$('#windOrder').textContent=S.set.windDesc?'Alt ↓ (high first)':'Alt ↑ (low first)';
   $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Kt</th><th>From °T</th>':'<th>From °T</th><th>Kt</th>'}<th>Value</th><th></th>`;
