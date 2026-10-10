@@ -436,6 +436,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <div class="seg full" id="baseSeg"><button data-b="sat">Imagery</button><button data-b="hyb">Imagery + labels</button><button data-b="osm">Street</button><button data-b="topo">Topo</button><button data-b="none">Grid only</button></div>
         <h3>Overlays</h3>
         <div id="ovList"></div>
+        <p class="note" id="heatNote" hidden></p>
         <section class="sec">
           <h3>Cloud forecast</h3>
           <div class="seg full" id="cloudSeg"><button data-cl="total">Total</button><button data-cl="low">Low &lt;3 km</button><button data-cl="mid">Mid 3–8 km</button><button data-cl="high">High &gt;8 km</button></div>
@@ -601,7 +602,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 11 Oct 2026 · 04:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -723,7 +724,7 @@ function parseCoord(str){if(!str)return null;const m=str.trim().match(/^(-?\d+(?
 /* ================= state ================= */
 const DEF_JUMP={v:3,sortie:'',mode:'HAHO',toElev:300,dzElev:200,exitAlt:12000,openAlt:11000,ffRate:176,canopy:'MJ (MP360)',k:46,canopyRate:12.8,canopySpeed:22,casSF:2000,lpSF:1000,jumperKg:110,loadKg:0,hamoOffset:0,pod2Open:6000,pod2Jumpers:4,runMode:'into',headingMag:0,kias:110,acPerf:'high',qnh:1013,qnhUnit:'mb',qnhUnknown:false,cypModel:'mj1900',vdzManual:null,hrpo:null,jumpers:8,interval:4,throwSec:0};
 const DEF_WINDS=[];/* winds start blank until imported, loaded or typed in */
-const DEF_OV={cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
+const DEF_OV={heat:false,cloud:true,grid:true,jump:true,xs:true,draw:true,rng:true,pts:true,trail:true,hound:true};
 const DEF_SET={coord:'mgrs',dist:'m',decl:0,outer:1000,inner:250,base:'sat',trail:true,theme:'dark',night:false,sim:false,simSpd:20,simMove:false,callsign:'JUMP MASTER EXPERT TOOL',drawMode:'line',drawColor:'--x',rngMode:'perm',proj:true,projSec:60,ringStep:137.16,ringUnit:'ft',altRef:null};
 const S={
   jump:Object.assign({},DEF_JUMP,store.get('jump',{})),
@@ -796,11 +797,21 @@ const BASES={
 let baseLayer=null,extraLayers=[],tileOk=false,tileErr=0,tileWarned=false;
 function setBase(k){if(baseLayer){map.removeLayer(baseLayer);baseLayer=null}extraLayers.forEach(l=>map.removeLayer(l));extraLayers=[];S.set.base=k;save('set');$$('#baseSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===k));if(k==='none')return;const b=BASES[k];baseLayer=L.tileLayer(b.u,b.o);baseLayer.on('tileload',()=>{tileOk=true});baseLayer.on('tileerror',()=>{tileErr++;if(!tileOk&&tileErr>=3&&!tileWarned){tileWarned=true;toast('Map imagery is blocked on this page, so the MGRS grid is showing. Host this file on your own site to load imagery.',6500)}});baseLayer.addTo(map);(b.extra||[]).forEach(u=>{const l=L.tileLayer(u,{maxZoom:19,pane:'tilePane',zIndex:5});l.addTo(map);extraLayers.push(l)})}
 
-const LY={cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup(),adsb:L.layerGroup()};
+const LY={heat:L.layerGroup(),cloud:L.layerGroup(),grid:L.layerGroup(),jump:L.layerGroup(),xs:L.layerGroup(),draw:L.layerGroup(),rng:L.layerGroup(),pts:L.layerGroup(),trail:L.layerGroup(),hound:L.layerGroup(),adsb:L.layerGroup()};
 const tmpLayer=L.layerGroup().addTo(map),meLayer=L.layerGroup();
-const OV_NAMES={cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Navigation line'};
+const OV_NAMES={heat:'Altitude heatmap',cloud:'Cloud forecast',grid:'MGRS grid lines',jump:'Jump plan (DIP, HARP, run-in, envelope)',xs:'Red X plots',draw:'Drawings',rng:'Range tools',pts:'Points',trail:'Breadcrumb trail',hound:'Navigation line'};
 // live aircraft switch hidden until a feed accepts the Cloudflare relay; add adsb:'Live aircraft (ADS-B)' back above to show it
-function applyOverlays(){Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
+/* altitude heatmap: terrain tiles coloured by height above the DZ (yellow = 200 ft above, the HRPO line), or by height above sea level when no DZ is set */
+const HSTOPS_DZ=[[-500,[20,40,160]],[-100,[40,120,230]],[0,[30,170,80]],[100,[140,210,60]],[200,[255,225,0]],[500,[255,140,0]],[1000,[230,30,30]],[2000,[170,0,170]]];
+const HSTOPS_ABS=[[0,[30,150,80]],[100,[140,210,60]],[300,[255,225,0]],[600,[255,140,0]],[1000,[230,30,30]],[1500,[170,0,170]]];
+const rampAt=(st,v)=>{if(v<=st[0][0])return st[0][1];for(let i=1;i<st.length;i++)if(v<=st[i][0]){const [a,ca]=st[i-1],[b,cb]=st[i],f=(v-a)/(b-a);return ca.map((c,k)=>c+(cb[k]-c)*f)}return st[st.length-1][1]};
+let heatDz=null;
+const HeatLayer=L.GridLayer.extend({createTile(c,done){const t=document.createElement('canvas');t.width=t.height=256;
+  fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${c.z}/${c.x}/${c.y}.png`,{mode:'cors'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.blob()}).then(createImageBitmap).then(bm=>{const g=t.getContext('2d');g.drawImage(bm,0,0);const im=g.getImageData(0,0,256,256),d=im.data,dz=heatDz;
+    for(let i=0;i<d.length;i+=4){const m=d[i]*256+d[i+1]+d[i+2]/256-32768,col=dz!=null?rampAt(HSTOPS_DZ,m/FT-dz):rampAt(HSTOPS_ABS,m);d[i]=col[0];d[i+1]=col[1];d[i+2]=col[2];d[i+3]=255}g.putImageData(im,0,0);done(null,t)}).catch(e=>done(e,t));return t}});
+const altHeat=new HeatLayer({maxNativeZoom:14,maxZoom:22,opacity:.5,zIndex:250}).addTo(LY.heat);
+function heatSync(){const dz=S.jump.dzElev!=null&&S.jump.dzElev!==''&&isFinite(+S.jump.dzElev)?+S.jump.dzElev:null;if(dz!==heatDz){heatDz=dz;if(map.hasLayer(LY.heat))altHeat.redraw()}const n=$('#heatNote');if(n){n.hidden=!S.ov.heat;n.innerHTML=dz!=null?`Altitude heatmap, height above the DZ (${ff(dz)}): <span style="color:#1e78e6">■</span> below · <span style="color:#1eaa50">■</span> level · <span style="color:#ffe100">■</span> +200 ft (HRPO) · <span style="color:#ff8c00">■</span> +500 · <span style="color:#e61e1e">■</span> +1,000 · <span style="color:#aa00aa">■</span> +2,000 ft`:'Altitude heatmap, height above sea level: green low → yellow 300 m → red 1,000 m → purple 1,500 m. Set a DIP to colour by height above the DZ.'}}
+function applyOverlays(){heatSync();Object.keys(LY).forEach(k=>{const on=!!S.ov[k];if(on&&!map.hasLayer(LY[k]))LY[k].addTo(map);if(!on&&map.hasLayer(LY[k]))map.removeLayer(LY[k])});if(!map.hasLayer(meLayer))meLayer.addTo(map)}
 
 function divPin(svg,color,label,size=30){return L.divIcon({className:'pin',iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div style="position:relative;width:${size}px;height:${size}px"><svg viewBox="-15 -15 30 30" width="${size}" height="${size}" style="overflow:visible"><g fill="${color}" stroke="${cssv('--bg')}" stroke-width="2">${svg}</g></svg>${label?`<span class="lbl" style="position:absolute;left:${size}px;top:${size/2-7}px">${esc(label)}</span>`:''}</div>`})}
 const textPin=(text,cls='lbl')=>L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="${cls}">${text}</span>`});
@@ -1066,7 +1077,7 @@ function calcDl(P,n){return `<dl class="res">
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 /* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
 const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
-function renderJump(){LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
+function renderJump(){heatSync();LY.jump.clearLayers();computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(S.jump.calcOff&&!J.err){J={err:'Uncalculated: tap the DIP and choose Calculate to show the plan again.'};hamo=null;J2=null}
   if(J.err){out.innerHTML=`<p class="note">${esc(J.err)}</p>`;if(S.pi)drawPI();updateHound();renderPoints();return}
   $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line, left/right as seen under canopy looking back at the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
