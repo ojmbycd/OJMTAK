@@ -580,7 +580,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>What is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 22:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 10 Oct 2026 · 23:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1284,23 +1284,25 @@ function drawPattern(){const P=S.pattern;if(!P.on||!S.pi||!J||J.err)return;/* ne
   /* landing-line frame: s along the landing direction (DIP at 0, upwind +), y to the right of it. Surface wind in the same frame */
   const toSY=q=>{const d=dist(S.pi,q),b=brg(S.pi,q)*D2R,e=d*Math.sin(b),n=d*Math.cos(b);return {s:e*Math.sin(L0)+n*Math.cos(L0),y:e*Math.cos(L0)-n*Math.sin(L0)}};
   const fromSY=(s_,y)=>{const e=s_*Math.sin(L0)+y*Math.cos(L0),n=s_*Math.cos(L0)-y*Math.sin(L0);return dest(S.pi,norm(Math.atan2(e,n)*R2D),Math.hypot(e,n))};
-  const wS=w.u*Math.sin(L0)+w.v*Math.cos(L0),wY=w.u*Math.cos(L0)-w.v*Math.sin(L0);
-  const gs=(ds,dy)=>{const l=Math.hypot(ds,dy)||1;ds/=l;dy/=l;const dot=wS*ds+wY*dy,cx=wS*dy-wY*ds;return Math.max(0.5,dot+Math.sqrt(Math.max(0,V*V-cx*cx)))};
-  const legT=(a,b)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy)};
+  /* each leg uses the wind at its own height: downwind ~1,300 ft, base ~450 ft, final ~150 ft AGL */
+  const WF=makeWind(),dzA=+S.jump.dzElev||0,LEGH=[1300,450,150];
+  const gs=(ds,dy,h=150)=>{const q=WF(dzA+h),wS=q.u*Math.sin(L0)+q.v*Math.cos(L0),wY=q.u*Math.cos(L0)-q.v*Math.sin(L0);const l=Math.hypot(ds,dy)||1;ds/=l;dy/=l;const dot=wS*ds+wY*dy,cx=wS*dy-wY*ds;return Math.max(0.5,dot+Math.sqrt(Math.max(0,V*V-cx*cx)))};
+  const legT=(a,b,h)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy,h)};
   const k2=J&&!J.err&&(J.marks||[]).find(m=>m.agl===2000);let pts,startAlt,warn='';
   if(k2){/* downwind from the 2K mark; turn crosswind (base) at 600 ft and into wind (final) at 300 ft, each 300 ft leg sized from the canopy descent and the surface wind */
     const A=toSY(k2.p),sg=Math.abs(A.y)>=50?Math.sign(A.y):(P.hand==='left'?1:-1),t=300*FT/cr,R2=Math.SQRT1_2;
-    const fS={s:-gs(1,0)*t,y:0};let bS;
-    if(P.type==='z'){const l=gs(1,-sg)*t;bS={s:fS.s-l*R2,y:sg*l*R2}}else bS={s:fS.s,y:sg*gs(0,-sg)*t};
-    pts=[A,bS,fS,{s:0,y:0}];startAlt=2000}
+    const mk=f=>{const fS={s:-gs(1,0,150)*t*f,y:0};let bS;if(P.type==='z'){const l=gs(1,-sg,450)*t*f;bS={s:fS.s-l*R2,y:sg*l*R2}}else bS={s:fS.s,y:sg*gs(0,-sg,450)*t*f};return [A,bS,fS,{s:0,y:0}]};
+    const need=q=>(legT(q[0],q[1],1300)+legT(q[1],q[2],450)+legT(q[2],q[3],150))*cr/FT;
+    pts=mk(1);/* if 600/300 ft turns need more than 2,000 ft at the 2K mark (light winds), pull the turns in until it fits */
+    if(need(pts)>2000){let lo=0.02,hi=1;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(need(mk(m))>2000)hi=m;else lo=m}pts=mk(lo)}startAlt=2000}
   else{/* no plan yet: fixed leg altitudes */
-    const [a1,a2,a3]=P.alts,hw=-wS,side=P.hand==='left'?1:-1;startAlt=a1;
+    const [a1,a2,a3]=P.alts,hw=-(w.u*Math.sin(L0)+w.v*Math.cos(L0)),side=P.hand==='left'?1:-1;startAlt=a1;
     const f=-Math.max(30,(V-hw)*(a3*FT/cr)),by=side*Math.max(30,V*((a2-a3)*FT/cr)),ds=Math.max(30,(V+hw)*((a1-a2)*FT/cr));
     pts=P.type==='z'?[{s:f-Math.abs(by)+ds,y:by},{s:f-Math.abs(by),y:by},{s:f,y:0},{s:0,y:0}]:[{s:f+ds,y:by},{s:f,y:by},{s:f,y:0},{s:0,y:0}]}
   {const mv=P.mv||{};['d','b','f'].forEach((k,i)=>{if(mv[k])pts[i]=toSY(dest(S.pi,mv[k][0],mv[k][1]))})}
   /* heights at each turn from the time on each leg and the canopy rate of descent */
   /* worked back from the DIP (0 ft), so moving a point changes the turn heights rather than leaving height over */
-  const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1])*cr/FT;
+  const alts=[0,0,0,0];for(let i=pts.length-2;i>=0;i--)alts[i]=alts[i+1]+legT(pts[i],pts[i+1],LEGH[i])*cr/FT;
   const rnd=a=>Math.round(a/50)*50;/* the downwind start shows the height needed there to reach the 600 ft turn */
   const LLs=pts.map(q=>fromSY(q.s,q.y));
   {/* rounded turns: each corner is eased with a curve that starts and ends up to 150 m either side of the turn point */
