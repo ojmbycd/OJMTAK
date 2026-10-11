@@ -402,6 +402,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 .qnhrow{grid-column:1/-1;display:grid;grid-template-columns:1fr 92px auto;gap:8px;align-items:end}.qnhrow .btn{min-height:44px;white-space:nowrap}
 .alarms{border:1px solid var(--line);border-radius:10px;overflow:hidden}.alarms .ahead{padding:6px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.alarms div:not(.ahead){display:flex;justify-content:space-between;padding:8px 10px;border-top:1px solid var(--line)}.alarms span{font:500 15px var(--body)}.alarms b{font:700 17px var(--cond);font-variant-numeric:tabular-nums}
 .fit1{overflow:hidden}
+.vbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.vbtns .btn{min-height:44px}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
@@ -634,7 +635,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <div data-jm-panel="summary" hidden>
           <button class="mhead mt" id="mHead2"><span>Plan jump:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
           <div id="sumOut"></div>
-          <button class="btn primary mt" id="printCalcs" style="width:100%">Print calcs sheet</button>
         </div>
 
         <div data-jm-panel="cypres" hidden>
@@ -686,7 +686,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2019,7 +2019,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod 1 first</dd>${hamo.C?`<dd data-l="Pod 3">opens ${ff(S.jump.pod3Open)} AGL · ${S.jump.pod3Jumpers} jumpers</dd><dd data-l="HARP 3">${fc(J3.harp)} · ${J3.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP 2 to 3">${fd(J3.along-J2.along)} · ${fsec(hamo.gaps[1])} at run-in speed</dd>`:''}`:''}
     <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
-  <div class="row"><button class="btn primary" data-start="ac">Start jump</button><button class="btn" data-hound="c:harp">Navigate to HARP</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
+  <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print calc sheet</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
@@ -2097,7 +2097,9 @@ async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const 
   catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
   finally{b.disabled=false;b.textContent='Import pressure'}}
 $('#qnhNearest').onclick=nearestQnh;
-$('#printCalcs').onclick=printCalcs;
+/* Vital data buttons: export the current plan for ATAK, print the calc sheet */
+function exportJump(){if(!S.pi){toast('Place the DIP first');return}const nm=(S.pi.name||'Jump'),m={id:'live',name:nm,saved:Date.now(),data:JSON.parse(JSON.stringify(snapshot()))};shareFile(pkgZip(m),`${nm.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'jump'}_ATAK.zip`,`${nm} (ATAK data package)`)}
+document.addEventListener('click',e=>{if(e.target.id==='exportJump')exportJump();if(e.target.id==='printCalcs2')printCalcs()});
 $('#cypModel').onchange=e=>{if(e.target.value==='__addcyp'){fillCypSel();cypCustomSheet(null);return}S.jump.cypModel=e.target.value;save('jump');$('#cypCustomRow').hidden=!e.target.value.startsWith('c:');renderMilCypres();renderJump()};
 $('#cypEdit').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(c)cypCustomSheet(c)};
 $('#cypDel').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(!c)return;sheet({title:`Delete ${c.name}?`,buttons:[['Delete',()=>{S.cypCustom=S.cypCustom.filter(x=>x.id!==c.id);save('cypCustom');loadCypCustom();S.jump.cypModel='mj1900';save('jump');fillCypSel();renderMilCypres();renderJump()},'danger']]})};
