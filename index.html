@@ -1992,7 +1992,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
     ${step('ref',`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</div>`;
   const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${esc(t.n)}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
-    <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd></dd></dl>
+    <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd></dl>
     <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
     <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+esc(t.T)+')':'')).join(' / ')} AGL</dd></dl>
     <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
