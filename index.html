@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2023,7 +2023,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   const PP=hamo?hamo.order:[J],pods=PP.length>1,jmN=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],opA=[j.openAlt,j.pod2Open,j.pod3Open],run=({into:'into wind',down:'downwind',left:'left door 90°',right:'right door 90°',left45:'left door 45°',right45:'right door 45°',custom:'custom'})[j.runMode||'into'];
   o.innerHTML=`<h3 class="vsh">Key altitudes</h3>${vitalAlt('alts')}
   <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
-    ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${PP.length} pods)`:j.mode)}
+    ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO<br><small style="font-weight:400;font-size:13px;color:var(--mute)">(${PP.length} pods)</small>`:j.mode)}
     ${vt('Aircraft course',`${fb(magOf(J.heading))} M`)}${vt('Run-in',run)}
     ${vt('Aircraft',`${j.kias} KIAS`)}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
     ${pods?'':`${vt('HARP (first out)',esc(fc(J.harp)),1)}${vt('No. of jumpers',+jmN[0]||'–')}${vt('Stick',`${Math.round(J.stick)} m <small style="font-weight:400;font-size:12px;color:var(--mute)">total spread across sky</small>`)}`}
