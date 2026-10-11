@@ -575,19 +575,19 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
           <section class="sec">
             <h3>Aircraft</h3>
             <div class="fields">
-              <label class="fld">Run-in<select id="runSel"><option value="into">Into wind</option><option value="down">Downwind</option><option value="left">Crosswind, left door (90°)</option><option value="right">Crosswind, right door (90°)</option><option value="left45">Crosswind, left door (45°)</option><option value="right45">Crosswind, right door (45°)</option><option value="custom">Custom</option></select></label>
+              <label class="fld" style="grid-column:1/-1">Run-in<select id="runSel"><option value="into">Into wind</option><option value="down">Downwind</option><option value="left">Crosswind, left door (90°)</option><option value="right">Crosswind, right door (90°)</option><option value="left45">Crosswind, left door (45°)</option><option value="right45">Crosswind, right door (45°)</option><option value="custom">Custom</option></select></label>
               <label class="fld">AC speed (KIAS)<input type="number" inputmode="decimal" data-j="kias"></label>
               <label class="fld" hidden><span style="white-space:nowrap">AC performance (forward throw)</span><select id="acPerf"><option value="high">High, 300 m</option><option value="low">Low, 150 m</option><option value="none">None</option></select></label>
               <label class="fld" id="runCustom"><span style="white-space:nowrap">AC course (°M)</span><input type="number" inputmode="decimal" data-j="headingMag"></label>
             </div>
             <p class="note" id="runNote"></p>
-            <div class="gsout" id="gsOut"></div>
+            <div class="gsout" id="gsOut" hidden></div>
           </section>
           <section class="sec">
-            <h3>Exit detail</h3>
+            <h3>Exit separation</h3>
             <div class="fields">
               <label class="fld" id="jumpersFld"><span id="jumpersLbl">Jumpers</span><input type="number" inputmode="numeric" min="1" data-j="jumpers"></label>
-              <label class="fld" style="grid-column:1/-1"><span style="white-space:nowrap">Exit separation <span id="intervalHint">(s)</span></span><input type="number" inputmode="decimal" data-j="interval"></label>
+              <label class="fld" style="grid-column:1/-1"><span style="white-space:nowrap">Time between jumpers, s <span id="intervalHint"></span></span><input type="number" inputmode="decimal" data-j="interval"></label>
             </div>
           </section>
           <div id="jumpOut" class="mt"></div>
@@ -648,7 +648,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 04:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
