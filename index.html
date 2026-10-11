@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1344,7 +1344,7 @@ function renderJump(){autoDecl();heatSync();exitHint();LY.jump.clearLayers();
   $('#harpRingBox').hidden=S.jump.mode==='HAMO';{/* offset from the mean wind line, left/right as seen under canopy looking back at the DIP */const W=S.jump.harpBrg==null?J:computeJump(S.pi,{harpBrg:null}),wl=W.err?0:brg(S.pi,W.op),ab=Math.round(wl)%360;let off=S.jump.harpBrg==null?0:Math.round(((+S.jump.harpBrg-wl)%360+540)%360-180);
   $('#harpBrgLbl').textContent=off===0?'(on mean wind line)':Math.abs(off)===180?'(180°, opposite the wind line)':`(${Math.abs(off)}° ${off>0?'L':'R'} of mean wind line)`;if(document.activeElement!==$('#harpBrg'))$('#harpBrg').value=S.jump.harpBrg==null?ab:S.jump.harpBrg}
   {/* expected GPS ground speed for the AC settings */const g=$('#gsOut');if(g){const tl=J.tail/KT,cr=J.cross/KT,crab=Math.asin(Math.max(-1,Math.min(1,J.cross/(J.tas*KT||1))))*R2D;
-    g.innerHTML=`<b>GPS ground speed on run-in ≈ ${kts(Math.round(J.gsM/KT))}</b><small>${+S.jump.kias||0} KIAS = ${kts(Math.round(J.tas))} TAS at ${ff(+S.jump.exitAlt)} · ${Math.round(Math.abs(tl))<1?'no head/tailwind':`${kts(Math.round(Math.abs(tl)))} ${tl>=0?'tailwind':'headwind'}`} · ${Math.round(Math.abs(cr))<1?'no crosswind':`${kts(Math.round(Math.abs(cr)))} crosswind from the ${cr>0?'left':'right'}, crab ${Math.round(Math.abs(crab))}° ${cr>0?'left':'right'}`} · course ${fb(J.heading)} T</small>`}}
+    g.innerHTML=`<b>GPS ground speed on run-in ≈ ${kts(Math.round(J.gsM/KT))}</b>`}}
   const c={pi:cssv('--pi'),amb:cssv('--amber'),ink:cssv('--ink'),go:cssv('--go'),st:cssv('--stop')};
   
   /* freefall (amber dashes) and canopy trackback (white) with height dots, wind lines and 2K/3K phase lines; drawn the same for each pod */
