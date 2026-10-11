@@ -492,7 +492,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump vital data</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button><button data-jm="summary" aria-pressed="false">Jump vital data</button></div>
 
         <div data-jm-panel="plan">
           <button class="mhead mt" id="mHead"><span>Plan jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
@@ -588,7 +588,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <h3>Exit separation</h3>
             <div class="fields">
               <label class="fld" id="jumpersFld"><span id="jumpersLbl">Jumpers</span><input type="number" inputmode="numeric" min="1" data-j="jumpers"></label>
-              <label class="fld" style="grid-column:1/-1"><span style="white-space:normal;overflow:visible;text-overflow:clip">Exact distance between jumpers over the ground on exit. <span id="intervalHint"></span></span><span class="sfx"><input type="number" inputmode="decimal" data-j="interval"><i>s</i></span></label>
+              <label class="fld" style="grid-column:1/-1"><span style="white-space:normal;overflow:visible;text-overflow:clip">Exact distance between jumpers over the ground on exit. <span id="intervalHint"></span></span><span class="sfx"><input type="number" inputmode="decimal" data-j="interval"><i>seconds</i></span></label>
             </div>
           </section>
           <div id="jumpOut" class="mt"></div>
@@ -624,7 +624,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         </div>
 
         <div data-jm-panel="alti" hidden>
-          <h3 class="mt">Altimeter offset</h3>
+          <h3 class="mt">Alti offset</h3>
           <div class="fields">
             <label class="fld"><span style="white-space:nowrap">Take-off airfield (ft AMSL)</span><input type="number" inputmode="decimal" data-j="toElev"></label>
             <label class="fld"><span style="white-space:nowrap">DZ elevation (ft AMSL)</span><input type="number" inputmode="decimal" data-j="dzElev"></label>
@@ -649,7 +649,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
