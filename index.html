@@ -302,6 +302,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.vtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin:8px 0}.vt{border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}.vt span{display:block;font:400 12px var(--body);color:var(--mute)}.vt b{display:block;font:600 16px/1.25 var(--cond);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.vt.wide{grid-column:1/-1}
 .vsum{margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}.vsum .sh{padding:6px 10px;font:500 14px var(--cond);background:color-mix(in srgb,var(--panel2) 70%,transparent);color:var(--ink)}.vsum .sr{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-top:1px solid var(--line);font:400 14px var(--cond)}.vsum .sr b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.vsum .sr.ok span{color:var(--go)}.vsum .sr.bad{background:color-mix(in srgb,var(--stop) 18%,transparent)}.vsum .sr.bad span{color:var(--stop);font-weight:600}
 #milOut tr.key td{font-weight:600}
 .gsout{margin-top:6px;overflow:hidden}.gsout b{display:block;font:400 12px var(--body);color:var(--mute);white-space:nowrap}.gsout b i{font-style:normal;font-weight:600;color:var(--go)}.gsout small{display:block;margin-top:2px;font:400 13px/1.3 var(--cond);color:var(--mute)}
@@ -689,7 +690,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2007,16 +2008,17 @@ let ppCss=false;function openPrintPreview(){const ps=$('#printSheet');if(!ppCss)
   ps.classList.add('preview');$('#ppBar').hidden=false;const z=Math.min(1,(innerWidth-24)/(190*96/25.4+24));ps.querySelectorAll('.page').forEach(pg=>pg.style.zoom=z);ps.scrollTop=0}
 function closePrintPreview(){$('#printSheet').classList.remove('preview');$('#ppBar').hidden=true}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
-  o.innerHTML=`<div class="sum">
-    <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
-    <div><span>Jump Type</span><b>${j.mode==='HAMO'?`POD HAMO (${pods3()?3:2} pods)`:j.mode}</b></div>
-    <div><span>Canopy</span><b>${esc(j.canopy||'Custom')}</b> <span>K</span><b>${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
-    <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Separation</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
-    <div><span>Average AUM</span><b>${j.jumperKg} kg</b></div>
-    <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
-    <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
-    <div><span>DZ Elev</span><b>${ff(j.dzElev)}</b></div>
-    <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${kts(Math.round(J.tas))}</b> <span>GS on run-in</span><b>${kts(Math.round(J.gsM/KT))}</b></div>
+  /* each figure in its own labelled box */const vt=(l,v,w)=>`<div class="vt${w?' wide':''}"><span>${l}</span><b>${v}</b></div>`;
+  o.innerHTML=`<div class="vtiles">
+    ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${pods3()?3:2} pods)`:j.mode)}
+    ${vt('Exit',`${ff(j.exitAlt)} AMSL · ${ff(j.exitAlt-j.dzElev)} AGL`,1)}
+    ${vt('Opening',`${ff(j.openAlt)} AGL`)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}
+    ${vt('Canopy',esc(j.canopy||'Custom'))}${vt('K',`${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}`)}
+    ${vt('CSC',`${j.canopySpeed} kts`)}${vt('Average AUM',`${j.jumperKg} kg`)}
+    ${vt('No. of jumpers',j.jumpers)}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
+    ${vt('Canopy assembly SF',ff(+j.casSF))}${vt('Landing pattern SF',ff(+j.lpSF))}
+    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('TAS',kts(Math.round(J.tas)))}
+    ${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}
   </div>${vitalAlt()}
   <dl class="res">
     <dd data-l="Free Fall">${J.ffM>0.5?`${Math.round(J.ffM).toLocaleString("en-GB")} m @ ${fb(brg(J.prp,J.op))} T`:"none"}</dd>
