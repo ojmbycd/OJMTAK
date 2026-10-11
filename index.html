@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1987,8 +1987,6 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
     <dd data-l="Working">${unk?'Setting unknown: 29.92 inHg / 1013.2 mb used':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`} at ${c.v.src==='DZ elevation'?'DZ':'VDZ'} ${ff(c.base)}${unk?' + 500':''} = ${ff(c.cypFt)} MSL (pressure altitude ${ff(pa)}) gives ${(1013.25*Math.pow(1-6.8756e-6*pa,5.2559)).toFixed(1)} mb, rounded down to ${c.cypMb} mb</dd>
     <dd data-l="Zero reference">${ff(c.base)} AMSL, ${c.v.src}${unk?', +500 ft as setting unknown':''}</dd></dl>
     <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
-    <h3 class="mt">Decision altitude by CYPRES model</h3>
-    <table class="winds"><thead><tr><th>CYPRES</th><th>MSL</th><th>AGL</th></tr></thead><tbody>${decAll}</tbody></table>
     <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+esc(t.T)+')':'')).join(' / ')} AGL</dd></dl>
     <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
     <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
