@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2234,7 +2234,7 @@ $('#piTap').onclick=()=>{setMode('pi','Tap the ground to set the DIP');$('#tool'
 function deleteDipAsk(){sheet({title:'Delete the DIP?',sub:'The HARP, run-in and trackback clear until you set a new DIP.',buttons:[['Delete DIP',()=>{S.pi=null;save('pi');S.jump.hrpo=null;save('jump');if(S.target&&S.target.startsWith('c:'))setTarget(null);renderJump();toast('DIP deleted')},'danger']]})}
 // placing a DIP: set it, then ask for a name while showing the ground altitude there
 /* placing a DIP: name it first (altitude shown in grey brackets, not editable); the planner opens in its space only after Save */
-function placeDipAt(p){if(tool)closeTool();blankPlan();setDipAt(p);S.pi.name='NEW DIP';save('pi');renderJump();const g=fc(p);setTimeout(()=>{map.panTo(LL(p));showSel(p);selKeep=true},120);sheet({side:true,title:'Name this DIP',sub:g,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump');showJm('winds')}},buttons:[]});
+function placeDipAt(p){if(tool)closeTool();blankPlan();setDipAt(p);S.pi.name='NEW DIP';save('pi');renderJump();const g=fc(p);setTimeout(()=>{map.panTo(LL(p));showSel(p);selKeep=true},120);sheet({side:true,title:'Name this DIP',sub:g,input:{label:'DIP name',value:'DIP',save:v=>{S.pi.name=v.trim()||'DIP';save('pi');renderJump();openTool('jump');showJm('plan');setTimeout(()=>{const b=$('.tbody');if(b)b.scrollTop=0},40)}/* opens at the top of the planner (exit first) */},buttons:[]});
   const lb=$('#actInLabel');lb.innerHTML='DIP name <span class="dipalt">(looking up altitude…)</span>';setTimeout(()=>{const i=$('#actIn');i.focus();i.select()},50);
   groundElevM(p).then(m=>{if($('#act').hidden||$('#actTitle').textContent!=='Name this DIP')return;const a=lb.querySelector('.dipalt');if(a)a.textContent=m!=null?`(${ff(m/FT)} AMSL)`:'(altitude not available offline)'})}
 function setDipAt(p){S.pi=Object.assign({name:S.pi&&S.pi.name||'DIP'},{lat:p.lat,lon:p.lon});save('pi');renderJump();autoDzElev();toast('DIP set')}
