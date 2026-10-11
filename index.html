@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2008,9 +2008,8 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
   const p3=`<section class="page">${head('Pilot brief')}
     <div class="phl"><div><span>HARP${pods?' (first pod)':''}</span><b>${esc(fc(P[0].harp))}</b><small>${ll(P[0].harp)}</small></div><div><span>Run-in course</span><b>${fb(magOf(J.heading))} M</b><small>${fb(J.heading)} T</small></div></div>
     <div class="phl"><div><span>Exit</span><b>${ff(+j.exitAlt)} AMSL</b><small>${ff(+j.exitAlt-dz)} above the DIP</small></div><div><span>Planned deployment</span><b>${P.map((x,i)=>ff(op(i))).join(' / ')}</b><small>AGL${pods?', pod by pod':''}</small></div></div>
-    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Speed',`${j.kias} KIAS (about ${kts(Math.round(J.gsM/KT))} over the ground)`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Exit separation',`${j.interval} s between jumpers`],['Jumpers',`<b>${tot} in total</b>${pods?` (${P.map((x,i)=>`pod ${i+1}: ${+jm[i]||0}`).join(', ')})`:''}`]])}
+    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Speed',`${j.kias} KIAS (about ${kts(Math.round(J.gsM/KT))} over the ground)`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Exit separation',`${j.interval} s between jumpers`],['Time on run-in',`<b>${fsec(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot)}</b> from first out to last out${pods?` (${P.length} pods, one pass)`:''}`],['Jumpers',`<b>${tot} in total</b>${pods?` (${P.map((x,i)=>`pod ${i+1}: ${+jm[i]||0}`).join(', ')})`:''}`]])}
 
-    ${pods?`<p>${P.length} pods on one run-in: ${hamo.waits.map((t,i)=>`pod ${i+1} last out to pod ${i+2} green ${Math.round(t)} s`).join(', ')}.</p>`:''}
     ${kv([['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
   $('#printSheet').innerHTML=p1+p2+p3;openPrintPreview()}
 /* preview: the three A4 pages on screen (same styles as the printout), scaled to the screen, with Print and Close */
