@@ -2,7 +2,7 @@
 // The app asks for aircraft near a point. This fetches them from OpenSky Network (using the account's API client,
 // stored as the Worker secrets OPENSKY_ID and OPENSKY_SECRET), falling back to adsb.fi and adsb.lol, and returns
 // {ac:[...]} in one format with the permission header browsers need. Only the app's own site may use it.
-const ALLOWED = ['https://jumpmasterexperttool.github.io'];
+const ALLOWED = ['https://jumpmasterpro.github.io', 'https://jumpmasterexperttool.github.io'];
 const FT = 0.3048, KT = 0.514444;
 let token = null, tokenExp = 0;
 

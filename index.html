@@ -660,7 +660,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <h3>VDZ / HRPO check</h3>
             <p class="note" id="hrpoRule"></p>
             <p id="hrpoOut" class="hrpo">Not checked yet.</p>
-            <div class="row"><button class="btn" id="hrpoCheck">Check again</button><button class="btn" id="hrpoHeat">Terrain heatmap</button></div>
+            <div class="row"><button class="btn" id="hrpoCheck">Check again</button><button class="btn" id="hrpoHeat">Terrain heatmap</button><button class="btn" id="hrpoHeatClr" hidden>Clear heatmap</button></div>
             <div class="fields mt"><label class="fld"><span style="white-space:nowrap">VDZ override (ft AMSL)</span><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
                       </section>
           <div id="milOut"></div>
@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1950,8 +1950,8 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
-  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · AMSL in brackets</div>
-    ${hts.map(([k,v])=>r(k,`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`)).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">(${ff(c.dz)} AMSL)</small>`)}
+  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · AMSL in brackets, rounded up to the next 100 ft</div>
+    ${hts.map(([k,v])=>r(k,`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(Math.ceil((v+c.dz)/100)*100)} AMSL)</small>`)).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">(${ff(Math.ceil(c.dz/100)*100)} AMSL)</small>`)}
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
@@ -2110,7 +2110,7 @@ async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const 
     const L=(j.stations||[]).map(m=>({...m,inhg:(/\sA(\d{4})\b/.exec(m.raw||'')||[])[1],nm:dist(S.pi,m)/1852,b:brg(S.pi,m),age:Math.max(0,Math.round((Date.now()-Date.parse(m.time))/60000))})).filter(m=>m.nm<=100).sort((a,b)=>a.nm-b.nm).slice(0,6);
     if(!L.length)sheet({title:'No station within 100 nm',sub:'There is no weather station reporting within 100 nm of the DIP, so treat the altimeter setting as unknown.',buttons:[['Use setting unknown',()=>{S.jump.qnhUnknown=true;S.jump.qnhSrc=null;save('jump');syncCypInputs();renderJump()},'primary']]});
     else sheet({title:'Nearest weather stations',sub:'Within 100 nm of the DIP, nearest first. Tap one to use its QNH.',buttons:L.map((m,i)=>[`${m.icao} · ${m.nm.toFixed(0)} nm ${fb(m.b)} · ${m.inhg?'A'+m.inhg:'Q'+Math.round(m.qnh)} · ${m.age<2?'just in':m.age<120?m.age+' min old':Math.round(m.age/60)+' h old'}`,()=>{/* US stations report inches (A2992): keep their units */if(m.inhg){S.jump.qnh=+(m.inhg/100).toFixed(2);S.jump.qnhUnit='inhg'}else{S.jump.qnh=Math.round(m.qnh);S.jump.qnhUnit='mb'}S.jump.qnhUnknown=false;S.jump.qnhSrc={icao:m.icao,name:m.name,nm:m.nm,b:m.b,time:m.time};save('jump');syncCypInputs();renderJump();toast(`QNH ${m.inhg?(m.inhg/100).toFixed(2)+' inHg':Math.round(m.qnh)+' mb'} from ${m.icao}, ${m.nm.toFixed(0)} nm from the DIP`)},i===0?'primary':''])})}
-  catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
+  catch(e){toast('Could not reach the weather stations. Check signal, or enter the QNH by hand.',5000)}
   finally{b.disabled=false;b.textContent='Import pressure'}}
 $('#qnhNearest').onclick=nearestQnh;
 /* Vital data buttons: export the current plan for ATAK, print the calc sheet */
@@ -2127,7 +2127,7 @@ $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v==='
 // terrain heatmap: ground height relative to the DZ around the HARP, PRP, first and last out, from AWS Terrarium tiles (z14, about 10 m)
 let heatOn=false;const heatLayer=L.layerGroup().addTo(map);
 function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)})\n${fc(h)}`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
-function hideHeat(){heatOn=false;heatLayer.clearLayers();$('#heatKey').hidden=true}
+function hideHeat(){heatOn=false;heatLayer.clearLayers();$('#heatKey').hidden=true;$('#hrpoHeatClr').hidden=true}
 async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius()*1.6,c=[J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(p=>[0,90,180,270].map(b=>dest(p,b,R)));
   const Z=14,N=2**Z,px=p=>({x:(p.lon+180)/360*N*256,y:(1-Math.log(Math.tan(p.lat*D2R)+1/Math.cos(p.lat*D2R))/Math.PI)/2*N*256});
   const P=c.map(px),x0=Math.floor(Math.min(...P.map(p=>p.x))),x1=Math.ceil(Math.max(...P.map(p=>p.x))),y0=Math.floor(Math.min(...P.map(p=>p.y))),y1=Math.ceil(Math.max(...P.map(p=>p.y)));
@@ -2142,8 +2142,8 @@ async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}cons
   for(let i=0;i<d.length;i+=4){const m=d[i]*256+d[i+1]+d[i+2]/256-32768,cl=colr((m-dz)/FT);d[i]=cl[0];d[i+1]=cl[1];d[i+2]=cl[2];d[i+3]=150}g.putImageData(im,0,0);
   {const Rr=hrpoRadius(),H=hullLL([J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(c=>Array.from({length:72},(_,i)=>dest(c,i*5,Rr))));g.globalCompositeOperation='destination-in';g.beginPath();H.forEach((q,i)=>{const P=px(q);i?g.lineTo(P.x-x0,P.y-y0):g.moveTo(P.x-x0,P.y-y0)});g.closePath();g.fillStyle='#000';g.fill();g.globalCompositeOperation='source-over'}/* nothing coloured outside the check outline */
   const ll=(x,y)=>{const n=Math.PI-2*Math.PI*y/(N*256);return [180/Math.PI*Math.atan(Math.sinh(n)),x/(N*256)*360-180]};
-  heatLayer.clearLayers();L.imageOverlay(cv.toDataURL(),[ll(x0,y1),ll(x1,y0)],{interactive:false,zIndex:250}).addTo(heatLayer);heatOn=true;$('#heatKey').hidden=false;map.fitBounds([ll(x0,y1),ll(x1,y0)])}
-$('#hrpoHeat').onclick=()=>showHeat();/* heatmap loads behind the planner, which stays open */$('#heatKey').onclick=hideHeat;
+  heatLayer.clearLayers();L.imageOverlay(cv.toDataURL(),[ll(x0,y1),ll(x1,y0)],{interactive:false,zIndex:250}).addTo(heatLayer);heatOn=true;$('#heatKey').hidden=false;$('#hrpoHeatClr').hidden=false;map.fitBounds([ll(x0,y1),ll(x1,y0)])}
+$('#hrpoHeat').onclick=()=>showHeat();/* heatmap loads behind the planner, which stays open */$('#heatKey').onclick=hideHeat;$('#hrpoHeatClr').onclick=hideHeat;
 $('#hrpoCheck').onclick=()=>{hrpoFailKey=null;checkHrpo(false)};
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);autoHrpo()}}
 setTimeout(autoHrpo,1500);
