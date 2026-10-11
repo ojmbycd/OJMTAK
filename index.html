@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:40</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2237,7 +2237,7 @@ function pkgCot(m){const d=m.data,ev=[];
        all on the shared run-in course; plus a line joining the pods' HARPs */
     let podEvs=null;if(S.jump.mode==='HAMO'){const gk={hamo,J2,J3,hamoHeading};try{computeHamo();if(hamo&&hamo.order&&hamo.order.length>1){const base=S.jump,jm=[base.jumpers,base.pod2Jumpers,base.pod3Jumpers],cs=[base.casSF,base.pod2Cas,base.pod3Cas];
       podEvs=hamo.order.map((Pp,i)=>jmDipCot({name:`${d.pi.name||'DIP'} POD${i+1}`,lat:d.pi.lat,lon:d.pi.lon},Object.assign({},base,{mode:'HALO',openAlt:Pp.podOpen,jumpers:+jm[i]||4,casSF:Math.max(2000,+(cs[i]??2000)),lpSF:1000,harpBrg:norm(Pp.driveH+180)}),Pp,i===0?alts.map(a=>a.uid):[]));
-      /* HARP to HARP as ATAK measuring lines (range and bearing, so the direction shows), one per pod-to-pod leg */hamo.order.slice(1).forEach((Pp,i)=>podEvs.push(cotRB(hamo.order[i].harp,Pp.harp,`POD${i+1} to POD${i+2} HARP`,'#FFD400')));
+      /* first pod's HARP to the last pod's HARP as an ATAK measuring line (range and bearing, so the direction shows) */{const n=hamo.order.length;podEvs.push(cotRB(hamo.order[0].harp,hamo.order[n-1].harp,`POD1 to POD${n} HARP`,'#FFD400'))}
       phaseLinesFor(hamo.order,true).forEach(l=>podEvs.push(cotLine(l.pts,`${l.h/1000}K phase line`,'#FF2A2A',3,false)))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
     let phEvs=[];
     if(!podEvs){try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}try{if(P&&!P.err)phEvs=phaseLinesFor([P],false).map(l=>cotLine(l.pts,`${l.h/1000}K phase line`,'#FF2A2A',3,false))}catch(e){}}Object.assign(S,keep);
