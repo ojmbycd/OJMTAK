@@ -648,7 +648,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1347,7 +1347,7 @@ function calcDl(P,n){return `<dl class="res">
     ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
 /* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
 const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
-function renderJump(){autoDecl();syncExit();heatSync();exitHint();LY.jump.clearLayers();
+function renderJump(){autoDecl();syncExit();{const g=$('#gsOut');if(g)g.innerHTML='<b>GPS ground speed on run-in ≈ –</b>'}/* shown before the plan is complete, filled in once it is */heatSync();exitHint();LY.jump.clearLayers();
   if(S.jump.mode==='HAMO'&&S.pi){const sl=$('#hamoSlider');if(sl){sl.min=0;sl.max=90}hamoAutoSF();save('jump');[['casSF','[data-j="casSF"]'],['pod2Cas','#pod2Cas'],['pod3Cas','#pod3Cas']].forEach(([k,q])=>$$(q).forEach(el=>{if(document.activeElement!==el)el.value=S.jump[k]??2000;el.disabled=false;el.step=100;el.min=(S.jump.sfMin||{})[k]||2000}))}
   computeHamo();if(hamo){J=hamo.A;J2=hamo.B;J3=hamo.C;J.timePts=hamo.timePts;J.runStart=hamo.runStart;J.runEnd=hamo.runEnd;J.oneMin=hamo.oneMin}else J=computeJump();const out=$('#jumpOut');$('#piGrid').textContent=S.pi?`${S.pi.name||'DIP'} (${fc(S.pi)})`:'Not set: enter a grid or tap the map';$('#planDip').innerHTML=S.pi?`DIP SELECTED: <b>${esc(S.pi.name||'DIP')}</b>`:'No DIP set: use JM TOOL → Place DIP';intervalHint();$('#hamoBox').hidden=S.jump.mode!=='HAMO';$('#hamoNote').textContent=hamoText();renderCypres();renderAlti();
   if(S.jump.calcOff&&!J.err){J={err:'Uncalculated: tap the DIP and choose Calculate to show the plan again.'};hamo=null;J2=null;J3=null}
