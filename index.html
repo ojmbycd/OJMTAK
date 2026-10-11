@@ -700,7 +700,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 15:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 16:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2021,7 +2021,7 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
   const p3=`<section class="page">${head('Pilot brief')}
     <div class="pdesc">DESCENT PROFILE</div>
     <div class="pgrid">
-      ${pb(1,'Despatch (AMSL) and deployment (AGL)',`<b>${ff(+j.exitAlt)} AMSL</b><small>${ff(+j.exitAlt-dz)} above the DIP</small><b class="sm">Deploy ${P.map((x,i)=>ff(op(i))).join(' / ')} AGL</b>${pods?'<small>pod by pod</small>':''}`)}
+      ${pb(1,'Despatch (AMSL) and deployment (AGL)',`<b>${ff(+j.exitAlt)} AMSL</b><small>${ff(+j.exitAlt-dz)} above the DIP</small><b class="sm">Deploy ${P.map((x,i)=>ff(op(i))).join(' / ')} AGL</b>`)}
       ${pb(2,'HARP (MGRS)',`<b>${esc(fc(P[0].harp))}</b><small>${pods?'pod 1 · ':''}${ll(P[0].harp)}</small>`)}
       ${pb(3,'AC run in / speed in KIAS',`<b>${fb(magOf(J.heading))} M · ${j.kias} KIAS</b><small>${fb(J.heading)} T · about ${kts(Math.round(J.gsM/KT))} over the ground</small>`)}
       ${pb(4,'Timing calls on board / lights',`<p>10 min winds · 4 min flashing lights · 2 min red light and ramp · 1 min green light</p>`)}
