@@ -700,7 +700,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 15:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 15:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2008,7 +2008,7 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
     <div class="cols">
       <div>${ban('Key altitudes')}<table class="palt">${alts}</table>
         ${c&&!c.depOk?`<div class="pchk bad">✗ Planned deployment ${ff(c.lowOpen)} is below minimum ${ff(c.minDep)} AGL</div>`:''}${c&&!c.sepOk?`<div class="pchk bad">✗ Less than 1,000 ft between despatch and deployment</div>`:''}</div>
-      <div>${ban('CYPRES')}${ladder}${c?`<table class="palt"><tr><td>CYPRES setting</td><td><b>${c.cypMb} mb</b></td></tr></table>${ban('Altimeter offset')}<table class="palt"><tr><td>ALFA</td><td><b>${to==null?'Take-off height not set':sg(to-dz)}</b></td></tr><tr><td>STRATOS</td><td><b>${to==null?'–':sg(dz-to)}</b></td></tr><tr><td>PRESSURE${c.unk?' (std)':''}</td><td><b>${c.qfeDz} mb</b></td></tr></table>`:''}</div>
+      <div>${ban('CYPRES')}${ladder}${c?`<table class="palt"><tr><td>CYPRES setting</td><td><b>${c.cypMb} mb</b></td></tr></table>${ban('Altimeter offset')}<table class="palt"><tr><td>Aircraft altimeter setting</td><td><b>${c.unk?'Unknown':`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'}`}</b></td></tr><tr><td>ALFA</td><td><b>${to==null?'Take-off height not set':sg(to-dz)}</b></td></tr><tr><td>STRATOS</td><td><b>${to==null?'–':sg(dz-to)}</b></td></tr><tr><td>PRESSURE${c.unk?' (std)':''}</td><td><b>${c.qfeDz} mb</b></td></tr></table>`:''}</div>
     </div>
     ${pods?`${ban('Pods')}<table class="grid pods"><thead><tr><th></th><th>Opens AGL</th><th>Jumpers</th><th>HARP</th><th>Jumper hdg</th><th>Canopy drift</th></tr></thead><tbody>${P.map((x,i)=>`<tr><td><b>Pod ${i+1}</b></td><td>${ff(op(i))}</td><td>${+jm[i]||'–'}</td><td>${esc(fc(x.harp))}</td><td>${fb(x.jumperHdgM)} M</td><td>${Math.round(x.cdM).toLocaleString('en-GB')} m</td></tr>`).join('')}</tbody></table>`:''}
     ${ban('Jump details')}<div class="ptiles">
