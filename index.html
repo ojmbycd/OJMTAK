@@ -6,6 +6,13 @@
 <title>JumpMaster Pro</title>
 <meta name="apple-mobile-web-app-title" content="JumpMaster Pro">
 <meta name="application-name" content="JumpMaster Pro">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#141414">
 <style>
 :root{
   --bg:#E6E9E0; --panel:#F5F6F0; --panel2:#E9ECE2; --ink:#1A211C; --mute:#59624F; --line:#C1C8B8;
@@ -664,7 +671,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 06:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 06:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1031,11 +1038,11 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
 /* turn a text label to any angle: slide to preview on the map, Save to keep */
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
   sheet({side:true,title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()},clear:true,onClear:i=>{i.value=0;d.rot=0;const lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');lb.textContent='Angle 0°';renderDraws()}},buttons:[]});
-  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;renderDraws()}}
+  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=0;i.max=359;i.step=1;i.value=was;i.oninput=()=>{d.rot=+i.value;lb.textContent=`Angle ${i.value}°`;save('draws');renderDraws()}}
 /* line thickness on a slider, previewed on the map as you slide */
 function lineThick(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=d.w||2;
   sheet({side:true,title:'Line thickness',input:{label:`Thickness ${was}`,type:'range',value:was,save:v=>{d.w=Math.max(1,Math.round(+v));save('draws');renderDraws()},cancel:()=>{d.w=was;renderDraws()}},buttons:[]});
-  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=10;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;renderDraws()}}
+  const i=$('#act').hidden?$('#dSubInput'):$('#actIn'),lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');i.min=1;i.max=10;i.step=1;i.value=was;i.oninput=()=>{d.w=+i.value;lb.textContent=`Thickness ${i.value}`;save('draws');renderDraws()}}
 function drawActions(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const del={l:'Delete',icon:'trash',cls:'danger',f:()=>{S.draws=S.draws.filter(x=>x.id!==id);save('draws');renderDraws()}};
   /* colour: the same small circles as the Draw panel; tap to try colours, the panel stays open until the X */
   const colour=()=>{popSheet({side:true,title:d.kind==='text'?'Text colour':'Line colour',buttons:[]});const g=document.createElement('div');g.className='swatches';g.style.gridColumn='1/-1';
@@ -1083,7 +1090,7 @@ mc.addEventListener('pointerdown',e=>{if(mode==='range'&&S.set.rngMode==='ring'&
     document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);return}
   if(mode==='draw-shape'&&!e.target.closest('.leaflet-marker-icon,.leaflet-interactive,#radial')){const st=map.mouseEventToLatLng(e),a={lat:st.lat,lon:st.lng},sx=e.clientX,sy=e.clientY;let moved=false;
     const mv=ev=>{if(!moved&&Math.hypot(ev.clientX-sx,ev.clientY-sy)<10)return;moved=true;const ll=map.mouseEventToLatLng(ev);shapePreview(a,{lat:ll.lat,lon:ll.lng})};
-    const up=ev=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!moved)return;const ll=map.mouseEventToLatLng(ev),b={lat:ll.lat,lon:ll.lng};shapeDragAt=Date.now();shapeStart=null;tmpLayer.clearLayers();if(dist(a,b)<3)return;S.draws.push({id:uid(),kind:'shape',shape:S.set.drawShape||'circle',color:S.set.drawColor,w:3,pts:[a,b]});save('draws');renderDraws()};
+    const up=ev=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!moved||ev.type==='pointercancel'){if(ev.type==='pointercancel'){tmpLayer.clearLayers();shapeStart=null}return}const ll=map.mouseEventToLatLng(ev),b={lat:ll.lat,lon:ll.lng};shapeDragAt=Date.now();shapeStart=null;tmpLayer.clearLayers();if(dist(a,b)<3)return;S.draws.push({id:uid(),kind:'shape',shape:S.set.drawShape||'circle',color:S.set.drawColor,w:3,pts:[a,b]});save('draws');renderDraws()};
     document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);return}
   if(mode!=='draw-free'||e.target.closest('.leaflet-marker-icon,.leaflet-interactive'))return;e.preventDefault();try{mc.setPointerCapture(e.pointerId)}catch(x){}const ll=map.mouseEventToLatLng(e);free=[{lat:ll.lat,lon:ll.lng}];freeLast=[e.clientX,e.clientY];tmpLayer.clearLayers();free.line=L.polyline([ll],{color:colOf(S.set.drawColor),weight:4,interactive:false}).addTo(tmpLayer)});
 mc.addEventListener('pointermove',e=>{if(!free)return;if(Math.hypot(e.clientX-freeLast[0],e.clientY-freeLast[1])<3)return;freeLast=[e.clientX,e.clientY];const ll=map.mouseEventToLatLng(e);free.push({lat:ll.lat,lon:ll.lng});free.line.addLatLng(ll)});
@@ -1135,7 +1142,7 @@ function stylePanel(o,cur,apply){popSheet({side:true,title:'Line style',buttons:
   const paint=()=>{const c=cur();g.innerHTML=[['Solid','solid'],['Dashed','dash'],['Dotted','dot']].map(([n,v])=>`<button class="btn${c===v?' on':''}" data-st="${v}"><span>${n}</span>${ex(v)}</button>`).join('')};paint();
   g.onclick=e=>{const b=e.target.closest('[data-st]');if(!b)return;o.style=b.dataset.st;apply();paint()};$('#actBtns').appendChild(g)}
 /* HRPO check inside a range ring: highest ground within the outer ring from the terrain tiles, compared with the DZ (HRPO = 200 ft or more above it) */
-async function ringHrpo(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const R=r.n*r.step,step=Math.max(15,R/60),pts=[];
+async function ringHrpo(id){const r=S.rng.find(x=>x.id===id);if(!r)return;const R=r.n*r.step,step=Math.max(15,R/60,Math.sqrt(Math.PI*R*R/700)),pts=[];
   for(let dy=-R;dy<=R;dy+=step)for(let dx=-R;dx<=R;dx+=step){const d=Math.hypot(dx,dy);if(d<=R)pts.push(d<1?r.c:dest(r.c,norm(Math.atan2(dx,dy)*R2D),d))}
   sheet({side:true,title:'HRPO check',sub:`Checking ${pts.length.toLocaleString('en-GB')} points of terrain within ${fmtU(R,ru(r))}…`,buttons:[]});
   let h;try{h=await terrElevs(pts)}catch(e){sheet({side:true,title:'HRPO check',sub:'Terrain could not load (no signal?). Download the map area while you have signal to check offline.',buttons:[]});return}
@@ -1273,7 +1280,8 @@ function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if
   if(chain.length){trk.length=0;marks.length=0;trk.push({p:op,h:pull},{p:op,h:pull-cas});for(let i=chain.length-2;i>=0;i--)trk.push(chain[i]);trk.push({p:pi,h:lp},{p:pi,h:0});
     for(let i=chain.length-2;i>=0;i--){const c=chain[i];if(c.h%1000===0&&c.h>lp){const x=wind(dz+c.h);marks.push({agl:c.h,p:c.p,spd:Math.hypot(x.u,x.v)/KT,dir:norm(Math.atan2(x.u,x.v)*R2D)})}}}
   // HARP ring: the modified D = KAV run in every direction across all canopy legs, then shifted by freefall drift
-  const ring=[];for(let b=0;b<360;b+=5){const c=norm(b+180);let r=0;cdLegs.forEach(l=>{const rel=(norm(l.d+180)-c)*D2R,along=l.v*Math.cos(rel),cross=l.v*Math.sin(rel),gs=along+Math.sqrt(Math.max(0,FS*FS-cross*cross));if(gs>0&&l.A>l.sf)r+=(l.A-l.sf)*gs/K*1852});let q=dest(pi,b,r);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}
+  const ring=[];{let qd=pi,Ld=0,lo=lp;const top=pull-cas;while(lo<top-0.5){const hi=Math.min(top,Math.floor(lo/1000)*1000+1000),hh=(hi-lo)/1000,x=Wc(dz+Math.ceil(hi/1000)*1000),v=Math.hypot(x.u,x.v)/KT;qd=dest(qd,norm(Math.atan2(-x.u,-x.v)*R2D),v*1852*hh/K);Ld+=FS*1852*hh/K;lo=hi}
+    for(let b=0;b<360;b+=5){let q=dest(qd,b,Ld);ffLegs.forEach(l=>{q=dest(q,l.d,l.m)});ring.push(q)}}/* every opening point the canopy can reach, by the same per-layer method as the PRP */
   const descFts=K*1000/3600,ffT=(exitAGL-pull)/(+j.ffRate||176),tc=pull/descFts,usableFt=pull-cas-lp,usableT=usableFt/descFts;const path=[...ffChain.slice().reverse(),...cdPts.slice().reverse().slice(1)],openIdx=ffChain.length-1;
   const ringC={lat:ring.reduce((s,p)=>s+p.lat,0)/ring.length,lon:ring.reduce((s,p)=>s+p.lon,0)/ring.length};
   return {cross,pi,K,FS,A,SF,cd,cdLegs,ffLegs,ffMarks,trk,cdNm,cdKm,cdM,ff:ff_,ffA,ffM,op,prp,JD,pcot,FTm,notes,ring,ringC,start:ringC,path,openIdx,openPt:op,marks,timePts,runEnd,throwM:0,gsM,tas,tail,ffT,tc,usableFt,usableT,ffD:ffM,ffB:ff_.d,cD:cdM,cB:cd.d,dD:dist(pi,prp),dB:brg(pi,prp),harp,gl,rl,oneMin,runStart,heading,stick,exitWind:we,jumperHdgM:magOf(driveH),driveH,descFts}}
@@ -2147,7 +2155,7 @@ $$('[data-j="casSF"]').forEach(el=>el.addEventListener('change',e=>{if(S.jump.mo
 [['pod2Cas','#pod2Cas'],['pod3Cas','#pod3Cas']].forEach(([k,q])=>{const el=$(q);el.addEventListener('change',e=>{if(S.jump.mode!=='HAMO')return;e.stopImmediatePropagation();setTopSF(k,el)},true)});
 [['pod2Lp',1000,'Pod 2 landing pattern'],['pod3Lp',1000,'Pod 3 landing pattern']].forEach(([id,min,n])=>{const el=$('#'+id);el.onchange=()=>{let v=+el.value;if(!(v>=min)){v=min;el.value=min;toast(`${n} safety factor can't be under ${ff(min)}`)}S.jump[id]=v;save('jump');renderJump()}});
 $('#harpBrg').oninput=e=>{S.jump.harpBrg=+e.target.value;save('jump');renderJump()};$('#harpAuto').onclick=()=>{S.jump.harpBrg=null;save('jump');renderJump()};
-$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;if(b.dataset.mode==='HAMO'){S.jump.pod2Open=9000;S.jump.pod3Open=12000;S.jump.jumpers=4;S.jump.pod2Jumpers=4;S.jump.pod3Jumpers=4;S.jump.sfMan={};if(S.jump.runMode!=='custom'&&J&&!J.err)S.jump.headingMag=Math.round(magOf(J.heading));S.jump.runMode='custom'}S.jump.openAlt=b.dataset.mode==='HALO'?5000:b.dataset.mode==='HAMO'?6000:Math.max(1000,Math.min(11000,Math.floor(((+S.jump.exitAlt||12000)-(+S.jump.dzElev||0)-1000)/500)*500));/* HAHO opens at 11,000 ft AGL unless the exit is too low for it */save('jump');syncJumpInputs();renderJump()};
+$('#modeSeg').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b)return;S.jump.mode=b.dataset.mode;if(b.dataset.mode==='HAMO'){S.jump.pod2Open=9000;S.jump.pod3Open=12000;S.jump.jumpers=4;S.jump.pod2Jumpers=4;S.jump.pod3Jumpers=4;S.jump.sfMan={};if(S.jump.runMode!=='custom'){S.jump.prevRun={runMode:S.jump.runMode,headingMag:S.jump.headingMag};if(J&&!J.err)S.jump.headingMag=Math.round(magOf(J.heading))}S.jump.runMode='custom'}else if(S.jump.prevRun){Object.assign(S.jump,S.jump.prevRun);S.jump.prevRun=null}S.jump.openAlt=b.dataset.mode==='HALO'?5000:b.dataset.mode==='HAMO'?6000:Math.max(1000,Math.min(11000,Math.floor(((+S.jump.exitAlt||12000)-(+S.jump.dzElev||0)-1000)/500)*500));/* HAHO opens at 11,000 ft AGL unless the exit is too low for it */save('jump');syncJumpInputs();renderJump()};
 $('#pod2Open').onchange=e=>{S.jump.pod2Open=+e.target.value;if(pods3())fillPod3Sel();save('jump');renderWinds();renderJump()};
 $('#podCount').onclick=e=>{const b=e.target.closest('[data-pc]');if(!b)return;S.jump.hamoPods=+b.dataset.pc;if(S.jump.hamoPods===3){S.jump.pod3Jumpers=4;if(!(+S.jump.pod3Open>=+S.jump.pod2Open+3000))S.jump.pod3Open=(+S.jump.pod2Open||9000)+3000;fillPod3Sel()}save('jump');syncJumpInputs();renderWinds();renderJump()};
 $('#pod3Open').onchange=e=>{S.jump.pod3Open=+e.target.value;save('jump');renderWinds();renderJump()};
@@ -2334,7 +2342,7 @@ function parseAtakPkg(files,fname){const X=t=>new DOMParser().parseFromString(t,
     const wr=[...(jm?jm.querySelectorAll('winds wind'):[])].map(w=>({alt:N(w,'alt'),dir:N(w,'dir'),vel:N(w,'vel')})).filter(w=>w.alt!=null&&w.dir!=null&&w.vel!=null);
     const alts=[...[...e.querySelectorAll('altDIPs alt')].map(a=>altBy[A(a,'uid')]).filter(Boolean),...loose];
     missions.push({id:uid(),name:`${nm} · ${pkgName.replace(/^DP-/,'')}`,saved:Date.now(),data:{pi:{name:nm,lat:p.lat,lon:p.lon},jump:j,winds:jmWindsToRows(wr,dzE,j.exitAlt),altDips:alts.map(a=>Object.assign({},a,{id:uid()})),markers:JSON.parse(JSON.stringify(shared.markers)),draws:JSON.parse(JSON.stringify(shared.draws)),rng:JSON.parse(JSON.stringify(shared.rng)),xs:[]}})});
-  if(!missions.length&&(shared.markers.length||shared.draws.length||shared.rng.length))missions.push({id:uid(),name:pkgName,saved:Date.now(),data:{pi:null,jump:Object.assign({},S.jump),winds:S.winds,altDips:Object.values(altBy),markers:shared.markers,draws:shared.draws,rng:shared.rng,xs:[]}});
+  if(!missions.length&&(shared.markers.length||shared.draws.length||shared.rng.length))missions.push({id:uid(),name:pkgName,saved:Date.now(),data:{pi:null,jump:Object.assign({},S.jump),winds:JSON.parse(JSON.stringify(S.winds)),altDips:Object.values(altBy),markers:shared.markers,draws:shared.draws,rng:shared.rng,xs:[]}});
   return {missions,plain,pkgName}}
 $('#mImport').onclick=()=>$('#pkgFile').click();
 $('#pkgFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let r;
@@ -2415,7 +2423,7 @@ async function offDownload(){if(offBusy)return;if(!window.caches){toast('This br
   const P=(J&&!J.err)?[S.pi,J.harp,J.gl,J.rl,J.op,J.runEnd,...(J.timePts||[]).filter(t=>t.t<=120).map(t=>t.p),...(J.marks||[]).map(m=>m.p),...[J2,J3].filter(P=>P&&!P.err).flatMap(P=>[P.harp,P.gl,P.rl,P.op])]:[S.pi];P.push(...S.altDips);
   const list=[...new Set([...tilesFor(boxAround(P,2000),12,TZ,[TERR_URL]),...tilesFor(boxAround(P,2000),10,Math.min(16,L_.max),L_.urls),...(L_.max>=17?tilesFor(boxAround([S.pi],1500),17,17,L_.urls):[]),...tilesFor(boxAround([S.pi],60000),6,9,L_.urls)])];
   if(list.length>6000){toast(`That area needs ${list.length.toLocaleString('en-GB')} tiles, too many. Move alternates closer or clear some of the plan.`,6000);return}
-  offBusy=true;const el=$('#offStat'),c=await caches.open(TILE_CACHE);let done=0,fail=0,i=0;
+  offBusy=true;const el=$('#offStat');let c;try{c=await caches.open(TILE_CACHE)}catch(e){offBusy=false;toast('Could not save maps on this phone (storage full or blocked).',5000);return}let done=0,fail=0,i=0;
   const work=async()=>{while(i<list.length){const u=list[i++];try{if(!(await c.match(tileKey(u)))){const r=await fetch(u,{mode:'cors'});if(r.ok)await c.put(tileKey(u),r);else fail++}}catch(_){fail++}done++;if(done%20===0||done===list.length)el.textContent=`Downloading map area… ${done.toLocaleString('en-GB')} of ${list.length.toLocaleString('en-GB')} tiles`}};
   await Promise.all(Array.from({length:6},work));offBusy=false;toast(fail?`Map area saved, ${fail} tiles failed (try again on better Wi-Fi)`:'Map area saved for offline use');offStatus()}
 $('#offDl').onclick=offDownload;
