@@ -234,6 +234,12 @@ button,input,select{font:inherit;color:inherit}
   #printSheet table.kv{width:100%;margin-bottom:6pt}#printSheet table.kv th{width:34%;font-weight:700;background:#eee!important}
   #printSheet table.man td{height:26pt}#printSheet .num{width:18pt;text-align:center}
   #printSheet table.grid{margin:4pt 0 6pt}#printSheet table.grid th{background:#eee!important;font-size:8.5pt}#printSheet table.grid td{font-size:8.5pt}#printSheet table.narrow{width:60%}
+  #printSheet .ojm{border:1pt solid #000}#printSheet .otitle{text-align:center;padding:6pt;border-bottom:1pt solid #000}#printSheet .otitle b{display:block;font-size:12.5pt}#printSheet .otitle span{font-size:8pt}
+  #printSheet .orow{display:grid;grid-template-columns:1fr 1fr;border-bottom:1pt solid #000}#printSheet .orow div{padding:5pt 6pt;font-size:10pt}#printSheet .orow div+div{border-left:1pt solid #000}
+  #printSheet .ojm table.man{margin:0}#printSheet .ojm table.man th{font-size:8pt;text-align:center;background:#fff!important}#printSheet .ojm table.man td{height:17pt;border-color:#000}#printSheet .ojm table.man th{border-color:#000}
+  #printSheet .ochk{font-weight:700;font-size:9pt}
+  #printSheet table.owt{width:60%;margin:8pt 0}#printSheet table.owt th{width:50%;font-size:8pt;color:#3a6b22!important;text-align:left;border-color:#000}#printSheet table.owt td{border-color:#000;height:16pt}
+  #printSheet .odesc{border:1pt solid #000;padding:6pt 8pt;font-size:9pt}#printSheet .odesc ol{margin:4pt 0 0 14pt;padding:0}#printSheet .odesc li{color:#555!important;margin-bottom:3pt}#printSheet .odesc li div{color:#000!important;font-size:10pt;margin-left:6pt}
   #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:8pt}#printSheet small{font-size:7.5pt;color:#444!important}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
@@ -520,7 +526,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button><button data-jm="summary" aria-pressed="false">Jump vital data</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti offset</button><button data-jm="summary" aria-pressed="false">Vital data</button></div>
 
         <div data-jm-panel="plan">
           <button class="mhead mt" id="mHead"><span>Plan jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
@@ -678,7 +684,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 07:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 07:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1952,11 +1958,22 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
   const jm=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],cs=[j.casSF,j.pod2Cas,j.pod3Cas],op=i=>pods?P[i].podOpen:+j.openAlt;
   const head=t=>`<div class="phead"><b>${t}</b><span>${nm} · ${esc(fc(S.pi))} · ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
   const kv=rows=>`<table class="kv">${rows.filter(Boolean).map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table>`;
-  /* page 1: manifest */
-  let rows='';for(let n=1;n<=20;n++)rows+=`<tr><td class="num">${n}</td><td></td>${pods?'<td></td>':''}<td></td><td></td><td></td></tr>`;
-  const p1=`<section class="page">${head('Manifest')}
-    ${kv([['Sortie / serial',esc(j.sortie||'')+'&nbsp;'],['Aircraft / call sign','&nbsp;'],['Jump type',pods?`POD HAMO, ${P.length} pods`:esc(j.mode||'')],['Exit',`${ff(+j.exitAlt-dz)} AGL (${ff(+j.exitAlt)} AMSL)`],['Opening',P.map((x,i)=>ff(op(i))).join(' / ')+' AGL'],['Jumpmaster','&nbsp;']])}
-    <table class="man"><thead><tr><th class="num">#</th><th>Name</th>${pods?'<th>Pod</th>':''}<th>Canopy / reserve</th><th>CYPRES on</th><th>JM check</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+  /* page 1: Operator Jump Master aircraft manifest and pilot brief (25 names), filled in from the plan */
+  const dstr=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}).toUpperCase(),tot=P.reduce((a,x,i)=>a+(+jm[i]||0),0);
+  let rows='';for(let n=1;n<=25;n++)rows+=`<tr><td class="num">${n}</td><td></td><td></td><td></td><td></td></tr>`;
+  const p1=`<section class="page"><div class="ojm">
+    <div class="otitle"><b>OPERATOR JUMP MASTER AIRCRAFT MANIFEST AND PILOT BRIEF</b><span>JumpMaster Pro · ${esc($('#appVer').textContent)}</span></div>
+    <div class="orow"><div><b>DATE -</b> ${dstr}</div><div><b>SORTIE NUMBER -</b> ${esc(j.sortie||'')}</div></div>
+    <table class="man"><colgroup><col style="width:7%"><col style="width:45%"><col style="width:18%"><col style="width:15%"><col style="width:15%"></colgroup><thead><tr><th class="num">SER</th><th>INITIAL AND SURNAME</th><th>PARACHUTE NUMBER</th><th>CHECK 1 (INITIALS)</th><th>CHECK 2 (INITIALS)</th></tr></thead><tbody>${rows}
+      <tr><td colspan="4" class="ochk">PRIMARY OJM ALL CHECKS COMPLETE &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</td><td></td></tr></tbody></table></div>
+    <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr><tr><th>NUMBER LEAVING A/C</th><td>${tot||''}</td></tr><tr><th>NUMBER STAYING ON</th><td></td></tr></table>
+    <div class="odesc"><b>DESCENT PROFILE TO BE BRIEFED FROM ATAK COVERING THE FOLLOWING;</b><ol>
+      <li>DESPATCH (AMSL) AND DEPLOYMENT (AGL) ALTITUDES<div>Despatch ${ff(+j.exitAlt)} AMSL (${ff(+j.exitAlt-dz)} AGL) / Deployment ${P.map((x,i)=>ff(op(i))).join(' / ')} AGL</div></li>
+      <li>HARP (MGRS)<div>${esc(fc(P[0].harp))}${pods?' (pod 1)':''}</div></li>
+      <li>AC RUN IN / SPEED IN KIAS<div>${fb(magOf(J.heading))} M (${fb(J.heading)} T) / ${j.kias} KIAS</div></li>
+      <li>TIMING CALLS ON BOARD / LIGHTS<div>10 mins winds / 4 mins flashing lights / 2 mins red light and ramp / 1 min green light</div></li>
+      <li>PASS AND STICK BREAKDOWN<div>${pods?P.map((x,i)=>`Pod ${i+1}: ${+jm[i]||0}`).join(' / ')+' on one pass':`${tot} jumpers, one pass, ${j.interval} s exit separation`}</div></li>
+      <li>ADDITIONAL VITAL DATA (O2 / EMERGENCIES)<div>&nbsp;</div></li></ol></div></section>`;
   /* page 2: vital data and calcs */
   let c=null;try{c=cypCalc()}catch(e){}
   const podRows=P.map((x,i)=>`<tr><td>${pods?'Pod '+(i+1):'Stick'}</td><td>${ff(op(i))}</td><td>${+jm[i]||'–'}</td><td>${ff(Math.max(2000,+cs[i]||2000))}</td><td>${esc(fc(x.harp))}</td><td>${esc(fc(x.prp))}</td><td>${esc(fc(x.rl))}</td><td>${fb(x.jumperHdgM)} M</td><td>${Math.round(x.ffM)} m</td><td>${Math.round(x.cdM).toLocaleString('en-GB')} m</td></tr>`).join('');
@@ -1967,15 +1984,12 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
     <div class="cols"><div>${kv([['DIP',`${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['DZ elevation',ff(dz)+' AMSL'],['Exit',`${ff(+j.exitAlt-dz)} AGL · ${ff(+j.exitAlt)} AMSL`],['Canopy',`${esc(j.canopy||'Custom')} · K ${+(+j.k||0).toFixed(1)} · ${j.canopySpeed} kts`],['Aircraft',`${j.kias} KIAS · course ${fb(J.heading)} T / ${fb(magOf(J.heading))} M`],['Ground speed',kts(Math.round(J.gsM/KT))],['Exit separation',`${j.interval} s (${Math.round((+j.interval||0)*J.gsM)} m apart)`],['Pattern SF',ff(Math.max(1000,+j.lpSF||0))],['Magnetic variation',`${(+S.set.decl).toFixed(2)}° ${S.set.decl>=0?'E':'W'}`]])}</div>
     <div>${c?kv([['CYPRES setting',c.cypMb+' mb'],['Altimeter setting',c.unk?'unknown (combat setting)':`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'}`],['Alti offset',to==null?'take-off height not set':`ALFA ${sg(to-dz)} · STRATOS ${sg(dz-to)}`],['Audible alarms',`standby ${ff(c.lowOpen+1000)} · deploy ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)).join(' / ')}`]]):''}${ladder}</div></div>
     <table class="grid"><thead><tr><th></th><th>Open AGL</th><th>Jumpers</th><th>Top SF</th><th>HARP (first out)</th><th>PRP</th><th>Last out</th><th>Canopy hdg</th><th>Freefall</th><th>Canopy drift</th></tr></thead><tbody>${podRows}</tbody></table>
-    ${winds?`<table class="grid narrow"><thead><tr><th>Above DZ</th><th>From</th><th>Speed</th></tr></thead><tbody>${winds}</tbody></table>`:''}</section>`;
+</section>`;
   /* page 3: pilot brief */
   const tp=(hamo?hamo.timePts:J.timePts)||[],first=P[0],last=P[P.length-1];
   const p3=`<section class="page">${head('Pilot brief')}
     ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Run-in course',`<b>${fb(magOf(J.heading))} M</b> (${fb(J.heading)} T)`],['Speed',`${j.kias} KIAS (about ${kts(Math.round(J.gsM/KT))} over the ground)`],['Exit altitude',`<b>${ff(+j.exitAlt)} AMSL</b> (${ff(+j.exitAlt-dz)} above the DZ)`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Exit separation',`${j.interval} s between jumpers`]])}
-    <table class="grid"><thead><tr><th>Point</th><th>MGRS</th><th>Lat, long</th></tr></thead><tbody>
-      ${P.map((x,i)=>`<tr><td><b>${pods?'HARP pod '+(i+1):'HARP (green light)'}</b></td><td>${esc(fc(x.harp))}</td><td>${ll(x.harp)}</td></tr><tr><td>${pods?'Last out pod '+(i+1):'Last out (red light)'}</td><td>${esc(fc(x.rl))}</td><td>${ll(x.rl)}</td></tr>`).join('')}
-      ${tp.map(t=>`<tr><td>${t.l} to green</td><td>${esc(fc(t.p))}</td><td>${ll(t.p)}</td></tr>`).join('')}
-      ${(S.altDips||[]).map(a=>`<tr><td>Alternate ${esc(a.name)}</td><td>${esc(fc(a))}</td><td>${ll(a)}</td></tr>`).join('')}</tbody></table>
+    <table class="grid"><thead><tr><th>Point</th><th>MGRS</th><th>Lat, long</th></tr></thead><tbody><tr><td><b>HARP${pods?' (first pod)':''}</b></td><td><b>${esc(fc(P[0].harp))}</b></td><td>${ll(P[0].harp)}</td></tr></tbody></table>
     ${pods?`<p>${P.length} pods on one run-in: ${hamo.waits.map((t,i)=>`pod ${i+1} last out to pod ${i+2} green ${Math.round(t)} s`).join(', ')}.</p>`:''}
     ${kv([['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
   $('#printSheet').innerHTML=p1+p2+p3;setTimeout(()=>window.print(),80)}
@@ -1984,7 +1998,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
     <div><span>Jump Type</span><b>${j.mode==='HAMO'?`POD HAMO (${pods3()?3:2} pods)`:j.mode}</b></div>
     <div><span>Canopy</span><b>${esc(j.canopy||'Custom')}</b> <span>K</span><b>${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
-    <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Interval</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
+    <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Separation</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
     <div><span>Average AUM</span><b>${j.jumperKg} kg</b></div>
     <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
     <div><span>Jump Alt</span><b>${ff(j.exitAlt)} AMSL (${ff(j.exitAlt-j.dzElev)} AGL)</b> <span>Open Alt</span><b>${ff(j.openAlt)} AGL</b></div>
