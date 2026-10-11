@@ -2013,7 +2013,7 @@ $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');re
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
 // terrain heatmap: ground height relative to the DZ around the HARP, PRP, first and last out, from AWS Terrarium tiles (z14, about 10 m)
 let heatOn=false;const heatLayer=L.layerGroup().addTo(map);
-function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude (DZ altitude ${ff(dz)})\n${fc(h)}\n(DZ altitude ${ff(dz)})`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
+function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude (DZ altitude ${ff(dz)})\n${fc(h)}`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
 function hideHeat(){heatOn=false;heatLayer.clearLayers();$('#heatKey').hidden=true}
 async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius()*1.6,c=[J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(p=>[0,90,180,270].map(b=>dest(p,b,R)));
   const Z=14,N=2**Z,px=p=>({x:(p.lon+180)/360*N*256,y:(1-Math.log(Math.tan(p.lat*D2R)+1/Math.cos(p.lat*D2R))/Math.PI)/2*N*256});
