@@ -228,7 +228,13 @@ button,input,select{font:inherit;color:inherit}
   #printSheet .ladder{border:.5pt solid #999}#printSheet .ladder .lstep,#printSheet .ladder .lhead{border-bottom:.5pt solid #ccc}
   #printSheet .ladder .go{border-left:5pt solid #2a9d4a!important}#printSheet .ladder .amb{border-left:5pt solid #e09b00!important}#printSheet .ladder .red{border-left:5pt solid #d62828!important}
   #printSheet dl.res dd{margin:0 0 2pt}#printSheet dl.res dd::before{content:attr(data-l) ': ';font-weight:700}
-  #printSheet .warn{border:.5pt solid #999;padding:4pt;margin:4pt 0}@page{margin:12mm}}
+  #printSheet .warn{border:.5pt solid #999;padding:4pt;margin:4pt 0}@page{margin:10mm}
+  #printSheet .page{break-after:page;font-size:9.5pt}#printSheet .page:last-child{break-after:auto}
+  #printSheet .phead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2pt solid #000;margin-bottom:6pt;padding-bottom:2pt}#printSheet .phead b{font-size:15pt}#printSheet .phead span{font-size:8.5pt}
+  #printSheet table.kv{width:100%;margin-bottom:6pt}#printSheet table.kv th{width:34%;font-weight:700;background:#eee!important}
+  #printSheet table.man td{height:26pt}#printSheet .num{width:18pt;text-align:center}
+  #printSheet table.grid{margin:4pt 0 6pt}#printSheet table.grid th{background:#eee!important;font-size:8.5pt}#printSheet table.grid td{font-size:8.5pt}#printSheet table.narrow{width:60%}
+  #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:8pt}#printSheet small{font-size:7.5pt;color:#444!important}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
 #radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
@@ -388,6 +394,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 .ladder .lsep{padding:4px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.ladder .ref{border-bottom:none;border-left-color:transparent;opacity:.85}
 .sfx{display:flex;align-items:center;gap:8px}.sfx input{width:96px;flex:none}.sfx i{font-style:normal;font-size:16px;color:var(--mute)}
 .qnhrow{grid-column:1/-1;display:grid;grid-template-columns:1fr 92px auto;gap:8px;align-items:end}.qnhrow .btn{min-height:44px;white-space:nowrap}
+.alarms{border:1px solid var(--line);border-radius:10px;overflow:hidden}.alarms .ahead{padding:6px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.alarms div:not(.ahead){display:flex;justify-content:space-between;padding:8px 10px;border-top:1px solid var(--line)}.alarms span{font:500 15px var(--body)}.alarms b{font:700 17px var(--cond);font-variant-numeric:tabular-nums}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
@@ -671,7 +678,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 06:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 07:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1938,17 +1945,40 @@ function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Plann
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`}
-/* print calcs sheet: the plan, vital data, CYPRES, alti offset and winds on one clean page (the print dialog can also save a PDF) */
-function printCalcs(){try{renderJump()}catch(e){}try{renderSummary()}catch(e){}try{renderMilCypres()}catch(e){}try{renderAlti()}catch(e){}
-  const g=id=>{const e=document.getElementById(id);return e?e.innerHTML:''},j=S.jump,now=new Date();
-  const winds=S.winds.filter(wOk).map(w=>`<tr><td>${ff(w.alt)} AMSL</td><td>${ff(w.alt-(+j.dzElev||0))} AGL</td><td>${fb(w.dir)} T</td><td>${kts(Math.round(w.spd))}</td></tr>`).join('');
-  $('#printSheet').innerHTML=`<h1>JumpMaster Pro: ${esc((S.pi&&S.pi.name)||'Jump')} calcs</h1><div class="psub">${S.pi?esc(fc(S.pi))+' · ':''}DZ ${ff(+j.dzElev||0)} AMSL · printed ${now.toLocaleString('en-GB')} · ${esc($('#appVer').textContent)}</div>
-    <section><h2>Jump vital data</h2>${g('sumOut')}</section>
-    ${(()=>{let h='';try{if(J&&!J.err)h=hamo?hamo.order.map((P,i)=>`<h3>Pod ${i+1}</h3>`+calcDl(P,i+1)).join(''):calcDl(J)}catch(e){}return h?`<section><h2>Calculations</h2>${h}</section>`:''})()}
-    <section><h2>CYPRES</h2>${g('milOut')}</section>
-    <section><h2>Alti offset</h2>${g('altOut')}</section>
-    ${winds?`<section><h2>Winds</h2><table><thead><tr><th>Height</th><th>Above DZ</th><th>From</th><th>Speed</th></tr></thead><tbody>${winds}</tbody></table></section>`:''}`;
-  setTimeout(()=>window.print(),80)}
+/* print calcs sheet, three pages: 1 manifest (20 names), 2 vital data and calcs, 3 pilot brief. The print dialog can also save a PDF */
+function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){}
+  if(!S.pi||!J||J.err){toast('Plan the jump first');return}
+  const j=S.jump,dz=+j.dzElev||0,now=new Date(),nm=esc(S.pi.name||'DIP'),P=hamo?hamo.order:[J],pods=P.length>1,ll=p=>`${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`;
+  const jm=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],cs=[j.casSF,j.pod2Cas,j.pod3Cas],op=i=>pods?P[i].podOpen:+j.openAlt;
+  const head=t=>`<div class="phead"><b>${t}</b><span>${nm} · ${esc(fc(S.pi))} · ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+  const kv=rows=>`<table class="kv">${rows.filter(Boolean).map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table>`;
+  /* page 1: manifest */
+  let rows='';for(let n=1;n<=20;n++)rows+=`<tr><td class="num">${n}</td><td></td>${pods?'<td></td>':''}<td></td><td></td><td></td></tr>`;
+  const p1=`<section class="page">${head('Manifest')}
+    ${kv([['Sortie / serial',esc(j.sortie||'')+'&nbsp;'],['Aircraft / call sign','&nbsp;'],['Jump type',pods?`POD HAMO, ${P.length} pods`:esc(j.mode||'')],['Exit',`${ff(+j.exitAlt-dz)} AGL (${ff(+j.exitAlt)} AMSL)`],['Opening',P.map((x,i)=>ff(op(i))).join(' / ')+' AGL'],['Jumpmaster','&nbsp;']])}
+    <table class="man"><thead><tr><th class="num">#</th><th>Name</th>${pods?'<th>Pod</th>':''}<th>Canopy / reserve</th><th>CYPRES on</th><th>JM check</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+  /* page 2: vital data and calcs */
+  let c=null;try{c=cypCalc()}catch(e){}
+  const podRows=P.map((x,i)=>`<tr><td>${pods?'Pod '+(i+1):'Stick'}</td><td>${ff(op(i))}</td><td>${+jm[i]||'–'}</td><td>${ff(Math.max(2000,+cs[i]||2000))}</td><td>${esc(fc(x.harp))}</td><td>${esc(fc(x.prp))}</td><td>${esc(fc(x.rl))}</td><td>${fb(x.jumperHdgM)} M</td><td>${Math.round(x.ffM)} m</td><td>${Math.round(x.cdM).toLocaleString('en-GB')} m</td></tr>`).join('');
+  const ladder=c?c.sets.map(t=>`<table class="grid"><thead><tr><th>${esc(t.T)}</th><th>AGL</th><th>MSL</th></tr></thead><tbody><tr><td>Planned deployment</td><td><b>${ff(c.lowOpen)}</b></td><td>${ff(dz+c.lowOpen)}</td></tr><tr><td>Adjusted minimum deployment</td><td><b>${ff(t.amdAgl)}</b></td><td>${ff(t.amd)}</td></tr><tr><td>Decision</td><td><b>${ff(t.daAgl)}</b></td><td>${ff(t.da)}</td></tr><tr><td>Reserve activation</td><td><b>${ff(t.raaAgl)}</b></td><td>${ff(t.raa)}</td></tr></tbody></table>`).join(''):'';
+  const to=j.toElev==null||j.toElev===''?null:+j.toElev,sg=v=>`${v>0?'+':v<0?'−':''}${Math.round(Math.abs(v)).toLocaleString('en-GB')} ft`;
+  const winds=S.winds.filter(wOk).map(w=>`<tr><td>${ff(w.alt-dz)}</td><td>${fb(w.dir)} T</td><td>${Math.round(w.spd)} kts</td></tr>`).join('');
+  const p2=`<section class="page">${head('Vital data and calcs')}
+    <div class="cols"><div>${kv([['DIP',`${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['DZ elevation',ff(dz)+' AMSL'],['Exit',`${ff(+j.exitAlt-dz)} AGL · ${ff(+j.exitAlt)} AMSL`],['Canopy',`${esc(j.canopy||'Custom')} · K ${+(+j.k||0).toFixed(1)} · ${j.canopySpeed} kts`],['Aircraft',`${j.kias} KIAS · course ${fb(J.heading)} T / ${fb(magOf(J.heading))} M`],['Ground speed',kts(Math.round(J.gsM/KT))],['Exit separation',`${j.interval} s (${Math.round((+j.interval||0)*J.gsM)} m apart)`],['Pattern SF',ff(Math.max(1000,+j.lpSF||0))],['Magnetic variation',`${(+S.set.decl).toFixed(2)}° ${S.set.decl>=0?'E':'W'}`]])}</div>
+    <div>${c?kv([['CYPRES setting',c.cypMb+' mb'],['Altimeter setting',c.unk?'unknown (combat setting)':`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'}`],['Alti offset',to==null?'take-off height not set':`ALFA ${sg(to-dz)} · STRATOS ${sg(dz-to)}`],['Audible alarms',`standby ${ff(c.lowOpen+1000)} · deploy ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)).join(' / ')}`]]):''}${ladder}</div></div>
+    <table class="grid"><thead><tr><th></th><th>Open AGL</th><th>Jumpers</th><th>Top SF</th><th>HARP (first out)</th><th>PRP</th><th>Last out</th><th>Canopy hdg</th><th>Freefall</th><th>Canopy drift</th></tr></thead><tbody>${podRows}</tbody></table>
+    ${winds?`<table class="grid narrow"><thead><tr><th>Above DZ</th><th>From</th><th>Speed</th></tr></thead><tbody>${winds}</tbody></table>`:''}</section>`;
+  /* page 3: pilot brief */
+  const tp=(hamo?hamo.timePts:J.timePts)||[],first=P[0],last=P[P.length-1];
+  const p3=`<section class="page">${head('Pilot brief')}
+    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Run-in course',`<b>${fb(magOf(J.heading))} M</b> (${fb(J.heading)} T)`],['Speed',`${j.kias} KIAS (about ${kts(Math.round(J.gsM/KT))} over the ground)`],['Exit altitude',`<b>${ff(+j.exitAlt)} AMSL</b> (${ff(+j.exitAlt-dz)} above the DZ)`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Exit separation',`${j.interval} s between jumpers`]])}
+    <table class="grid"><thead><tr><th>Point</th><th>MGRS</th><th>Lat, long</th></tr></thead><tbody>
+      ${P.map((x,i)=>`<tr><td><b>${pods?'HARP pod '+(i+1):'HARP (green light)'}</b></td><td>${esc(fc(x.harp))}</td><td>${ll(x.harp)}</td></tr><tr><td>${pods?'Last out pod '+(i+1):'Last out (red light)'}</td><td>${esc(fc(x.rl))}</td><td>${ll(x.rl)}</td></tr>`).join('')}
+      ${tp.map(t=>`<tr><td>${t.l} to green</td><td>${esc(fc(t.p))}</td><td>${ll(t.p)}</td></tr>`).join('')}
+      ${(S.altDips||[]).map(a=>`<tr><td>Alternate ${esc(a.name)}</td><td>${esc(fc(a))}</td><td>${ll(a)}</td></tr>`).join('')}</tbody></table>
+    ${pods?`<p>${P.length} pods on one run-in: ${hamo.waits.map((t,i)=>`pod ${i+1} last out to pod ${i+2} green ${Math.round(t)} s`).join(', ')}.</p>`:''}
+    ${kv([['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
+  $('#printSheet').innerHTML=p1+p2+p3;setTimeout(()=>window.print(),80)}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
@@ -2037,7 +2067,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
     <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd></dl>
     <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
-    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+esc(t.T)+')':'')).join(' / ')} AGL</dd></dl>
+    <div class="alarms mt"><div class="ahead">Audible alarms (AGL)</div><div><span>Standby</span><b>${ff(c.lowOpen+1000)}</b></div><div><span>Deployment</span><b>${ff(c.lowOpen)}</b></div>${c.sets.map(t=>`<div><span>Decision${c.mixed?' ('+esc(t.T)+')':''}</span><b>${ff(t.daAgl)}</b></div>`).join('')}</div>
     <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude to at least ${ff(Math.ceil(c.minDep/500)*500)} AGL.`}</div>
     <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
@@ -2079,7 +2109,7 @@ async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}cons
   {const Rr=hrpoRadius(),H=hullLL([J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(c=>Array.from({length:72},(_,i)=>dest(c,i*5,Rr))));g.globalCompositeOperation='destination-in';g.beginPath();H.forEach((q,i)=>{const P=px(q);i?g.lineTo(P.x-x0,P.y-y0):g.moveTo(P.x-x0,P.y-y0)});g.closePath();g.fillStyle='#000';g.fill();g.globalCompositeOperation='source-over'}/* nothing coloured outside the check outline */
   const ll=(x,y)=>{const n=Math.PI-2*Math.PI*y/(N*256);return [180/Math.PI*Math.atan(Math.sinh(n)),x/(N*256)*360-180]};
   heatLayer.clearLayers();L.imageOverlay(cv.toDataURL(),[ll(x0,y1),ll(x1,y0)],{interactive:false,zIndex:250}).addTo(heatLayer);heatOn=true;$('#heatKey').hidden=false;map.fitBounds([ll(x0,y1),ll(x1,y0)])}
-$('#hrpoHeat').onclick=()=>{closeTool();showHeat()};$('#heatKey').onclick=hideHeat;
+$('#hrpoHeat').onclick=()=>showHeat();/* heatmap loads behind the planner, which stays open */$('#heatKey').onclick=hideHeat;
 $('#hrpoCheck').onclick=()=>{hrpoFailKey=null;checkHrpo(false)};
 {const rj=renderJump;renderJump=function(){rj.apply(this,arguments);autoHrpo()}}
 setTimeout(autoHrpo,1500);
