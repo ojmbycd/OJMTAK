@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:25</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2202,6 +2202,7 @@ function cot(type,lat,lon,name,detail,rem){const uid=uuid(),t=new Date().toISOSt
   return {uid,xml:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><event version="2.0" uid="${uid}" type="${type}" time="${t}" start="${t}" stale="${st}" how="h-g-i-g-o"><point lat="${lat.toFixed(7)}" lon="${lon.toFixed(7)}" hae="9999999.0" ce="9999999.0" le="9999999.0"/><detail><contact callsign="${xe(name)}"/>${detail}<remarks>${xe(rem||'')}</remarks><archive/></detail></event>`}}
 const cotMark=(p,name,col,rem)=>{const c=argb(col);return cot('b-m-p-s-m',p.lat,p.lon,name,`<color argb="${c}"/><usericon iconsetpath="COT_MAPPING_SPOTMAP/b-m-p-s-m/${c}"/>`,rem)};
 const cotLine=(pts,name,col,w,dash)=>cot('u-d-f',pts[0].lat,pts[0].lon,name,pts.map(p=>`<link point="${p.lat.toFixed(7)},${p.lon.toFixed(7)}"/>`).join('')+`<strokeColor value="${argb(col)}"/><strokeWeight value="${(w||3).toFixed(1)}"/><strokeStyle value="${dash?'dashed':'solid'}"/><labels_on value="true"/>`);
+const cotRB=(a,b,name,col,haeM)=>cot('u-rb-a',a.lat,a.lon,name,`<range value="${dist(a,b).toFixed(3)}"/><bearing value="${brg(a,b).toFixed(4)}"/><inclination value="0.0"/><rangeUnits value="0"/><bearingUnits value="0"/><northRef value="1"/><strokeColor value="${argb(col)}"/><strokeWeight value="3.0"/><strokeStyle value="solid"/><labels_on value="true"/>`);
 const cotCircle=(c,r,name,col)=>cot('u-r-b-c-c',c.lat,c.lon,name,`<shape><ellipse major="${r.toFixed(1)}" minor="${r.toFixed(1)}" angle="360"/></shape><strokeColor value="${argb(col)}"/><strokeWeight value="3.0"/><fillColor value="0"/><labels_on value="true"/>`);
 /* ATAK JumpMaster plugin DIP (b-m-p-j-dip), laid out the way the plugin writes it so it opens there as a planned DIP.
    Plugin units: exit/open ft above the DIP, headings magnetic, winds ft above the DIP (dir from, kts), assembly/pattern in 1,000s of ft, throw/dispersion m, AC speed m/s TAS.
@@ -2236,8 +2237,8 @@ function pkgCot(m){const d=m.data,ev=[];
        all on the shared run-in course; plus a line joining the pods' HARPs */
     let podEvs=null;if(S.jump.mode==='HAMO'){const gk={hamo,J2,J3,hamoHeading};try{computeHamo();if(hamo&&hamo.order&&hamo.order.length>1){const base=S.jump,jm=[base.jumpers,base.pod2Jumpers,base.pod3Jumpers],cs=[base.casSF,base.pod2Cas,base.pod3Cas];
       podEvs=hamo.order.map((Pp,i)=>jmDipCot({name:`${d.pi.name||'DIP'} POD${i+1}`,lat:d.pi.lat,lon:d.pi.lon},Object.assign({},base,{mode:'HALO',openAlt:Pp.podOpen,jumpers:+jm[i]||4,casSF:Math.max(2000,+(cs[i]??2000)),lpSF:1000,harpBrg:norm(Pp.driveH+180)}),Pp,i===0?alts.map(a=>a.uid):[]));
-      podEvs.push(cotLine(hamo.order.map(Pp=>Pp.harp),`${d.pi.name||'DIP'} POD HARPs`,'#FFD400',3,false));
-      phaseLinesFor(hamo.order,true).forEach(l=>podEvs.push(cotLine(l.pts,`${d.pi.name||'DIP'} ${l.h/1000}K phase line`,'#FF2A2A',3,false)))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
+      /* HARP to HARP as ATAK measuring lines (range and bearing, so the direction shows), one per pod-to-pod leg */hamo.order.slice(1).forEach((Pp,i)=>podEvs.push(cotRB(hamo.order[i].harp,Pp.harp,`POD${i+1} to POD${i+2} HARP`,'#FFD400')));
+      phaseLinesFor(hamo.order,true).forEach(l=>podEvs.push(cotLine(l.pts,`${l.h/1000}K phase line`,'#FF2A2A',3,false)))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
     let phEvs=[];
     if(!podEvs){try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}try{if(P&&!P.err)phEvs=phaseLinesFor([P],false).map(l=>cotLine(l.pts,`${l.h/1000}K phase line`,'#FF2A2A',3,false))}catch(e){}}Object.assign(S,keep);
     if(podEvs)ev.push(...podEvs);else ev.push(dipEv||cotMark(d.pi,d.pi.name||'DIP','#FF2A2A',`DIP · DZ ${ff(+(d.jump||{}).dzElev||0)} AMSL`),...phEvs);
