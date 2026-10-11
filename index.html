@@ -580,7 +580,6 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
               <label class="fld" hidden><span style="white-space:nowrap">AC performance (forward throw)</span><select id="acPerf"><option value="high">High, 300 m</option><option value="low">Low, 150 m</option><option value="none">None</option></select></label>
               <label class="fld" id="runCustom"><span style="white-space:nowrap">AC course (°M)</span><input type="number" inputmode="decimal" data-j="headingMag"></label>
             </div>
-            <p class="note" id="runNote" hidden></p>
             <div class="gsout" id="gsOut"></div>
           </section>
           <section class="sec">
@@ -648,7 +647,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:10</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2105,7 +2104,7 @@ function syncJumpInputs(){if($('#windModel'))$('#windModel').value=S.set.windMod
   else{lf.hidden=false;$$('[data-j="jumpers"]').forEach(el=>el.removeAttribute('max'));if(of.parentNode.id==='pod1Fields'){[of,jf,cf,lf].forEach(e=>e._home[0].insertBefore(e,e._home[1]))}}
   $('#sfSec').hidden=hm;if($('#harpSec'))$('#harpSec').hidden=hm;$('#casLbl').textContent=hm?'Top SF (ft)':'Assembly SF (ft)';if(!hm)$$('[data-j="casSF"]').forEach(el=>el.disabled=false);$('#lpLbl').textContent=hm?'Bottom SF (ft)':'Pattern SF (ft)';
   $('#pod2Cas').value=Math.max(2000,+(S.jump.pod2Cas??2000));$('#pod2Lp').value=Math.max(1000,+(S.jump.pod2Lp??1000));
-  $('#openLbl').textContent=hm?'Open (ft AGL)':'Open (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Jumpers'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$('#runNote').textContent={into:'Into the average wind: canopy heading + 180° (as ATAK).',down:'Same direction as the canopy heading.',left:'Left door: canopy heading + 90°.',right:'Right door: canopy heading − 90°.',left45:'Left door 45°: canopy heading + 135°.',right45:'Right door 45°: canopy heading − 135°.',custom:'Entered in degrees magnetic; converted with the variation in Settings.'}[S.jump.runMode||'into'];$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
+  $('#openLbl').textContent=hm?'Open (ft AGL)':'Open (ft AGL)';$('#jumpersLbl').textContent=hm?'Jumpers':'Jumpers'}if(S.jump.mode==='HAMO')S.jump.runMode='custom';$('#runSel').value=S.jump.runMode||'into';$('#runSel').disabled=S.jump.mode==='HAMO';$('#runCustom').hidden=(S.jump.runMode||'into')!=='custom';$$('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.jump.mode));$('#hamoNote').textContent=hamoText()}
 let jt;document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.j)e.target.dispatchEvent(new Event('input',{bubbles:true}))});document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.j;if(!k)return;const v=parseFloat(e.target.value);if(!isFinite(v))return;if(k==='exitAlt'){S.jump.exitAgl=v;S.jump.exitAlt=(+S.jump.dzElev||0)+v}else S.jump[k]=v;if(k==='dzElev')syncExit();if(k==='k'||k==='canopySpeed'){S.jump.canopy='';applyK();renderCanopySel()}if(k==='jumperKg'){applyK();renderCanopySel()}if(k==='dzElev'||k==='exitAlt'){renderWinds();fillOpenSel();fillPod2Sel();exitHint()}if(k==='openAlt')renderWinds();if(k==='jumpers'&&v<1){S.jump.jumpers=1;e.target.value=1}if(k==='jumpers'&&S.jump.mode==='HAMO'&&v>15){S.jump.jumpers=15;e.target.value=15;toast('Maximum 15 jumpers per pod')}if(k==='kias'||k==='interval')intervalHint();save('jump');$$(`[data-j="${k}"]`).forEach(i=>{if(i!==e.target)i.value=v});clearTimeout(jt);jt=setTimeout(renderJump,150)});
 
 $('#runSel').onchange=e=>{S.jump.runMode=e.target.value;if(e.target.value==='custom'&&J&&!J.err&&!S.jump.headingMag)S.jump.headingMag=Math.round(magOf(J.heading));save('jump');syncJumpInputs();renderJump()};
