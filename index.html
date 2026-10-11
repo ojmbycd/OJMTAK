@@ -693,7 +693,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 12:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 13:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1251,7 +1251,7 @@ function ffLevels(exitAGL,pull){const L_=[];for(let a=exitAGL;a>pull;a-=2000)L_.
 /* a newly placed DIP starts with an empty planner: these are filled in as you work through it */
 const PLAN_FIELDS=[['exitAlt','exit altitude'],['openAlt','opening altitude'],['casSF','assembly SF'],['lpSF','pattern SF'],['k','canopy'],['canopySpeed','CSC'],['kias','aircraft speed'],['jumpers','jumpers'],['interval','exit interval']];
 const planMissing=j=>PLAN_FIELDS.filter(([k])=>j[k]==null||j[k]==='').map(f=>f[1]);
-function blankPlan(){S.jump.calcOff=false;S.winds=S.winds.map(w=>({alt:w.alt,dir:null,spd:null}));save('winds');if($('#windSrc'))$('#windSrc').textContent='';PLAN_FIELDS.forEach(([k])=>S.jump[k]=null);S.jump.exitAgl=12000;S.jump.exitAlt=(+S.jump.dzElev||0)+12000;S.jump.openAlt=S.jump.mode==='HAHO'?11000:5000;S.jump.canopy=null;S.jump.hrpo=null;save('jump');syncJumpInputs();renderCanopySel();if(typeof renderWinds==='function')renderWinds()}
+function blankPlan(){S.jump.calcOff=false;S.winds=S.winds.map(w=>({alt:w.alt,dir:null,spd:null}));save('winds');if($('#windSrc'))$('#windSrc').textContent='';PLAN_FIELDS.forEach(([k])=>S.jump[k]=null);S.jump.exitAgl=12000;S.jump.exitAlt=(+S.jump.dzElev||0)+12000;S.jump.openAlt=S.jump.mode==='HAHO'?11000:5000;S.jump.canopy=null;/* safety factors always start at 2,000 ft top and 1,000 ft bottom */Object.assign(S.jump,{casSF:2000,lpSF:1000,pod2Cas:2000,pod2Lp:1000,pod3Cas:2000,pod3Lp:1000});S.jump.hrpo=null;save('jump');syncJumpInputs();renderCanopySel();if(typeof renderWinds==='function')renderWinds()}
 function computeJump(pi,o){pi=pi||S.pi;const j=Object.assign({},S.jump,o||{});if(!pi)return {err:'Set the DIP to see the release solution.'};{const m=planMissing(j);const wl=S.winds.length,wf=S.winds.filter(wOk).length;if(!wl||wf<wl)m.unshift(wl?`winds (${wl-wf} of ${wl} layers empty)`:'winds');if(m.length)return {err:`Fill in the planner to see the release solution. Still needed: ${m.join(', ')}.`}}
   const dz=+j.dzElev||0,exitAGL=(+j.exitAlt)-dz,pull=+j.openAlt,cas=Math.max(2000,+j.casSF||0),lp=Math.max(1000,+j.lpSF||0);/* minimum safety factors: 2,000 ft top, 1,000 ft bottom */
   if(!(pull>0))return {err:'Opening altitude must be above the DZ.'};if(!(exitAGL-pull>=1000))return {err:'Opening altitude must be at least 1,000 ft below the exit height above the DIP.'};
@@ -1954,8 +1954,8 @@ const up100=v=>Math.ceil(Math.round(v)/100)*100;/* briefed heights: rounded up t
 function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
-  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first)</div>
-    ${hts.map(([k,v])=>r(k,k==='Exit (despatch)'?`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`:ff(v))).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">(${ff(c.dz)} AMSL)</small>`)}
+  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · rounded up to the next 100 ft in brackets above</div>
+    ${hts.map(([k,v])=>r(k,`<small style="display:block;font-weight:500;color:var(--mute)">(${up100(v).toLocaleString('en-GB')})</small>${ff(v)}${k==='Exit (despatch)'?` <small style="font-weight:400;color:var(--mute)">${ff(v+c.dz)} AMSL</small>`:''}`)).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">${ff(c.dz)} AMSL</small>`)}
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
@@ -2087,7 +2087,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`;
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
   /* key altitude ladder: highest at the top, each step colour-coded, AGL in bold, reference heights set apart underneath */
-  const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`,brf=v=>`${ff(v)}<small class="lbrf">(${up100(v).toLocaleString('en-GB')})</small>`;
+  const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`,brf=v=>`<small class="lbrf">(${up100(v).toLocaleString('en-GB')})</small>${ff(v)}`;
   const hasV=c.v.src!=='DIP elevation',vft=hasV?(c.v.ft??c.base):c.dz;
   const ladder=t=>`<div class="ladder mt"><div class="lhead"><div>${esc(t.T)}</div><div>MSL</div><div>AGL</div></div>
     ${c.lowOpen<c.minDep?step('red bad','Planned deployment',ff(c.dz+c.lowOpen),brf(c.lowOpen),`below minimum ${ff(c.minDep)} AGL: raise it`):step('dim','Planned deployment',ff(c.dz+c.lowOpen),brf(c.lowOpen),'')}
