@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2080,7 +2080,7 @@ function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.
 function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSrc');if(qs)qs.textContent=qnhSrcText()}if(planMissing(S.jump).length){o.innerHTML='<p class="note">Fill in the planner first.</p>';return}const j=S.jump,c=cypCalc(),dz=c.dz,unk=c.unk;
   const R=hrpoRadius();{const hr=$('#hrpoRule');if(hr){hr.textContent='';hr.hidden=true}}
   const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
-  ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}). It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`;
+  ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`;
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
   /* key altitude ladder: highest at the top, each step colour-coded, AGL in bold, reference heights set apart underneath */
   const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`;
