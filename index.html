@@ -357,6 +357,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act .dipalt{color:#9a9a9a;font-weight:400}
 .fullbtns{display:flex;flex-wrap:nowrap}.fullbtns .btn{flex:1}.fullbtns .btn[hidden]{display:none}
 .stylelist{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.stylelist .btn{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.stylelist .btn span{width:64px;flex:none}.stylelist .btn svg{flex:1;height:16px}.stylelist .btn.on{outline:2px solid var(--ink)}
+.altoff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 26px/1.2 var(--cond);font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
 #act p{white-space:pre-line;margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -615,11 +616,9 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
         <div data-jm-panel="alti" hidden>
           <h3 class="mt">Altimeter offset</h3>
-          <p class="note">Set the altimeter on the ground at take-off so it reads zero over the reference elevation.</p>
           <div class="fields">
             <label class="fld"><span style="white-space:nowrap">Take-off airfield (ft AMSL)</span><input type="number" inputmode="decimal" data-j="toElev"></label>
             <label class="fld"><span style="white-space:nowrap">DZ elevation (ft AMSL)</span><input type="number" inputmode="decimal" data-j="dzElev"></label>
-            <label class="fld"><span style="white-space:nowrap">Zero reference (ft AMSL)</span><input type="number" inputmode="decimal" id="altRef" placeholder="DZ"></label>
           </div>
           <div id="altOut"></div>
         </div>
@@ -641,7 +640,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -820,7 +819,7 @@ const S={
   savedDips:store.get('savedDips',[]),
   canopies:store.get('canopies',[]),
   cypCustom:store.get('cypCustom',[]),
-  pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{}),{alts:[1000,600,300]}),
+  pattern:Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},store.get('pattern',{}),{}),
   set:Object.assign({},DEF_SET,store.get('set',{})),
   tracks:store.get('tracks',[]),ov:Object.assign({},DEF_OV,store.get('ov',{})),
   target:store.get('target',null),
@@ -837,7 +836,7 @@ if(S.set.callsign==='JUMPMASTER'){S.set.callsign='JumpMaster Pro';store.set('set
 if(+S.set.ringStep===500){S.set.ringStep=137.16;store.set('set',S.set)}
 if(S.jump.canopy==='PNS'){S.jump.canopy='Non Standard';store.set('jump',S.jump)}
 if(S.jump.v===2){if(+S.jump.k===61&&!S.jump.canopy){S.jump.k=46;S.jump.canopySpeed=22;S.jump.canopy='MJ (MP360)'}S.jump.v=3;store.set('jump',S.jump)}
-if(!(S.jump.v>=2)){const kf=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;if(S.jump.kUnit){const r=kf(+S.jump.k||0,S.jump.kUnit);S.jump.k=r>0?Math.round(514.4/r):61;delete S.jump.kUnit}Object.assign(S.jump,{exitAlt:12000,openAlt:11000,casSF:2000,lpSF:1000,interval:4,jumperKg:110,throwSec:0,k:46,canopySpeed:22,canopy:'MJ (MP360)',v:3});S.canopies=S.canopies.map(c=>c.kUnit?{name:c.name,k:Math.round(514.4/kf(c.k,c.kUnit)),spd:c.spd}:c);store.set('jump',S.jump);store.set('canopies',S.canopies)}
+if(!(store.get('jump',{}).v>=2)&&store.get('jump',null)){const kf=(k,u)=>u==='fts'?k:u==='ftm'?k/60:k/3600;if(S.jump.kUnit){const r=kf(+S.jump.k||0,S.jump.kUnit);S.jump.k=r>0?Math.round(514.4/r):61;delete S.jump.kUnit}Object.assign(S.jump,{exitAlt:12000,openAlt:11000,casSF:2000,lpSF:1000,interval:4,jumperKg:110,throwSec:0,k:46,canopySpeed:22,canopy:'MJ (MP360)',v:3});S.canopies=S.canopies.map(c=>c.kUnit?{name:c.name,k:Math.round(514.4/kf(c.k,c.kUnit)),spd:c.spd}:c);store.set('jump',S.jump);store.set('canopies',S.canopies)}
 var view3d=false;let me=null,compass=null,mode='none',tool=null,follow=false,J=null,selRing=null;
 
 const TYPES={
@@ -1291,7 +1290,7 @@ function hamoSuggest(){const key=hamoMinKey;if(key===hamoSugKey)return hamoSugVa
   const combos=[];const rec=(i,acc)=>{if(i===F.length){const t=acc.reduce((a,b)=>a+b,0);if(t>0)combos.push(acc.slice());return}for(let a=0;a<=3000;a+=500){acc.push(a);rec(i+1,acc);acc.pop()}};rec(0,[]);combos.sort((x,y)=>x.reduce((a,b)=>a+b,0)-y.reduce((a,b)=>a+b,0)||Math.max(...x)-Math.max(...y));
   for(const c of combos){if(Date.now()-t0>2500)break;F.forEach((k,i)=>j[k]=base[i]+c[i]);const sp=works();F.forEach((k,i)=>j[k]=base[i]);if(sp!=null){res={set:F.map((k,i)=>[k,base[i]+c[i],c[i]]).filter(x=>x[2]>0),sp};break}}
   j.hamoSpread=keep;computeHamo();hamoSugKey=key;hamoSugVal=res;return res}
-function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(+S.jump.pod2Open<+S.jump.openAlt+3000&&$('#pod2Open'))fillPod2Sel();const three=pods3();if(three&&+S.jump.pod3Open<+S.jump.pod2Open+3000&&$('#pod3Open'))fillPod3Sel();
+function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode!=='HAMO'||!S.pi)return;if(!exporting&&+S.jump.pod2Open<+S.jump.openAlt+3000&&$('#pod2Open'))fillPod2Sel();const three=pods3();if(!exporting&&three&&+S.jump.pod3Open<+S.jump.pod2Open+3000&&$('#pod3Open'))fillPod3Sel();
   const P1={mode:'HALO',lpSF:1000},P2={mode:'HALO',openAlt:+S.jump.pod2Open,jumpers:+S.jump.pod2Jumpers,casSF:Math.max(2000,+(S.jump.pod2Cas??2000)),lpSF:1000},
     P3={mode:'HALO',openAlt:+S.jump.pod3Open,jumpers:+S.jump.pod3Jumpers||4,casSF:Math.max(2000,+(S.jump.pod3Cas??2000)),lpSF:1000},PL=three?P3:P2;
   const w=computeJump(S.pi,{...P1,harpBrg:null,runMode:'into'});if(w.err)return;const wl=brg(S.pi,w.op),into=w.heading,sp=Math.max(0,Math.min(90,+(S.jump.hamoSpread??15)));
@@ -1299,7 +1298,7 @@ function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode
   const a0=computeJump(S.pi,{...P1,harpBrg:norm(wl+sp)}),z0=computeJump(S.pi,{...PL,harpBrg:norm(wl-sp)});if(a0.err||z0.err)return;
   let h=dist(a0.harp,z0.harp)<1?into:brg(a0.harp,z0.harp);hamoHeading=h;
   const o={runMode:'custom',headingMag:norm(h-(+S.set.decl||0))},A=computeJump(S.pi,{...P1,...o,harpBrg:norm(wl+sp)}),Z=computeJump(S.pi,{...PL,...o,harpBrg:norm(wl-sp)});if(A.err||Z.err)return;
-  const along=P=>{const d=dist(S.pi,P.harp),t=(brg(S.pi,P.harp)-h)*D2R;return d*Math.cos(t)-P.JD};
+  const along=P=>{const d=dist(S.pi,P.harp),t=(brg(S.pi,P.harp)-h)*D2R;return d*Math.cos(t)};/* HARP = first out */
   let B=Z,mid=null;
   if(three){/* the middle pod's HARP is where the run-in crosses its own HARP ring, between pods 1 and 3 */const B0=computeJump(S.pi,{...P2,...o,harpBrg:null});if(B0.err)return;
     const k=Math.cos(S.pi.lat*D2R)*111320,xy=q=>({x:(q.lon-S.pi.lon)*k,y:(q.lat-S.pi.lat)*111320}),ll=v=>({lat:S.pi.lat+v.y/111320,lon:S.pi.lon+v.x/k});
@@ -1315,7 +1314,7 @@ function computeHamo(){J2=null;J3=null;hamo=null;hamoHeading=null;if(S.jump.mode
   const timePts=[[600,'10 min'],[360,'6 min'],[240,'4 min'],[120,'2 min'],[60,'1 min'],[30,'30 s']].map(([t,l])=>({t,l,p:dest(A.gl,norm(h+180),gs*t)}));const last=order[order.length-1];
   const waits=clears.map(c=>c/gs);/* last out to the next pod's first out, seconds at run-in speed: needs 30 s */
   hamo={A,B,C:three?Z:null,order,first:A,second:B,gap:seps[0]/gs,gaps:seps.map(x=>x/gs),waits,clear:Math.min(...clears),clears,ok:waits.every(t=>t>=30)&&order.every(P=>P.ok),timePts,runStart:dest(A.gl,norm(h+180),gs*600),runEnd:dest(last.rl,h,gs*60),oneMin:dest(A.gl,norm(h+180),gs*60),spread:sp,wl};
-  S.jump.headingMag=Math.round(o.headingMag);S.jump.runMode='custom';const l=$('#hamoCseLbl');if(l)l.textContent='';/* left/right as seen under canopy looking back at the DIP */const ci=$('[data-j="headingMag"]');if(ci&&document.activeElement!==ci)ci.value=S.jump.headingMag}
+  S.jump.headingMag=Math.round(o.headingMag);S.jump.runMode='custom';if(exporting)return;const l=$('#hamoCseLbl');if(l)l.textContent='';/* left/right as seen under canopy looking back at the DIP */const ci=$('[data-j="headingMag"]');if(ci&&document.activeElement!==ci)ci.value=S.jump.headingMag}
 /* the POD HAMO summary under the dial: top SFs, jumpers, time between pods, off wind line, course, and any problem */
 function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the DIP to plot the POD HAMO.';const h=hamo,n=h.order.length,bad=h.order.find(P=>!P.ok),K=['casSF','pod2Cas','pod3Cas'].slice(0,n),jm=[S.jump.jumpers,S.jump.pod2Jumpers,S.jump.pod3Jumpers].slice(0,n);
   const status=bad?`⚠ Pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'is outside its ring'}`:h.waits.some(t=>t<30)?'⚠ Under 30 s between pods: move the dial':'';
@@ -1421,18 +1420,19 @@ function renderCypres(){renderMilCypres();if(!$('#cypOut'))return;const to=+S.ju
     <dd class="big" data-l="Offset (feet unit)">${rFt===0?'0 ft':`${sign(rFt)}${abs(rFt).toLocaleString('en-GB')} ft`}</dd></dl>
     ${rM===0?'<p class="note">Difference is under one 10 m step, so no offset is needed.</p>':`<p class="note">${dFt>0?'Landing area is higher than the take-off airfield, so the offset is positive.':'Landing area is lower than the take-off airfield, so the offset is negative.'} Rounded to the nearest 10 m or 30 ft step.</p>`}
     <div class="warn">Set the offset on the ground at the take-off airfield. Confirm the sign convention, step size and limits for your model against its user guide before jumping.</div>`}
-function renderAlti(){const to=+S.jump.toElev,dz=+S.jump.dzElev;const refRaw=S.set.altRef;const ref=isFinite(refRaw)&&refRaw!==null&&refRaw!==''?+refRaw:dz;if(!isFinite(to)||!isFinite(ref)){$('#altOut').innerHTML='';return}const setTo=to-ref;const exitR=(+S.jump.exitAlt)-ref,openR=(+S.jump.openAlt)+dz-ref;
-  $('#altOut').innerHTML=`<p class="note" style="margin-top:12px">Set altimeter at take-off to</p><div class="big-out">${setTo>0?'+':setTo<0?'−':''}${ff(Math.abs(setTo))}</div>
-    <p class="note">${setTo<0?'Below zero: the reference is higher than the airfield.':setTo>0?'Above zero: the reference is lower than the airfield.':'Airfield and reference are the same elevation, so set to zero.'} It will read 0 at ${refRaw!=null&&refRaw!==''?'the reference elevation':'the DZ'}.</p>
+function renderAlti(){const to=S.jump.toElev==null||S.jump.toElev===''?NaN:+S.jump.toElev,dz=+S.jump.dzElev;const ref=dz;if(!isFinite(to)||!isFinite(ref)){$('#altOut').innerHTML='';return}const setTo=to-ref;const exitR=(+S.jump.exitAlt)-ref,openR=(+S.jump.openAlt)+dz-ref;
+  /* offsets to set on the ground at take-off so the altimeter reads 0 on the DZ: ALFA counts take-off minus DZ, Stratos the other way round; DZ pressure from the QNH */
+  const sg=v=>`${v>0?'+':v<0?'−':''}${Math.round(Math.abs(v)).toLocaleString('en-GB')} ft`,j_=S.jump,qUnk=!!j_.qnhUnknown||!(+j_.qnh>0),qmb=qUnk?1013.25:(j_.qnhUnit==='inhg'?(+j_.qnh)*33.8639:+j_.qnh),pdz=qmb*Math.pow(1-6.8756e-6*dz,5.2559);
+  $('#altOut').innerHTML=`<h3 style="margin-top:14px">Alti offset setting</h3><div class="altoff"><div><span>ALFA</span><b>${sg(setTo)}</b></div><div><span>STRATOS</span><b>${sg(-setTo)}</b></div></div>
+    <p class="note">(Pressure ${Math.round(pdz)} mb at the DZ${qUnk?', standard pressure: no QNH entered':''})</p>
     <dl class="res"><dd data-l="Reads at exit">${ff(exitR)}</dd><dd data-l="Reads at opening">${ff(openR)}</dd><dd data-l="Reads on the DZ">${ff(dz-ref)}</dd></dl>
     <div class="warn">Exit and opening readings use the jump plan values. Check the altimeter on the ground after setting.</div>`}
-$('#altRef').value=S.set.altRef??'';
-$('#altRef').oninput=e=>{const v=e.target.value.trim();S.set.altRef=v===''?null:parseFloat(v);save('set');renderAlti()};
+
 
 /* ================= points + targets ================= */
 function renderMarkers(){LY.pts.clearLayers();S.markers.forEach(m=>{const t=TYPES[m.type]||TYPES.wp;L.marker([m.lat,m.lon],{icon:divPin(t.svg,cssv(t.c),m.name,26)}).on('click',()=>markerActions(m.id)).addTo(LY.pts)})}
 function addMarker(p,type,name){const n=S.markers.filter(m=>m.type===type).length+1;const m={id:uid(),type,name:name||`${TYPES[type].n} ${n}`,lat:p.lat,lon:p.lon};S.markers.push(m);save('markers');renderMarkers();renderPoints();toast(`Added ${m.name}`);return m}
-function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Navigate to',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as DIP',()=>{S.pi={lat:m.lat,lon:m.lon};save('pi');renderJump();toast('DIP set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
+function markerActions(id){const m=S.markers.find(x=>x.id===id);if(!m)return;sheet({title:m.name,sub:relSub(m),input:{label:'Rename',value:m.name,save:v=>{m.name=v.trim()||m.name;save('markers');renderMarkers();renderPoints()}},buttons:[['Navigate to',()=>setTarget('m:'+id),'primary'],['Centre map',()=>map.setView(LL(m),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(m))],['Set as DIP',()=>{S.pi={name:m.name,lat:m.lat,lon:m.lon};save('pi');renderJump();autoDzElev(true);toast('DIP set')}],['Delete',()=>{S.markers=S.markers.filter(x=>x.id!==id);save('markers');if(S.target==='m:'+id)setTarget(null);renderMarkers();renderPoints()},'danger']]})}
 function calcActions(key){const r=resolve(key);if(!r)return;sheet({title:r.name,sub:relSub(r.p),buttons:[['Navigate to',()=>setTarget(key),'primary'],['Centre map',()=>map.setView(LL(r.p),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(r.p))]]})}
 function calcPoints(){if(!S.pi)return [];const a=[{key:'c:pi',name:'DIP',p:S.pi,c:'--pi'}];if(J&&!J.err)a.push({key:'c:harp',name:'HARP',p:J.harp,c:'--ink'},{key:'c:gl',name:'First out',p:J.gl,c:'--go'},{key:'c:rl',name:'Last out',p:J.rl,c:'--stop'},{key:'c:onemin',name:'One minute',p:J.oneMin,c:'--amber'},{key:'c:open',name:'PRP',p:J.op,c:'--amber'});return a}
 function resolve(key){if(!key)return null;const [t,id]=[key.slice(0,2),key.slice(2)];
@@ -1674,7 +1674,7 @@ function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${
 function altDipSheet(){sheet({side:true,title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>useAltAsDip(d.id,false)])]})}
 function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.lat,lon:p.lon};S.altDips.push(d);save('altDips');renderAltDips();toast(`${d.name} added`)}
 /* navigating to the DIP: switch to an alternate. The alternate becomes the DIP (names swap with it) and the whole plan, trackback and landing pattern are worked out for it */
-function useAltAsDip(id,nav=true){const d=S.altDips.find(x=>String(x.id)===String(id));if(!d||!S.pi)return;const old=S.pi;S.pi={name:d.name,lat:d.lat,lon:d.lon};d.name=old.name||'DIP';d.lat=old.lat;d.lon=old.lon;d.dzElev=+S.jump.dzElev||null;
+function useAltAsDip(id,nav=true){const d=S.altDips.find(x=>String(x.id)===String(id));if(!d||!S.pi)return;const old=S.pi,ne=d.dzElev;S.pi={name:d.name,lat:d.lat,lon:d.lon};d.name=old.name||'DIP';d.lat=old.lat;d.lon=old.lon;d.dzElev=+S.jump.dzElev||null;if(ne!=null&&isFinite(ne)){S.jump.dzElev=ne;S.jump.dzSrc='alternate DIP';save('jump');if(typeof syncJumpInputs==='function')syncJumpInputs()}
   if(S.pattern)S.pattern.mv=null;save('pi');save('altDips');save('pattern');autoDzElev();renderAltDips();renderJump();if(nav){setTarget('c:pi');toast(`Now navigating to ${S.pi.name}`)}else toast(`${S.pi.name} is now the DIP`)}
 $('#altBtn').onclick=()=>{const L_=$('#altList');if(!L_.hidden){L_.hidden=true;return}L_.innerHTML=S.altDips.map(d=>`<button class="btn" data-alt="${d.id}">${esc(d.name)}</button>`).join('');L_.hidden=false};
 $('#altList').onclick=e=>{const b=e.target.closest('[data-alt]');if(!b)return;$('#altList').hidden=true;useAltAsDip(b.dataset.alt)};
@@ -1702,7 +1702,7 @@ function drawPattern(){const P=S.pattern,PJ=patJ();if(!P.on||!S.pi||!PJ||PJ.err)
   const legT=(a,b,h)=>{const ds=b.s-a.s,dy=b.y-a.y,l=Math.hypot(ds,dy);return l<1?0:l/gs(ds,dy,h)};
   const k2=PJ&&!PJ.err&&(PJ.marks||[]).find(m=>m.agl===2000);let pts,startAlt,warn='',pre=null;
   if(k2){/* downwind from the 2K mark; turn crosswind (base) at 600 ft and into wind (final) at 300 ft, each 300 ft leg sized from the canopy descent and the surface wind */
-    const A=toSY(k2.p),sg=P.hand==='left'?1:-1,/* left-hand: base on the right of the landing line, left turn onto final; right-hand the mirror */t=300*FT/cr,R2=Math.SQRT1_2;
+    const A=toSY(k2.p),sg=P.hand==='left'?-1:1,/* left-hand: base on the left of the landing line, left turn onto final; right-hand the mirror */t=300*FT/cr,R2=Math.SQRT1_2;
     const mk=f=>{const fS={s:-gs(1,0,150)*t*f,y:0};let bS;
       if(P.type==='z'){/* Z: first leg alongside the trackback in the landing direction to the 600 ft turn, diagonal back to the 300 ft point behind the DIP, final along the trackback */const l=gs(-1,-sg,450)*t*f;bS={s:fS.s+l*R2,y:sg*l*R2}}
       else bS={s:fS.s,y:sg*gs(0,-sg,450)*t*f};
@@ -1712,7 +1712,7 @@ function drawPattern(){const P=S.pattern,PJ=patJ();if(!P.on||!S.pi||!PJ||PJ.err)
     pts=mk(1);/* if 600/300 ft turns need more than 2,000 ft at the 2K mark (light winds), pull the turns in until it fits */
     if(need(pts)>2000){let lo=0.02,hi=1;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(need(mk(m))>2000)hi=m;else lo=m}pts=mk(lo)}startAlt=2000;if(pts[0]!==A)pre=A}
   else{/* no plan yet: fixed leg altitudes */
-    const [a1,a2,a3]=P.alts,hw=-(w.u*Math.sin(L0)+w.v*Math.cos(L0)),side=P.hand==='left'?1:-1;startAlt=a1;
+    const [a1,a2,a3]=P.alts,hw=-(w.u*Math.sin(L0)+w.v*Math.cos(L0)),side=P.hand==='left'?-1:1;startAlt=a1;
     const f=-Math.max(30,(V-hw)*(a3*FT/cr)),by=side*Math.max(30,V*((a2-a3)*FT/cr)),ds=Math.max(30,(V+hw)*((a1-a2)*FT/cr));
     pts=P.type==='z'?[{s:f-Math.abs(by)+ds,y:by},{s:f-Math.abs(by),y:by},{s:f,y:0},{s:0,y:0}]:[{s:f+ds,y:by},{s:f,y:by},{s:f,y:0},{s:0,y:0}]}
   {const mv=P.mv||{};['d','b','f'].forEach((k,i)=>{if(mv[k])pts[i]=toSY(dest(S.pi,mv[k][0],mv[k][1]))})}
@@ -2176,7 +2176,7 @@ function missionName(){const m=S.missions.find(x=>x.id===S.mission);return m?m.n
 function renderMissionHead(){$('#mName').textContent=missionName();$('#mName2').textContent=missionName()}
 function renderMissions(){renderMissionHead();$('#mList').innerHTML=S.missions.length?S.missions.map(m=>`<button class="item" data-m="${m.id}"><span class="sw" style="background:var(${m.id===S.mission?'--go':'--mute'})"></span><span><b>${esc(m.name)}${m.id===S.mission?' · loaded':''}</b><small>${m.data.pi?esc(fc(m.data.pi)):'No DIP'} · ${new Date(m.saved).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</small></span><span></span></button>`).join(''):'<p class="note">No packages saved yet. Name the current plan above and save it.</p>'}
 function saveMission(name){const m={id:uid(),name:name.trim()||`Package ${S.missions.length+1}`,saved:Date.now(),data:JSON.parse(JSON.stringify(snapshot()))};S.missions.push(m);S.mission=m.id;save('missions');save('mission');renderMissions();toast(`Saved ${m.name}`)}
-function loadMission(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const d=JSON.parse(JSON.stringify(m.data));S.pi=d.pi||null;S.pi2=d.pi2||null;S.jump=Object.assign({},DEF_JUMP,d.jump||{});S.winds=d.winds||[];S.markers=d.markers||[];S.xs=d.xs||[];S.draws=d.draws||[];S.rng=d.rng||[];S.altDips=d.altDips||[];if(d.canopies)S.canopies=d.canopies;applyK();renderCanopySel();S.pattern=Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},d.pattern||{});S.mission=id;['pi','pi2','altDips','pattern','jump','winds','markers','xs','draws','rng','mission','canopies'].forEach(save);setTarget(null);syncJumpInputs();renderWinds();redrawAll();renderMissions();if(S.pi)map.setView(LL(S.pi),13);toast(`Loaded ${m.name}`)}
+function loadMission(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const d=JSON.parse(JSON.stringify(m.data));S.pi=d.pi||null;S.pi2=d.pi2||null;S.jump=Object.assign({},DEF_JUMP,d.jump||{});S.winds=d.winds||[];S.markers=d.markers||[];S.xs=d.xs||[];S.draws=d.draws||[];S.rng=d.rng||[];S.altDips=d.altDips||[];if(d.canopies)d.canopies.forEach(c=>{if(c&&c.name&&!S.canopies.some(x=>x.name===c.name))S.canopies.push(c)});applyK();renderCanopySel();S.pattern=Object.assign({on:false,hand:'left',alts:[1000,600,300],dirAuto:true,dir:0},d.pattern||{});S.mission=id;['pi','pi2','altDips','pattern','jump','winds','markers','xs','draws','rng','mission','canopies'].forEach(save);setTarget(null);syncJumpInputs();renderWinds();redrawAll();renderMissions();if(S.pi)map.setView(LL(S.pi),13);toast(`Loaded ${m.name}`)}
 // what a package holds, as removable entries
 function pkgItems(d){const out=[];if(d.pi)out.push({key:'pi:dip',l:`DIP ${d.pi.name||''}`.trim()});(d.xs||[]).forEach((x,i)=>out.push({key:'xs:'+x.id,l:`Red X ${x.name||i+1}`}));(d.markers||[]).forEach(m=>out.push({key:'markers:'+m.id,l:`Point ${m.name||''}`}));
   (d.draws||[]).forEach(o=>out.push({key:'draws:'+o.id,l:o.kind==='text'?`Text "${o.text}"`:o.kind==='shape'?{circle:'Circle',box:'Box',arrow:'Arrow'}[o.shape]:o.kind==='line'?`Line ${fd(pathLen(o.pts))}`:'Freehand'}));(d.rng||[]).forEach(o=>out.push({key:'rng:'+o.id,l:o.kind==='ring'?`Range ring ×${o.n}`:`Range line ${fd(dist(o.a,o.b))}`}));(d.altDips||[]).forEach(o=>out.push({key:'altDips:'+o.id,l:`Alt DIP ${o.name}`}));return out}
@@ -2228,7 +2228,8 @@ function phaseLinesFor(Ps,pods){const out=[],perp=(P,m,i)=>{const nxt=i+1<P.mark
     if(P.trk&&P.trk.length>1&&P.trk[0].h>10000){const done=new Set([2000,3000]);const T=P.trk.slice().reverse(),cum=[0];for(let i=1;i<T.length;i++)cum.push(cum[i-1]+dist(T[i-1].p,T[i].p));const tot=cum[cum.length-1];
       const hAt=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return T[i-1].h+(T[i].h-T[i-1].h)*f}return null};
       for(let d=tot/2;d>50;d/=2){const hh=hAt(d);if(hh==null||hh<3500)break;const h=Math.round(hh/1000)*1000;if(done.has(h))continue;done.add(h);const i=P.marks.findIndex(m=>m.agl===h);if(i>=0)out.push({h,pts:perp(P,P.marks[i],i)})}}});return out}
-function pkgCot(m){const d=m.data,ev=[];
+var exporting=false;function pkgCot(m){const d=JSON.parse(JSON.stringify(m.data)),ev=[];exporting=true;try{return pkgCotBody(d,ev)}finally{exporting=false}}
+function pkgCotBody(d,ev){
   if(d.pi){// work the plan out from the package's own jump settings and winds
     const keep={pi:S.pi,jump:S.jump,winds:S.winds};S.pi=d.pi;S.jump=Object.assign({},DEF_JUMP,d.jump||{});{const xa=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);S.jump.openAlt=Math.min(+S.jump.openAlt||0,Math.max(1000,Math.floor((xa-1000)/500)*500))}d.jump=Object.assign({},d.jump,{openAlt:S.jump.openAlt});S.winds=d.winds||S.winds;let P=null;try{P=computeJump(d.pi)}catch(e){}Object.assign(S,keep);
     const alts=(d.altDips||[]).map(o=>({o,uid:uuid()}));let dipEv=null;
@@ -2317,9 +2318,9 @@ function pickTap(pt){let best=null,bd=28;pickAll().forEach(it=>{const P=it.pts.m
 function inPoly(pt,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){if(((P[i].y>pt.y)!==(P[j].y>pt.y))&&pt.x<(P[j].x-P[i].x)*(pt.y-P[i].y)/(P[j].y-P[i].y)+P[i].x)c=!c}return c}
 function pickLasso(){const P=pick.poly.map(q=>map.latLngToContainerPoint(LL(q)));let n=0;pickAll().forEach(it=>{if(it.pts.some(q=>inPoly(map.latLngToContainerPoint(LL(q)),P))){if(!pick.sel.has(it.key))n++;pick.sel.add(it.key)}});pick.poly=null;drawPick();toast(n?`${n} added`:'Nothing inside the lasso')}
 function pickByType(){if(!pick)return;sheet({title:'Select by type',sub:'Tap a type to add or remove all of it.',buttons:(S.pi?[[`${pick.sel.has('pi:dip')?'✓ ':''}DIP (${S.pi.name||'DIP'})`,()=>{pick.sel.has('pi:dip')?pick.sel.delete('pi:dip'):pick.sel.add('pi:dip');drawPick();pickByType()},pick.sel.has('pi:dip')?'primary':'']]:[]).concat(PICK_TYPES.filter(([k])=>(S[k]||[]).length).map(([k,n])=>{const all=S[k].map(o=>k+':'+o.id),on=all.every(x=>pick.sel.has(x));return [`${on?'✓ ':''}${n} (${all.length})`,()=>{all.forEach(x=>on?pick.sel.delete(x):pick.sel.add(x));drawPick();pickByType()},on?'primary':'']}).concat(PICK_TYPES.some(([k])=>(S[k]||[]).length)||S.pi?[]:[['No items on the map',()=>{}]]))})}
-function pkgData(sel){const d=JSON.parse(JSON.stringify(snapshot()));PICK_TYPES.forEach(([k])=>{d[k]=(d[k]||[]).filter(o=>sel.has(k+':'+o.id))});if(!sel.has('pi:dip'))d.pi=null;return d}
+function pkgData(sel,base){const d=JSON.parse(JSON.stringify(base?Object.assign({},base,{markers:S.markers,draws:S.draws,rng:S.rng,altDips:S.altDips}):snapshot()));PICK_TYPES.forEach(([k])=>{d[k]=(d[k]||[]).filter(o=>sel.has(k+':'+o.id))});if(!sel.has('pi:dip'))d.pi=null;return d}
 function pickSave(){const sel=pick.sel,name=pick.name,d=pkgData(sel);
-  if(pick.edit){const m=S.missions.find(x=>x.id===pick.edit);if(m){m.data=d;m.saved=Date.now();save('missions');renderMissions();toast(`${m.name}: ${sel.size} item${sel.size===1?'':'s'}`)}endPick();return}
+  if(pick.edit){const m=S.missions.find(x=>x.id===pick.edit);if(m){m.data=pkgData(sel,m.data);m.saved=Date.now();save('missions');renderMissions();toast(`${m.name}: ${sel.size} item${sel.size===1?'':'s'}`)}endPick();return}
   const m={id:uid(),name:(name||'').trim()||`Package ${S.missions.length+1}`,saved:Date.now(),data:d};S.missions.push(m);S.mission=m.id;save('missions');save('mission');renderMissions();$('#mInput').value='';endPick();toast(`Saved ${m.name} with ${sel.size} item${sel.size===1?'':'s'}`)}
 {const c=$('#pickCatch');let down=null;const cp=e=>{const r=c.getBoundingClientRect();return L.point(e.clientX-r.left,e.clientY-r.top)};
   const touches=new Map();let pinch=null;
