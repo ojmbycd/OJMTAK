@@ -210,6 +210,18 @@ button,input,select{font:inherit;color:inherit}
 .leaflet-tile-pane .leaflet-layer{filter:brightness(var(--mapb,1))}
 :root[data-night="1"] :is(.leaflet-overlay-pane,.leaflet-marker-pane,#status,#hud,#quick,#zoom,#radial,#eyeAlt,#curPos,#tip,#jmPop,#updBar){filter:grayscale(1) sepia(1) hue-rotate(-45deg) saturate(6) brightness(.85)}
 @media (max-width:700px){.leaflet-bottom.leaflet-right .leaflet-control-attribution{margin-bottom:22px}}
+#printSheet{display:none}
+@media print{body>*:not(#printSheet){display:none!important}html,body{background:#fff!important;height:auto!important;overflow:visible!important}
+  #printSheet{display:block!important;color:#000;background:#fff;font:10.5pt/1.35 Arial,Helvetica,sans-serif;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printSheet h1{font-size:16pt;margin:0 0 2pt}#printSheet .psub{font-size:9pt;color:#444;margin-bottom:8pt}
+  #printSheet h2{font-size:12pt;margin:12pt 0 4pt;border-bottom:1.5pt solid #000;padding-bottom:2pt;break-after:avoid}
+  #printSheet section{break-inside:avoid}#printSheet button,#printSheet .btn,#printSheet input,#printSheet select,#printSheet .mhead{display:none!important}
+  #printSheet table{border-collapse:collapse;width:100%;font-size:9.5pt}#printSheet th,#printSheet td{border:.5pt solid #999;padding:2pt 4pt;text-align:left}
+  #printSheet *{color:#000!important;background-color:transparent!important;box-shadow:none!important;text-shadow:none!important}
+  #printSheet .ladder{border:.5pt solid #999}#printSheet .ladder .lstep,#printSheet .ladder .lhead{border-bottom:.5pt solid #ccc}
+  #printSheet .ladder .go{border-left:5pt solid #2a9d4a!important}#printSheet .ladder .amb{border-left:5pt solid #e09b00!important}#printSheet .ladder .red{border-left:5pt solid #d62828!important}
+  #printSheet dl.res dd{margin:0 0 2pt}#printSheet dl.res dd::before{content:attr(data-l) ': ';font-weight:700}
+  #printSheet .warn{border:.5pt solid #999;padding:4pt;margin:4pt 0}@page{margin:12mm}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
 #radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
@@ -600,6 +612,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <div data-jm-panel="summary" hidden>
           <button class="mhead mt" id="mHead2"><span>Plan jump:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
           <div id="sumOut"></div>
+          <button class="btn primary mt" id="printCalcs" style="width:100%">Print calcs sheet</button>
         </div>
 
         <div data-jm-panel="cypres" hidden>
@@ -651,7 +664,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 06:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 06:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -771,6 +784,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
   </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="printSheet"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
@@ -1335,19 +1349,19 @@ function hamoText(){if(S.jump.mode!=='HAMO')return '';if(!hamo)return 'Set the D
   const status=bad?`⚠ Pod ${bad.pod} HARP ${bad.pod===2&&h.C?'is not on the run-in inside its ring':'is outside its ring'}`:h.waits.some(t=>t<30)?'⚠ Under 30 s between pods: move the dial':'';
   return `Top SF: ${K.map(k=>ff(+S.jump[k]||2000)).join(' / ')}\nJumpers: ${jm.map(x=>x||'–').join(' / ')}\nTime between pods: ${h.waits.map(t=>Math.round(t)+' s').join(' / ')}\nOff wind line: ${(()=>{const sp=Math.round(+(S.jump.hamoSpread??15));return sp?`Pod 1 ${sp}° L · Pod ${n} ${sp}° R`:'on the wind line'})()}\nAC course: ${fb(hamoHeading)} T${status?'\n'+status:''}`}
 // release solution for one pod (or the single jump)
-function calcDl(P,n){return `<dl class="res">
-    <dd class="big" data-l="HARP">${fc(P.harp)}</dd>
-    ${P.ffLegs.length?P.ffLegs.map((l,i)=>`<dd data-l="Free Fall${P.ffLegs.length>1?` leg ${i+1}`:''}">D = 3 × ${+l.A.toFixed(1)} × ${l.v} = ${Math.round(l.m)} m @ ${fb(l.d)} T</dd>`).join(''):'<dd data-l="Free Fall">under 2,000 ft of freefall, disregarded</dd>'}
-    ${P.cdLegs.map((l,i)=>`<dd data-l="Canopy Drift${P.cdLegs.length>1?` leg ${i+1}${i===0?' (bottom)':i===P.cdLegs.length-1?' (top)':''}`:''}">D = (${+l.A.toFixed(1)} − ${l.sf}) × (${P.FS} + ${l.v}) ÷ ${+P.K.toFixed(1)} = ${l.nm} nm = ${l.km} km @ ${fb(l.d)} T</dd>`).join('')}
-    <dd data-l="Jumper Heading">${fb(P.jumperHdgM)} M, OP to DIP</dd>
-    <dd data-l="Aircraft Course">${bTM(P.heading)}</dd>
-    <dd data-l="PCOT">${fsec(P.pcot)}: (${n} − 1) × ${+S.jump.interval||0} s · stick ${Math.round(P.stick)} m at ${kts(Math.round(P.gsM/KT))} ground speed</dd>
-    <dd data-l="Half stick">${Math.round(P.JD)} m back along the course to first out; the HARP is mid-stick and is the exit point</dd>
-    <dd data-l="PRP (canopy opens)">${fc(P.op)}</dd>
-    <dd data-l="HARP to PRP">${fd(dist(P.harp,P.op))} @ ${fb(brg(P.harp,P.op))} T, freefall drift</dd>
+function calcDl(P,n){const iv=+S.jump.interval||0,nj=iv>0?Math.round(P.pcot/iv)+1:1,K=+P.K.toFixed(1),drv=Math.round(P.FS*1852/P.K);return `<dl class="res">
+    <dd class="big" data-l="HARP (first out)">${fc(P.harp)}</dd>
+    <dd data-l="Free fall">${P.ffM>0.5?`${Math.round(P.ffM).toLocaleString('en-GB')} m @ ${fb(brg(P.prp,P.op))} T`:'none'}</dd>
+    ${P.ffLegs.map(l=>`<dd data-l="  ${ff(l.top-l.A*1000)} to ${ff(l.top)}">D = 3 × ${+l.A.toFixed(1)} × ${l.v} kts = ${Math.round(l.m)} m</dd>`).join('')}
+    <dd data-l="Canopy drift">${Math.round(P.cdM).toLocaleString('en-GB')} m @ ${fb(brg(P.op,S.pi))} T: each 1,000 ft layer adds wind × 1852 ÷ ${K} plus drive ${P.FS} × 1852 ÷ ${K} = ${drv} m on the jumper heading</dd>
+    <dd data-l="Jumper heading">${fb(P.jumperHdgM)} M</dd>
+    <dd data-l="Aircraft course">${bTM(P.heading)}</dd>
+    <dd data-l="Stick">${nj} jumpers × ${iv} s: PCOT ${fsec(P.pcot)}, ${Math.round(P.stick)} m (${Math.round(iv*P.tas*KT)} m between jumpers at ${kts(Math.round(P.tas))} TAS), centred on the PRP</dd>
+    <dd data-l="PRP / canopy opens">${fc(P.prp)} / ${fc(P.op)}</dd>
+    <dd data-l="Last out">${fc(P.rl)}</dd>
     <dd data-l="HARP to DIP">${fd(dist(P.harp,S.pi))} | ${(dist(P.harp,S.pi)/1852).toFixed(2)} NM</dd>
     <dd data-l="Ground speed on run-in">${kts(Math.round(P.gsM/KT))} (${S.jump.kias} KIAS, TAS ${kts(Math.round(P.tas))})</dd>
-    ${P.notes.map(n=>`<dd data-l="Winds">${esc(n)}</dd>`).join('')}</dl>`}
+    ${P.notes.map(x=>`<dd data-l="Winds">${esc(x)}</dd>`).join('')}</dl>`}
 /* run-in line drawn through every timing dot, first and last out, so the dots sit exactly on it */
 const runPts=P=>[P.runStart,...P.timePts.slice().sort((a,b)=>b.t-a.t).map(t=>t.p),P.gl,P.rl,P.runEnd];
 function renderJump(){autoDecl();syncExit();{const g=$('#gsOut');if(g)g.innerHTML='<b>GPS ground speed on run-in ≈ –</b>'}/* shown before the plan is complete, filled in once it is */heatSync();exitHint();LY.jump.clearLayers();
@@ -1464,7 +1478,7 @@ function renderDipList(){const el=$('#dipList');if(!el)return;const rel=p=>me?` 
   const rows=[...(S.pi?[{k:'cur',name:S.pi.name||'DIP',p:S.pi,tag:'current DIP',col:'--pi'}]:[]),...S.altDips.map(d=>({k:'a:'+d.id,name:d.name,p:d,tag:'alternate DIP',col:'--amber'})),...S.savedDips.map(d=>({k:'sd:'+d.id,name:d.name,p:d,tag:'saved DIP',col:'--mute'}))];
   el.innerHTML=rows.length?rows.map(r=>`<button class="item" data-dip="${esc(r.k)}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}</b><small>${r.tag} · ${esc(fc(r.p))}${rel(r.p)}</small></span><span class="chev">›</span></button>`).join(''):'<p class="note">No DIPs yet. Use JM TOOL → Place DIP.</p>'}
 function dipMenu(k){const go=(key,l)=>[l,()=>{closeDrawer();setTarget(key)},'primary'],ctr=p=>['Centre map',()=>{closeDrawer();map.setView(LL(p),Math.max(map.getZoom(),13))}];
-  if(k==='cur'){if(!S.pi)return;const b=[go('c:pi','Navigate to DIP')];if(J&&!J.err){b.push(go('c:harp',hamo?'Navigate to HARP 1':'Navigate to HARP'),go('c:gl',hamo?'Navigate to first out 1':'Navigate to first out'),go('c:rl',hamo?'Navigate to Last out 1':'Navigate to Last out'),go('c:open','Navigate to PRP'));if(hamo&&J2)b.push(go('c:harp2','Navigate to HARP 2'),go('c:gl2','Navigate to first out 2'),go('c:rl2','Navigate to Last out 2'));if(hamo&&J3)b.push(go('c:harp3','Navigate to HARP 3'),go('c:gl3','Navigate to first out 3'),go('c:rl3','Navigate to Last out 3'))}b.push(ctr(S.pi));sheet({title:S.pi.name||'DIP',sub:`Current DIP · ${fc(S.pi)}`,buttons:b});return}
+  if(k==='cur'){if(!S.pi)return;const b=[go('c:pi','Navigate to DIP')];if(J&&!J.err){b.push(go('c:harp',hamo?'Navigate to HARP 1':'Navigate to HARP'),go('c:rl',hamo?'Navigate to last out 1':'Navigate to last out'),go('c:open','Navigate to PRP'));if(hamo&&J2)b.push(go('c:harp2','Navigate to HARP 2'),go('c:rl2','Navigate to last out 2'));if(hamo&&J3)b.push(go('c:harp3','Navigate to HARP 3'),go('c:rl3','Navigate to last out 3'))}b.push(ctr(S.pi));sheet({title:S.pi.name||'DIP',sub:`Current DIP · ${fc(S.pi)}`,buttons:b});return}
   const r=resolve(k);if(!r)return;if(k.startsWith('a:'))sheet({title:r.name,sub:`Alternate DIP · ${fc(r.p)}`,buttons:[go(k,`Navigate to ${r.name}`),['Make primary',()=>{useAltAsDip(k.slice(2),false);renderDipList()}],ctr(r.p)]});
   else{const d=S.savedDips.find(x=>String(x.id)===k.slice(3));sheet({title:r.name,sub:`Saved DIP · ${fc(r.p)}`,buttons:[go(k,`Navigate to ${r.name}`),['Use this DIP',()=>{S.pi={name:d.name,lat:d.lat,lon:d.lon};save('pi');if(d.dzElev!=null){S.jump.dzElev=d.dzElev;S.jump.dzSrc='saved DIP';save('jump');syncJumpInputs();renderWinds()}else autoDzElev();renderJump();renderDipList();toast(`DIP: ${d.name}`)}],ctr(r.p)]})}}
 $('#dipList').onclick=e=>{const b=e.target.closest('[data-dip]');if(b)dipMenu(b.dataset.dip)};
@@ -1916,6 +1930,17 @@ function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Plann
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`}
+/* print calcs sheet: the plan, vital data, CYPRES, alti offset and winds on one clean page (the print dialog can also save a PDF) */
+function printCalcs(){try{renderJump()}catch(e){}try{renderSummary()}catch(e){}try{renderMilCypres()}catch(e){}try{renderAlti()}catch(e){}
+  const g=id=>{const e=document.getElementById(id);return e?e.innerHTML:''},j=S.jump,now=new Date();
+  const winds=S.winds.filter(wOk).map(w=>`<tr><td>${ff(w.alt)} AMSL</td><td>${ff(w.alt-(+j.dzElev||0))} AGL</td><td>${fb(w.dir)} T</td><td>${kts(Math.round(w.spd))}</td></tr>`).join('');
+  $('#printSheet').innerHTML=`<h1>JumpMaster Pro: ${esc((S.pi&&S.pi.name)||'Jump')} calcs</h1><div class="psub">${S.pi?esc(fc(S.pi))+' · ':''}DZ ${ff(+j.dzElev||0)} AMSL · printed ${now.toLocaleString('en-GB')} · ${esc($('#appVer').textContent)}</div>
+    <section><h2>Jump vital data</h2>${g('sumOut')}</section>
+    ${(()=>{let h='';try{if(J&&!J.err)h=hamo?hamo.order.map((P,i)=>`<h3>Pod ${i+1}</h3>`+calcDl(P,i+1)).join(''):calcDl(J)}catch(e){}return h?`<section><h2>Calculations</h2>${h}</section>`:''})()}
+    <section><h2>CYPRES</h2>${g('milOut')}</section>
+    <section><h2>Alti offset</h2>${g('altOut')}</section>
+    ${winds?`<section><h2>Winds</h2><table><thead><tr><th>Height</th><th>Above DZ</th><th>From</th><th>Speed</th></tr></thead><tbody>${winds}</tbody></table></section>`:''}`;
+  setTimeout(()=>window.print(),80)}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
@@ -1940,7 +1965,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod 1 first</dd>${hamo.C?`<dd data-l="Pod 3">opens ${ff(S.jump.pod3Open)} AGL · ${S.jump.pod3Jumpers} jumpers</dd><dd data-l="HARP 3">${fc(J3.harp)} · ${J3.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP 2 to 3">${fd(J3.along-J2.along)} · ${fsec(hamo.gaps[1])} at run-in speed</dd>`:''}`:''}
     <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
-  <div class="row"><button class="btn primary" data-start="ac">Start jump</button><button class="btn" data-hound="c:gl">Navigate to first out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
+  <div class="row"><button class="btn primary" data-start="ac">Start jump</button><button class="btn" data-hound="c:harp">Navigate to HARP</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
@@ -2018,6 +2043,7 @@ async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const 
   catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
   finally{b.disabled=false;b.textContent='Import pressure'}}
 $('#qnhNearest').onclick=nearestQnh;
+$('#printCalcs').onclick=printCalcs;
 $('#cypModel').onchange=e=>{if(e.target.value==='__addcyp'){fillCypSel();cypCustomSheet(null);return}S.jump.cypModel=e.target.value;save('jump');$('#cypCustomRow').hidden=!e.target.value.startsWith('c:');renderMilCypres();renderJump()};
 $('#cypEdit').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(c)cypCustomSheet(c)};
 $('#cypDel').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(!c)return;sheet({title:`Delete ${c.name}?`,buttons:[['Delete',()=>{S.cypCustom=S.cypCustom.filter(x=>x.id!==c.id);save('cypCustom');loadCypCustom();S.jump.cypModel='mj1900';save('jump');fillCypSel();renderMilCypres();renderJump()},'danger']]})};
