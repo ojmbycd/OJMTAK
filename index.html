@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2219,6 +2219,14 @@ function jmDipCot(pi,j,P,altUids){const q=v=>xe(String(v)),now=new Date(),t=now.
   return {uid,xml:`<?xml version='1.0' encoding='UTF-8' standalone='yes'?><event version='2.0' uid='${uid}' type='b-m-p-j-dip' time='${t}' start='${t}' stale='${st}' how='h-g-i-g-o' access='Undefined'><point lat='${pi.lat.toFixed(7)}' lon='${pi.lon.toFixed(7)}' hae='${(dz*FT).toFixed(3)}' ce='9999999.0' le='9999999.0' /><detail><archive/><contact callsign='${q(pi.name||'DIP')}'/><precisionlocation altsrc='???' geopointsrc='???'/><remarks></remarks>${alts}<JumpMaster>${jump}${chute}${ac}<winds WindDataImportedWinds='true' ACImportedWinds='true' LandingPatternImportedWinds='false'>${rows.join('')}</winds><avgWind avgOpenVel='${kt(av)}' avgOpenDir='${fromDir(av)}'/></JumpMaster></detail></event>`}}
 function jmAltCot(o,uid){const t=new Date().toISOString(),st=new Date(Date.now()+365*864e5).toISOString();
   return {uid,xml:`<?xml version='1.0' encoding='UTF-8' standalone='yes'?><event version='2.0' uid='${uid}' type='b-m-p-j-alt' time='${t}' start='${t}' stale='${st}' how='h-g-i-g-o' access='Undefined'><point lat='${o.lat.toFixed(7)}' lon='${o.lon.toFixed(7)}' hae='9999999.0' ce='9999999.0' le='9999999.0' /><detail><archive/><contact callsign='${xe(o.name||'ALT DIP')}'/><precisionlocation altsrc='???' geopointsrc='???'/><archive/><JumpMaster/></detail></event>`}}
+/* phase lines for export, matching the map: straight 2K/3K lines across each trackback (plus the snapped halfway line above 10,000 ft openings); POD HAMO joins the pods with one bowed line per height */
+function phaseLinesFor(Ps,pods){const out=[],perp=(P,m,i)=>{const nxt=i+1<P.marks.length?P.marks[i+1].p:S.pi,b=brg(m.p,nxt);return [dest(m.p,norm(b+90),450),dest(m.p,norm(b-90),450)]};
+  if(pods&&Ps.length>1){[2000,3000].forEach(h=>{const ms=Ps.map(P=>(P.marks||[]).find(m=>m.agl===h)).filter(Boolean).map(m=>({b:brg(S.pi,m.p),d:dist(S.pi,m.p)}));if(ms.length<2)return;const ref=ms[0].b;ms.forEach(m=>{m.r=((m.b-ref+540)%360)-180});ms.sort((a,b)=>a.r-b.r);
+    const f=ms[0],l=ms[ms.length-1];ms.unshift({r:f.r-450/f.d/D2R,d:f.d});ms.push({r:l.r+450/l.d/D2R,d:l.d});const pts=[];for(let i=0;i<ms.length-1;i++){const A=ms[i],B=ms[i+1];for(let k=i?1:0;k<=24;k++){const t=k/24;pts.push(dest(S.pi,norm(ref+A.r+(B.r-A.r)*t),A.d+(B.d-A.d)*t))}}out.push({h,pts})});return out}
+  Ps.forEach(P=>{(P.marks||[]).forEach((m,i)=>{if(m.agl===2000||m.agl===3000)out.push({h:m.agl,pts:perp(P,m,i)})});
+    if(P.trk&&P.trk.length>1&&P.trk[0].h>10000){const done=new Set([2000,3000]);const T=P.trk.slice().reverse(),cum=[0];for(let i=1;i<T.length;i++)cum.push(cum[i-1]+dist(T[i-1].p,T[i].p));const tot=cum[cum.length-1];
+      const hAt=d=>{for(let i=1;i<T.length;i++)if(d<=cum[i]){const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return T[i-1].h+(T[i].h-T[i-1].h)*f}return null};
+      for(let d=tot/2;d>50;d/=2){const hh=hAt(d);if(hh==null||hh<3500)break;const h=Math.round(hh/1000)*1000;if(done.has(h))continue;done.add(h);const i=P.marks.findIndex(m=>m.agl===h);if(i>=0)out.push({h,pts:perp(P,P.marks[i],i)})}}});return out}
 function pkgCot(m){const d=m.data,ev=[];
   if(d.pi){// work the plan out from the package's own jump settings and winds
     const keep={pi:S.pi,jump:S.jump,winds:S.winds};S.pi=d.pi;S.jump=Object.assign({},DEF_JUMP,d.jump||{});{const xa=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);S.jump.openAlt=Math.min(+S.jump.openAlt||0,Math.max(1000,Math.floor((xa-1000)/500)*500))}d.jump=Object.assign({},d.jump,{openAlt:S.jump.openAlt});S.winds=d.winds||S.winds;let P=null;try{P=computeJump(d.pi)}catch(e){}Object.assign(S,keep);
@@ -2228,9 +2236,11 @@ function pkgCot(m){const d=m.data,ev=[];
        all on the shared run-in course; plus a line joining the pods' HARPs */
     let podEvs=null;if(S.jump.mode==='HAMO'){const gk={hamo,J2,J3,hamoHeading};try{computeHamo();if(hamo&&hamo.order&&hamo.order.length>1){const base=S.jump,jm=[base.jumpers,base.pod2Jumpers,base.pod3Jumpers],cs=[base.casSF,base.pod2Cas,base.pod3Cas];
       podEvs=hamo.order.map((Pp,i)=>jmDipCot({name:`${d.pi.name||'DIP'} POD${i+1}`,lat:d.pi.lat,lon:d.pi.lon},Object.assign({},base,{mode:'HALO',openAlt:Pp.podOpen,jumpers:+jm[i]||4,casSF:Math.max(2000,+(cs[i]??2000)),lpSF:1000,harpBrg:norm(Pp.driveH+180)}),Pp,i===0?alts.map(a=>a.uid):[]));
-      podEvs.push(cotLine(hamo.order.map(Pp=>Pp.harp),`${d.pi.name||'DIP'} POD HARPs`,'#FFD400',3,false))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
-    if(!podEvs)try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}Object.assign(S,keep);
-    if(podEvs)ev.push(...podEvs);else ev.push(dipEv||cotMark(d.pi,d.pi.name||'DIP','#FF2A2A',`DIP · DZ ${ff(+(d.jump||{}).dzElev||0)} AMSL`));
+      podEvs.push(cotLine(hamo.order.map(Pp=>Pp.harp),`${d.pi.name||'DIP'} POD HARPs`,'#FFD400',3,false));
+      phaseLinesFor(hamo.order,true).forEach(l=>podEvs.push(cotLine(l.pts,`${d.pi.name||'DIP'} ${l.h/1000}K phase line`,'#FF2A2A',3,false)))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
+    let phEvs=[];
+    if(!podEvs){try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}try{if(P&&!P.err)phEvs=phaseLinesFor([P],false).map(l=>cotLine(l.pts,`${l.h/1000}K phase line`,'#FF2A2A',3,false))}catch(e){}}Object.assign(S,keep);
+    if(podEvs)ev.push(...podEvs);else ev.push(dipEv||cotMark(d.pi,d.pi.name||'DIP','#FF2A2A',`DIP · DZ ${ff(+(d.jump||{}).dzElev||0)} AMSL`),...phEvs);
     alts.forEach(a=>ev.push(jmAltCot(a.o,a.uid)))}
   (d.xs||[]).forEach((x,i)=>ev.push(cotMark(x,x.name||`X${i+1}`,'#FF3B3B',x.alt!=null?`${ff(x.alt)} AMSL`:'')));
   (d.markers||[]).forEach(o=>ev.push(cotMark(o,o.name||'Point','#4CC6DE','')));if(!d.pi)(d.altDips||[]).forEach(o=>ev.push(cotMark(o,o.name||'ALT DIP','#F25C93','Alternate DIP')));
