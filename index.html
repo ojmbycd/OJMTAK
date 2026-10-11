@@ -691,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:25</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2023,8 +2023,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   const PP=hamo?hamo.order:[J],pods=PP.length>1,jmN=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],opA=[j.openAlt,j.pod2Open,j.pod3Open],run=({into:'into wind',down:'downwind',left:'left door 90°',right:'right door 90°',left45:'left door 45°',right45:'right door 45°',custom:'custom'})[j.runMode||'into'];
   o.innerHTML=`<h3 class="vsh">Key altitudes</h3><div class="vtiles">
     ${vt('Exit',`${ff(j.exitAlt)} AMSL · ${ff(j.exitAlt-j.dzElev)} AGL`,1)}
-    ${vt(pods?'Planned deployment (pods)':'Planned deployment',PP.map((x,i)=>ff(opA[i])).join(' / ')+' AGL',pods)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}
-    ${vt('Canopy assembly SF',ff(+j.casSF))}${vt('Landing pattern SF',ff(+j.lpSF))}</div>${vitalAlt('alts')}
+    ${vt(pods?'Planned deployment (pods)':'Planned deployment',PP.map((x,i)=>ff(opA[i])).join(' / ')+' AGL',pods)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}</div>${vitalAlt('alts')}
   <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
     ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${PP.length} pods)`:j.mode)}
     ${vt('Aircraft course',`${fb(magOf(J.heading))} M · ${fb(J.heading)} T`)}${vt('Run-in',run)}
@@ -2034,6 +2033,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   <h3 class="vsh">Parachutist data</h3><div class="vtiles">
     ${vt('Canopy',esc(j.canopy||'Custom'))}${vt('K',`${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}`)}
     ${vt('CSC',`${j.canopySpeed} kts`)}${vt('Average AUM',`${j.jumperKg} kg`)}
+    ${vt(pods?'Top SF (pods)':'Canopy assembly SF',pods?PP.map((x,i)=>ff(Math.max(2000,+[j.casSF,j.pod2Cas,j.pod3Cas][i]||2000))).join(' / '):ff(+j.casSF))}${vt('Landing pattern SF',ff(+j.lpSF))}
     ${PP.map((x,i)=>`${vt(pods?`Pod ${i+1} jumper heading`:'Jumper heading',`${fb(x.jumperHdgM)} M`)}${vt(pods?`Pod ${i+1} canopy drift`:'Canopy drift',`${Math.round(x.cdM).toLocaleString('en-GB')} m`)}`).join('')}
     ${vt('DIP',esc(fc(S.pi)),1)}</div>${vitalAlt('chute')}
   <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print vital data</button></div>`}
