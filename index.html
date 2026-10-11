@@ -217,7 +217,9 @@ button,input,select{font:inherit;color:inherit}
 .leaflet-tile-pane .leaflet-layer{filter:brightness(var(--mapb,1))}
 :root[data-night="1"] :is(.leaflet-overlay-pane,.leaflet-marker-pane,#status,#hud,#quick,#zoom,#radial,#eyeAlt,#curPos,#tip,#jmPop,#updBar){filter:grayscale(1) sepia(1) hue-rotate(-45deg) saturate(6) brightness(.85)}
 @media (max-width:700px){.leaflet-bottom.leaflet-right .leaflet-control-attribution{margin-bottom:22px}}
-#printSheet{display:none}
+#printSheet{display:none}#printSheet.preview{display:block;position:fixed;inset:0;z-index:5000;overflow:auto;background:#6b6b6b;padding:64px 12px 24px}
+#printSheet.preview .page{background:#fff;color:#000;width:190mm;margin:0 auto 14px;padding:10mm;box-shadow:0 2px 10px rgba(0,0,0,.5);font:9.5pt/1.35 Arial,Helvetica,sans-serif}
+#ppBar{position:fixed;top:0;left:0;right:0;z-index:5001;display:flex;align-items:center;gap:8px;padding:10px 12px calc(10px) 12px;padding-top:max(10px,env(safe-area-inset-top));background:#1e1e1e;color:#fff}#ppBar b{flex:1;font:600 15px var(--body)}#ppBar .btn{min-height:40px}#ppBar[hidden]{display:none}
 @media print{body>*:not(#printSheet){display:none!important}html,body{background:#fff!important;height:auto!important;overflow:visible!important}
   #printSheet{display:block!important;color:#000;background:#fff;font:10.5pt/1.35 Arial,Helvetica,sans-serif;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #printSheet h1{font-size:16pt;margin:0 0 2pt}#printSheet .psub{font-size:9pt;color:#444;margin-bottom:8pt}
@@ -228,7 +230,7 @@ button,input,select{font:inherit;color:inherit}
   #printSheet .ladder{border:.5pt solid #999}#printSheet .ladder .lstep,#printSheet .ladder .lhead{border-bottom:.5pt solid #ccc}
   #printSheet .ladder .go{border-left:5pt solid #2a9d4a!important}#printSheet .ladder .amb{border-left:5pt solid #e09b00!important}#printSheet .ladder .red{border-left:5pt solid #d62828!important}
   #printSheet dl.res dd{margin:0 0 2pt}#printSheet dl.res dd::before{content:attr(data-l) ': ';font-weight:700}
-  #printSheet .warn{border:.5pt solid #999;padding:4pt;margin:4pt 0}@page{size:A4 portrait;margin:10mm}#printSheet .page{width:190mm;max-height:277mm;overflow:hidden}
+  #printSheet .warn{border:.5pt solid #999;padding:4pt;margin:4pt 0}@page{size:A4 portrait;margin:10mm}#printSheet.preview{position:static!important;overflow:visible!important;padding:0!important;background:#fff!important}#printSheet .page{zoom:1!important;box-shadow:none!important;margin:0!important;padding:0!important}#printSheet .page{width:190mm;max-height:277mm;overflow:hidden}
   #printSheet .page{break-after:page;font-size:9.5pt}#printSheet .page:last-child{break-after:auto}
   #printSheet .phead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2pt solid #000;margin-bottom:6pt;padding-bottom:2pt}#printSheet .phead b{font-size:15pt}#printSheet .phead span{font-size:8.5pt}
   #printSheet table.kv{width:100%;margin-bottom:6pt}#printSheet table.kv th{width:34%;font-weight:700;background:#eee!important}
@@ -686,7 +688,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -807,6 +809,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="printSheet"></div>
+<div id="ppBar" hidden><b>Print preview · A4</b><button class="btn primary" id="ppPrint">Print</button><button class="btn" id="ppClose">Close</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
@@ -1994,7 +1997,12 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
     <table class="grid"><thead><tr><th>Point</th><th>MGRS</th><th>Lat, long</th></tr></thead><tbody><tr><td><b>HARP${pods?' (first pod)':''}</b></td><td><b>${esc(fc(P[0].harp))}</b></td><td>${ll(P[0].harp)}</td></tr></tbody></table>
     ${pods?`<p>${P.length} pods on one run-in: ${hamo.waits.map((t,i)=>`pod ${i+1} last out to pod ${i+2} green ${Math.round(t)} s`).join(', ')}.</p>`:''}
     ${kv([['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
-  $('#printSheet').innerHTML=p1+p2+p3;setTimeout(()=>window.print(),80)}
+  $('#printSheet').innerHTML=p1+p2+p3;openPrintPreview()}
+/* preview: the three A4 pages on screen (same styles as the printout), scaled to the screen, with Print and Close */
+let ppCss=false;function openPrintPreview(){const ps=$('#printSheet');if(!ppCss){let css='';for(const sh of document.styleSheets){try{for(const r of sh.cssRules){if(r.media&&r.media.mediaText==='print'){for(const x of r.cssRules){const t=x.cssText;if(/^@page|^html|^body|^#printSheet\s*\{|preview|zoom/.test(t))continue;css+=t+'\n'}}}}catch(e){}}
+    const st=document.createElement('style');st.textContent=css.replace(/#printSheet/g,'#printSheet.preview')+'#printSheet.preview .page{max-height:none!important;background-color:#fff!important}#printSheet.preview table.kv th,#printSheet.preview table.grid th{background-color:#eee!important}';document.head.appendChild(st);ppCss=true}
+  ps.classList.add('preview');$('#ppBar').hidden=false;const z=Math.min(1,(innerWidth-24)/(190*96/25.4+24));ps.querySelectorAll('.page').forEach(pg=>pg.style.zoom=z);ps.scrollTop=0}
+function closePrintPreview(){$('#printSheet').classList.remove('preview');$('#ppBar').hidden=true}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
@@ -2019,7 +2027,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod 1 first</dd>${hamo.C?`<dd data-l="Pod 3">opens ${ff(S.jump.pod3Open)} AGL · ${S.jump.pod3Jumpers} jumpers</dd><dd data-l="HARP 3">${fc(J3.harp)} · ${J3.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP 2 to 3">${fd(J3.along-J2.along)} · ${fsec(hamo.gaps[1])} at run-in speed</dd>`:''}`:''}
     <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
-  <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print calc sheet</button></div>`}
+  <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print vital data</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
@@ -2099,7 +2107,7 @@ async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const 
 $('#qnhNearest').onclick=nearestQnh;
 /* Vital data buttons: export the current plan for ATAK, print the calc sheet */
 function exportJump(){if(!S.pi){toast('Place the DIP first');return}const nm=(S.pi.name||'Jump'),m={id:'live',name:nm,saved:Date.now(),data:JSON.parse(JSON.stringify(snapshot()))};shareFile(pkgZip(m),`${nm.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'jump'}_ATAK.zip`,`${nm} (ATAK data package)`)}
-document.addEventListener('click',e=>{if(e.target.id==='exportJump')exportJump();if(e.target.id==='printCalcs2')printCalcs()});
+document.addEventListener('click',e=>{if(e.target.id==='exportJump')exportJump();if(e.target.id==='printCalcs2')printCalcs();if(e.target.id==='ppPrint')window.print();if(e.target.id==='ppClose')closePrintPreview()});
 $('#cypModel').onchange=e=>{if(e.target.value==='__addcyp'){fillCypSel();cypCustomSheet(null);return}S.jump.cypModel=e.target.value;save('jump');$('#cypCustomRow').hidden=!e.target.value.startsWith('c:');renderMilCypres();renderJump()};
 $('#cypEdit').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(c)cypCustomSheet(c)};
 $('#cypDel').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(!c)return;sheet({title:`Delete ${c.name}?`,buttons:[['Delete',()=>{S.cypCustom=S.cypCustom.filter(x=>x.id!==c.id);save('cypCustom');loadCypCustom();S.jump.cypModel='mj1900';save('jump');fillCypSel();renderMilCypres();renderJump()},'danger']]})};
