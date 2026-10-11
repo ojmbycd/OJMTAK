@@ -302,6 +302,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg.full{display:flex}
+.vsh{margin:16px 0 6px;font:600 16px var(--body);text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}.vsh:first-child{margin-top:4px}
 .vtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin:8px 0}.vt{border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}.vt span{display:block;font:400 12px var(--body);color:var(--mute)}.vt b{display:block;font:600 16px/1.25 var(--cond);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.vt.wide{grid-column:1/-1}
 .vsum{margin:10px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}.vsum .sh{padding:6px 10px;font:500 14px var(--cond);background:color-mix(in srgb,var(--panel2) 70%,transparent);color:var(--ink)}.vsum .sr{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-top:1px solid var(--line);font:400 14px var(--cond)}.vsum .sr b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}.vsum .sr.ok span{color:var(--go)}.vsum .sr.bad{background:color-mix(in srgb,var(--stop) 18%,transparent)}.vsum .sr.bad span{color:var(--stop);font-weight:600}
 #milOut tr.key td{font-weight:600}
@@ -690,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 08:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1945,9 +1946,19 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 
 
 /* Jump Vital Data: altimeters, heights AGL and checks, worked as on the manifest & pilot brief sheet */
-function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
+function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
+  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · rounded up to nearest 100 in brackets</div>
+    ${hts.map(([k,v])=>r(k,`${ff(v)} (${Math.ceil(v/100)*100})`)).join('')}
+    <div class="sh">Checks</div>
+    <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
+    <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
+  if(part==='chute')return `<div class="vsum"><div class="sh">Altimeters</div>
+    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',esc(qnhSrcText())):''}
+    ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
+    ${r('STRATOS',c.offset!=null?`${sgnFt(-c.offset)} / ${c.qfeDz} mb`:'–')}
+    ${r('CYPRES setting',`${c.cypMb} mb`)}</div>`;
   return `<div class="vsum"><div class="sh">Altimeters</div>
     ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',esc(qnhSrcText())):''}
     ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
@@ -2008,30 +2019,23 @@ let ppCss=false;function openPrintPreview(){const ps=$('#printSheet');if(!ppCss)
   ps.classList.add('preview');$('#ppBar').hidden=false;const z=Math.min(1,(innerWidth-24)/(190*96/25.4+24));ps.querySelectorAll('.page').forEach(pg=>pg.style.zoom=z);ps.scrollTop=0}
 function closePrintPreview(){$('#printSheet').classList.remove('preview');$('#ppBar').hidden=true}
 function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionName();if(!J||J.err){o.innerHTML=`<p class="note">${esc(J?J.err:'Plan a jump first.')}</p>`;return}const j=S.jump;
-  /* each figure in its own labelled box */const vt=(l,v,w)=>`<div class="vt${w?' wide':''}"><span>${l}</span><b>${v}</b></div>`;
-  o.innerHTML=`<div class="vtiles">
-    ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${pods3()?3:2} pods)`:j.mode)}
+  /* grouped: key altitudes, JumpMaster data, parachutist data; each figure in its own labelled box */const vt=(l,v,w)=>`<div class="vt${w?' wide':''}"><span>${l}</span><b>${v}</b></div>`;
+  const PP=hamo?hamo.order:[J],pods=PP.length>1,jmN=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],opA=[j.openAlt,j.pod2Open,j.pod3Open],run=({into:'into wind',down:'downwind',left:'left door 90°',right:'right door 90°',left45:'left door 45°',right45:'right door 45°',custom:'custom'})[j.runMode||'into'];
+  o.innerHTML=`<h3 class="vsh">Key altitudes</h3><div class="vtiles">
     ${vt('Exit',`${ff(j.exitAlt)} AMSL · ${ff(j.exitAlt-j.dzElev)} AGL`,1)}
-    ${vt('Opening',`${ff(j.openAlt)} AGL`)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}
+    ${vt(pods?'Planned deployment (pods)':'Planned deployment',PP.map((x,i)=>ff(opA[i])).join(' / ')+' AGL',pods)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}
+    ${vt('Canopy assembly SF',ff(+j.casSF))}${vt('Landing pattern SF',ff(+j.lpSF))}</div>${vitalAlt('alts')}
+  <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
+    ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${PP.length} pods)`:j.mode)}
+    ${vt('Aircraft course',`${fb(magOf(J.heading))} M · ${fb(J.heading)} T`)}${vt('Run-in',run)}
+    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('TAS',kts(Math.round(J.tas)))}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
+    ${PP.map((x,i)=>`${vt(pods?`HARP pod ${i+1}${x.ok===false?' · OUTSIDE ring':''}`:'HARP (first out)',esc(fc(x.harp)),1)}${vt(pods?`Pod ${i+1} jumpers`:'No. of jumpers',+jmN[i]||'–')}${vt(pods?`Pod ${i+1} stick`:'Stick',`${Math.round(x.stick)} m`)}`).join('')}
+    ${vt('HARP to DIP',`${fd(dist(J.harp,S.pi))} · ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM`)}${pods?vt('Time between pods',hamo.waits.map(t=>Math.round(t)+' s').join(' / ')):''}</div>
+  <h3 class="vsh">Parachutist data</h3><div class="vtiles">
     ${vt('Canopy',esc(j.canopy||'Custom'))}${vt('K',`${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}`)}
     ${vt('CSC',`${j.canopySpeed} kts`)}${vt('Average AUM',`${j.jumperKg} kg`)}
-    ${vt('No. of jumpers',j.jumpers)}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
-    ${vt('Canopy assembly SF',ff(+j.casSF))}${vt('Landing pattern SF',ff(+j.lpSF))}
-    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('TAS',kts(Math.round(J.tas)))}
-    ${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}
-  </div>${vitalAlt()}
-  <dl class="res">
-    <dd data-l="Free Fall">${J.ffM>0.5?`${Math.round(J.ffM).toLocaleString("en-GB")} m @ ${fb(brg(J.prp,J.op))} T`:"none"}</dd>
-    <dd data-l="Canopy Drift">${Math.round(J.cdM).toLocaleString("en-GB")} m @ ${fb(brg(J.op,S.pi))} T</dd>
-    <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M</dd>
-    <dd data-l="PRP (canopy opens)">${fc(J.op)}</dd><dd data-l="HARP to PRP">${fd(dist(J.harp,J.op))}, freefall drift</dd>
-    
-    <dd data-l="Aircraft Course">${fb(J.heading)} T · ${({into:'into wind',down:'downwind',left:'crosswind left door 90°',right:'crosswind right door 90°',left45:'crosswind left door 45°',right45:'crosswind right door 45°',custom:'custom'})[j.runMode||'into']}</dd>
-    <dd data-l="DIP">${fc(S.pi)}</dd>
-    <dd data-l="HARP to DIP">${fd(dist(J.harp,S.pi))} | ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM</dd>
-    <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod 1 first</dd>${hamo.C?`<dd data-l="Pod 3">opens ${ff(S.jump.pod3Open)} AGL · ${S.jump.pod3Jumpers} jumpers</dd><dd data-l="HARP 3">${fc(J3.harp)} · ${J3.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP 2 to 3">${fd(J3.along-J2.along)} · ${fsec(hamo.gaps[1])} at run-in speed</dd>`:''}`:''}
-    <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
-  </dl>
+    ${PP.map((x,i)=>`${vt(pods?`Pod ${i+1} jumper heading`:'Jumper heading',`${fb(x.jumperHdgM)} M`)}${vt(pods?`Pod ${i+1} canopy drift`:'Canopy drift',`${Math.round(x.cdM).toLocaleString('en-GB')} m`)}${vt(pods?`Pod ${i+1} PRP (canopy opens)`:'PRP (canopy opens)',esc(fc(x.op)),1)}`).join('')}
+    ${vt('Free fall',J.ffM>0.5?`${Math.round(J.ffM).toLocaleString('en-GB')} m`:'none')}${vt('DIP',esc(fc(S.pi)),1)}</div>${vitalAlt('chute')}
   <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print vital data</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
