@@ -684,7 +684,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 07:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 07:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2228,17 +2228,19 @@ function syncWindRows(){const have=new Map(S.winds.map(w=>[Math.round(w.alt),w])
 function windValue(spd){const v=Math.round(+spd);if(!isFinite(v))return '–';return v<=2?'Zero':v<=7?'¼':v<=12?'½':v<=17?'¾':v<=22?'FV':'FV+'}
 /* value colour: FV+ red, FV amber, the rest green */
 const wvCol=spd=>{if(spd==null||spd==='')return 'var(--mute)';const v=Math.round(+spd);return v>22?'#FF3B30':v>17?'#FFB020':'#39FF6A'};
-function windOrder(){const ix=S.winds.map((_,i)=>i);return S.set.windDesc?ix.reverse():ix}
-function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel ⇄ Dir':'Dir ⇄ Vel';$('#windOrder').textContent='Alt ⇅';$('#windOrder').title=S.set.windDesc?'Highest first, tap to switch':'Lowest first, tap to switch';
+/* wind table runs from exit down to the surface unless switched */
+const wDesc=()=>S.set.windDesc!==false;S.set.windDesc=true;/* every session opens exit-down */
+function windOrder(){const ix=S.winds.map((_,i)=>i);return wDesc()?ix.reverse():ix}
+function renderWinds(){syncWindRows();const vf=!!S.set.windVelFirst;$('#windSwap').textContent=vf?'Vel ⇄ Dir':'Dir ⇄ Vel';$('#windOrder').textContent='Alt ⇅';$('#windOrder').title=wDesc()?'Highest first, tap to switch':'Lowest first, tap to switch';
   $('#windHead').innerHTML=`<th>Alt ft (m)</th>${vf?'<th>Vel kt</th><th>Dir °T</th>':'<th>Dir °T</th><th>Vel kt</th>'}<th>Value</th><th></th>`;
   const cell=(i,f,v)=>`<td><input type="number" inputmode="decimal" data-w="${i}" data-f="${f}" value="${v??''}"></td>`;
   $('#windRows').innerHTML=windOrder().map(i=>{const w=S.winds[i];return `<tr><td style="font:400 13px var(--cond);color:var(--mute);white-space:nowrap">${i===0?'Sfc ':''}${w.alt.toLocaleString('en-GB')} <small>(${Math.round(w.alt*FT)} m)</small></td>${vf?cell(i,'spd',w.spd)+cell(i,'dir',w.dir):cell(i,'dir',w.dir)+cell(i,'spd',w.spd)}<td class="wv" style="font:500 13px var(--cond);white-space:nowrap;color:${wvCol(w.spd)}">${w.spd==null?'–':windValue(+w.spd)}</td><td><button class="iconbtn" data-wcopy="${i}" title="Copy this row down" aria-label="Copy this row down">↓</button></td></tr>`}).join('');
   /* amber divider at the opening altitude: freefall winds on one side, canopy winds on the other */
   {const dz=+S.jump.dzElev||0,opens=[[+S.jump.openAlt,S.jump.mode==='HAMO'?'Pod 1 opens':'Opening']];if(S.jump.mode==='HAMO'&&+S.jump.pod2Open)opens.push([+S.jump.pod2Open,'Pod 2 opens']);if(pods3()&&+S.jump.pod3Open)opens.push([+S.jump.pod3Open,'Pod 3 opens']);
-    const rows=[...$('#windRows').children],desc=!!S.set.windDesc;
+    const rows=[...$('#windRows').children],desc=!!wDesc();
     opens.filter(o=>o[0]>0).forEach(([agl,lbl])=>{const amsl=agl+dz;const tr=document.createElement('tr');tr.className='wopen';tr.innerHTML=`<td colspan="5"><span>${desc?'▲ Freefall':'▲ Canopy'}</span><b>${lbl} ${ff(agl)} AGL (${ff(Math.round(amsl))} AMSL)</b><span>${desc?'Canopy ▼':'Freefall ▼'}</span></td>`;
       const after=rows.filter(r=>{const a=S.winds[+r.querySelector('[data-w]')?.dataset.w]?.alt;return a!=null&&(desc?a>=amsl:a<=amsl)});const ref=after[after.length-1];if(ref)ref.after(tr);else $('#windRows').prepend(tr)})}}
-$('#windSwap').onclick=()=>{S.set.windVelFirst=!S.set.windVelFirst;save('set');renderWinds()};$('#windOrder').onclick=()=>{S.set.windDesc=!S.set.windDesc;save('set');renderWinds()};
+$('#windSwap').onclick=()=>{S.set.windVelFirst=!S.set.windVelFirst;save('set');renderWinds()};$('#windOrder').onclick=()=>{S.set.windDesc=!wDesc();save('set');renderWinds()};
 $('#windRows').addEventListener('input',e=>{const i=e.target.dataset.w;if(i==null)return;const v=parseFloat(e.target.value);S.winds[i][e.target.dataset.f]=!isFinite(v)?null:e.target.dataset.f==='dir'?norm(v):v;save('winds');const row=e.target.closest('tr');if(row){const c=row.querySelector('.wv');c.textContent=S.winds[i].spd==null?'–':windValue(+S.winds[i].spd);c.style.color=wvCol(S.winds[i].spd)}clearTimeout(jt);jt=setTimeout(renderJump,200)});
 $('#windRows').addEventListener('click',e=>{const d=e.target.closest('[data-wcopy]');if(!d)return;const i=+d.dataset.wcopy,o=windOrder();o.slice(o.indexOf(i)+1).forEach(k=>{S.winds[k].dir=S.winds[i].dir;S.winds[k].spd=S.winds[i].spd});save('winds');renderWinds();renderJump()});
 
