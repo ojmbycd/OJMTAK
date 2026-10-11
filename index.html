@@ -399,7 +399,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 .ladder{border:1px solid var(--line);border-radius:10px;overflow:hidden}.ladder .lhead,.ladder .lstep{display:grid;grid-template-columns:1fr 88px 80px;align-items:center;gap:6px;padding:8px 10px}
 .ladder .lhead{font:600 13px var(--body);color:var(--mute);border-bottom:1px solid var(--line)}.ladder .lhead div:not(:first-child),.ladder .lmsl,.ladder .lagl{text-align:right;font-variant-numeric:tabular-nums}
 .ladder .lstep{border-left:6px solid transparent;border-bottom:1px solid var(--line)}.ladder .lname{font:500 15px/1.2 var(--body)}.ladder .lname small{display:block;font-size:12px;color:var(--mute);font-weight:400}
-.ladder .lmsl{font:400 15px var(--cond);color:var(--mute)}.ladder .lagl{font:700 17px var(--cond)}
+.ladder .lbrf{display:block;font:500 13px var(--cond);color:var(--mute)}.ladder .lmsl{font:400 15px var(--cond);color:var(--mute)}.ladder .lagl{font:700 17px var(--cond)}
 .ladder .go{border-left-color:var(--go)}.ladder .amb{border-left-color:var(--amber)}.ladder .red{border-left-color:var(--stop)}.ladder .dim{border-left-color:var(--line)}.ladder .dim .lname,.ladder .ref .lname{font-weight:400}
 .ladder .strike .lname,.ladder .strike .lmsl{text-decoration:line-through;opacity:.6}.ladder .strike .lname small{text-decoration:none}
 .ladder .bad{background:rgba(214,40,40,.18)}.ladder .bad .lname,.ladder .bad .lagl,.ladder .bad .lmsl,.ladder .bad .lname small{color:var(--stop)}
@@ -660,7 +660,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <h3>VDZ / HRPO check</h3>
             <p class="note" id="hrpoRule"></p>
             <p id="hrpoOut" class="hrpo">Not checked yet.</p>
-            <div class="row"><button class="btn" id="hrpoCheck">Check again</button><button class="btn" id="hrpoHeat">Terrain heatmap</button><button class="btn" id="hrpoHeatClr" hidden>Clear heatmap</button></div>
+            <div class="row" style="flex-wrap:nowrap"><button class="btn" id="hrpoCheck" style="flex:1">Check again</button><button class="btn" id="hrpoHeat" style="flex:1">Terrain heatmap</button><button class="btn" id="hrpoHeatClr" hidden style="flex:none;background:var(--stop);border-color:var(--stop);color:#fff">Clear</button></div>
             <div class="fields mt"><label class="fld"><span style="white-space:nowrap">VDZ override (ft AMSL)</span><input type="number" inputmode="decimal" id="vdzManual" placeholder="none"></label></div>
                       </section>
           <div id="milOut"></div>
@@ -693,7 +693,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 12:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1447,7 +1447,7 @@ function renderJump(){autoDecl();syncExit();{const g=$('#gsOut');if(g)g.innerHTM
   J.timePts.forEach(tp=>{const r=dist(rc,tp.p);L.circle(LL(rc),{radius:r,color:c.amb,weight:1,dashArray:'4 6',fill:false,interactive:false}).addTo(LY.jump)})}
   if(hamo&&J2)[[J2,'2',J],...(J3?[[J3,'3',J2]]:[])].forEach(([JP,n,PREV])=>{
     calc(JP.op,'<path d="M-11 0A11 10 0 0 1 11 0Q5.5-2.5 0 0Q-5.5-2.5-11 0Z"/><path d="M-10 0 0 10M10 0 0 10M0 0V10" fill="none" stroke="'+c.amb+'" stroke-width="1.4"/><circle cy="11.5" r="2.3"/>',c.amb,'PRP '+n,'open'+n);
-    if(showRun){runTag(JP.harp,hamoHeading,'HARP '+n,JP.ok?c.go:Rd);L.marker(LL(JP.harp),{icon:divPin('<circle r="6"/>',JP.ok?c.go:Rd,'',18)}).on('click',()=>openRadial(JP.harp,[{l:'Navigate to',icon:'hound',f:()=>setTarget('c:harp'+n)},{l:'Copy grid',icon:'save',f:()=>copy(fc(JP.harp))}],`HARP ${n} · ${fc(JP.harp)}`)).addTo(LY.jump);calc(JP.rl,'<circle r="8"/>',c.st,'','rl'+n);const mid={lat:(PREV.harp.lat+JP.harp.lat)/2,lon:(PREV.harp.lon+JP.harp.lon)/2};/* countdown dots on the run-in from the first pod's last out to the next pod's first out */{const f=PREV,nx=JP,gsp=Math.max(5,f.gsM),gap=Math.max(0,hamo.clears[+n-2])/gsp;for(const [t,lb] of [[30,'30 s'],[60,'1 min'],[120,'2 min'],[240,'4 min'],[360,'6 min'],[600,'10 min']]){if(t>=gap-1)break;const q=dest(nx.gl,norm(hamoHeading+180),gsp*t);L.circleMarker(LL(q),{radius:3.5,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(q),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">${lb}</span>`}),interactive:false}).addTo(LY.jump)}}L.marker(LL(mid),{icon:L.divIcon({className:'pin',iconSize:[16,16],iconAnchor:[8,8],html:`<svg viewBox="-8 -8 16 16" width="16" height="16" style="display:block;transform:rotate(${hamoHeading}deg);overflow:visible"><path d="M0-7 5.5 5 0 2.5-5.5 5Z" fill="#FFD400" stroke="#141414" stroke-width="1"/></svg>`}),interactive:false}).addTo(LY.jump)}})
+    if(showRun){runTag(JP.harp,hamoHeading,'HARP '+n,JP.ok?c.go:Rd);L.marker(LL(JP.harp),{icon:divPin('<circle r="6"/>',JP.ok?c.go:Rd,'',18)}).on('click',()=>openRadial(JP.harp,[{l:'Navigate to',icon:'hound',f:()=>setTarget('c:harp'+n)},{l:'Show grid',icon:'grid',f:()=>showGrid('HARP '+n,JP.harp)}],`HARP ${n} · ${fc(JP.harp)}`)).addTo(LY.jump);calc(JP.rl,'<circle r="8"/>',c.st,'','rl'+n);const mid={lat:(PREV.harp.lat+JP.harp.lat)/2,lon:(PREV.harp.lon+JP.harp.lon)/2};/* countdown dots on the run-in from the first pod's last out to the next pod's first out */{const f=PREV,nx=JP,gsp=Math.max(5,f.gsM),gap=Math.max(0,hamo.clears[+n-2])/gsp;for(const [t,lb] of [[30,'30 s'],[60,'1 min'],[120,'2 min'],[240,'4 min'],[360,'6 min'],[600,'10 min']]){if(t>=gap-1)break;const q=dest(nx.gl,norm(hamoHeading+180),gsp*t);L.circleMarker(LL(q),{radius:3.5,color:'#141414',weight:1,fillColor:c.amb,fillOpacity:1,interactive:false}).addTo(LY.jump);L.marker(LL(q),{icon:L.divIcon({className:'pin',iconSize:[0,0],html:`<span class="klbl" style="color:${c.amb}">${lb}</span>`}),interactive:false}).addTo(LY.jump)}}L.marker(LL(mid),{icon:L.divIcon({className:'pin',iconSize:[16,16],iconAnchor:[8,8],html:`<svg viewBox="-8 -8 16 16" width="16" height="16" style="display:block;transform:rotate(${hamoHeading}deg);overflow:visible"><path d="M0-7 5.5 5 0 2.5-5.5 5Z" fill="#FFD400" stroke="#141414" stroke-width="1"/></svg>`}),interactive:false}).addTo(LY.jump)}})
   if(view3d){const k3=FT*Math.tan(48*D2R),up=(p,h)=>dest(p,0,Math.max(0,h)*k3),dzE=+S.jump.dzElev||0,exA=(+S.jump.exitAlt)-dzE,pull=+S.jump.openAlt,cas=+S.jump.casSF||0,lp=+S.jump.lpSF||0;
     const drop=(p,h,col)=>{L.polyline([LL(p),LL(up(p,h))],{color:col,weight:1,opacity:.7,dashArray:'2 4',interactive:false}).addTo(LY.jump)};
     L.polyline([LL(up(J.prp,exA)),LL(up(J.op,pull))],{color:c.amb,weight:3,dashArray:'2 7',interactive:false}).addTo(LY.jump);
@@ -1692,7 +1692,7 @@ $('#bPhase').onclick=()=>sheet({title:'Jump phase',sub:phaseAuto?'Detected autom
 
 async function autoDzElev(force){if(!S.pi)return;const p={lat:S.pi.lat,lon:S.pi.lon};const m=await groundElevM(p);if(m==null&&force)toast('Could not get the DIP elevation (no signal?). Enter it in the planner.');if(m==null||!S.pi||S.pi.lat!==p.lat||S.pi.lon!==p.lon)return;const ft=Math.round(m/FT);if(ft!==S.jump.dzElev||force){S.jump.dzElev=ft;S.jump.dzSrc='from terrain';save('jump');syncJumpInputs();renderWinds();renderJump();toast(`DIP elevation set to ${ff(ft)} from terrain`)}}
 /* ================= DIP radial menu ================= */
-const RI={mountain:'<path d="M2 20 9 7l4 6 3-4 6 11Z"/>',ruler:'<path d="M3 15 15 3l6 6L9 21Z"/><path d="M7 11l2 2M10 8l2 2M13 5l2 2M6 14l1.5 1.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
+const RI={mountain:'<path d="M2 20 9 7l4 6 3-4 6 11Z"/>',ruler:'<path d="M3 15 15 3l6 6L9 21Z"/><path d="M7 11l2 2M10 8l2 2M13 5l2 2M6 14l1.5 1.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',palette:'<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.4"/><circle cx="12" cy="7.5" r="1.4"/><circle cx="16" cy="10" r="1.4"/><path d="M12 21a3 3 0 0 1 0-6h3"/>',thick:'<path d="M4 6h16" stroke-width="1"/><path d="M4 11h16" stroke-width="2.5"/><path d="M4 17h16" stroke-width="4"/>',dash:'<path d="M3 12h4M10 12h4M17 12h4"/>',swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',angle:'<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>',uncalc:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>',edit:'<path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z"/>',params:'<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="17" cy="12" r="2"/><circle cx="14" cy="18" r="2"/>',alt:'<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/>',pattern:'<path d="M6 4v14h12V6"/><path d="M15 9l3-3 3 3"/>',save:'<path d="M5 3h11l3 3v15H5Z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',grid:'<path d="M4 9h16M4 15h16M9 4v16M15 4v16"/>',hound:'<path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/>',del:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',primary:'<path d="M12 3l3 6 6 1-4.5 4.3L18 21l-6-3-6 3 1.5-6.7L3 10l6-1z"/>'};
 /* options for a point, line or label: a circle of buttons around it; whatever is picked opens in the docked panel with the map centred on the item */
 let radialCtx=null;var lineMovedAt=0;
 /* the item whose menu is open gets a white glow so you can see it is the right one; it stays while its settings are open */
@@ -1728,7 +1728,9 @@ function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
   {l:'Start jump',icon:'hound',f:()=>startJumpAs('ac')},
   {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
-  {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}],t)}
+  {l:'Show grid',icon:'grid',f:()=>showGrid('HARP',J.harp)}],t)}
+/* HARP > Show grid: the grid written out large to read off, with a copy button */
+function showGrid(name,p){sheet({side:true,title:`${name} grid`,sub:`${fc(p)}\n${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`,buttons:[['Copy grid',()=>copy(fc(p)),'primary']]})}
 /* alternate DIPs */
 function altDipSheet(){sheet({side:true,title:'Alternate DIPs',sub:S.altDips.length?`${S.altDips.length} saved`:'None yet',buttons:[['Add: tap on map',()=>{closeTool();setMode('altdip','Tap the map to place an alternate DIP')}],['Add at my position',()=>{if(!me){toast('No position yet');return}addAltDip(me)}],...S.altDips.map((d,i)=>[`Make ${d.name} primary`,()=>useAltAsDip(d.id,false)])]})}
 function addAltDip(p){const d={id:uid(),name:`ALT ${S.altDips.length+1}`,lat:p.lat,lon:p.lon};S.altDips.push(d);save('altDips');renderAltDips();toast(`${d.name} added`)}
@@ -1948,11 +1950,12 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 
 
 /* Jump Vital Data: altimeters, heights AGL and checks, worked as on the manifest & pilot brief sheet */
+const up100=v=>Math.ceil(Math.round(v)/100)*100;/* briefed heights: rounded up to the next 100 ft */
 function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
-  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · AMSL in brackets, rounded up to the next 100 ft</div>
-    ${hts.map(([k,v])=>r(k,`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(Math.ceil((v+c.dz)/100)*100)} AMSL)</small>`)).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">(${ff(Math.ceil(c.dz/100)*100)} AMSL)</small>`)}
+  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first)</div>
+    ${hts.map(([k,v])=>r(k,k==='Exit (despatch)'?`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`:ff(v))).join('')}${r('DIP elevation',`0 ft <small style="font-weight:400;color:var(--mute)">(${ff(c.dz)} AMSL)</small>`)}
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
@@ -2084,14 +2087,14 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DIP elevation (DIP elevation ${ff(dz)}).`;
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
   /* key altitude ladder: highest at the top, each step colour-coded, AGL in bold, reference heights set apart underneath */
-  const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`;
+  const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`,brf=v=>`${ff(v)}<small class="lbrf">(${up100(v).toLocaleString('en-GB')})</small>`;
   const hasV=c.v.src!=='DIP elevation',vft=hasV?(c.v.ft??c.base):c.dz;
   const ladder=t=>`<div class="ladder mt"><div class="lhead"><div>${esc(t.T)}</div><div>MSL</div><div>AGL</div></div>
-    ${c.lowOpen<c.minDep?step('red bad','Planned deployment',ff(c.dz+c.lowOpen),ff(c.lowOpen),`below minimum ${ff(c.minDep)} AGL: raise it`):step('dim','Planned deployment',ff(c.dz+c.lowOpen),ff(c.lowOpen),'')}
-    ${step('go','Adjusted minimum deployment',ff(t.amd),ff(t.amdAgl),unk?'+1,000 ft, setting unknown':'')}
+    ${c.lowOpen<c.minDep?step('red bad','Planned deployment',ff(c.dz+c.lowOpen),brf(c.lowOpen),`below minimum ${ff(c.minDep)} AGL: raise it`):step('dim','Planned deployment',ff(c.dz+c.lowOpen),brf(c.lowOpen),'')}
+    ${step('go','Adjusted minimum deployment',ff(t.amd),brf(t.amdAgl),unk?'+1,000 ft, setting unknown':'')}
     ${step('dim','Minimum deployment',ff(t.md),'',`+${t.dep.toLocaleString('en-GB')} ft`)}
-    ${step('amb','Decision',ff(t.da),ff(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
-    ${step('red','Reserve activation',ff(t.raa),ff(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
+    ${step('amb','Decision',ff(t.da),brf(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
+    ${step('red','Reserve activation',ff(t.raa),brf(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
     <div class="lsep">Reference</div>
     ${step(unk?'ref':'ref strike','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
     ${step('ref','DIP elevation',ff(c.dz),'')}
