@@ -249,7 +249,7 @@ button,input,select{font:inherit;color:inherit}
   #printSheet .pchk{font-size:8.5pt;margin-top:3pt}#printSheet .pchk.bad{font-weight:700}#printSheet table.pods td{white-space:nowrap}
   #printSheet .olines i{display:block;border-bottom:.5pt solid #999;height:13pt}
   #printSheet .phl3{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:6pt;margin-bottom:4pt}#printSheet .phl3 div{border:1.5pt solid #000;padding:5pt 7pt}#printSheet .phl3 span{display:block;font-size:8.5pt;font-weight:700}#printSheet .phl3 b{display:block;font-size:15pt;line-height:1.25;white-space:nowrap}#printSheet .phl3 small{font-size:8pt}
-  #printSheet .pdesc{font:700 9pt Arial,sans-serif;letter-spacing:.06em;margin:2pt 0 4pt}#printSheet .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6pt;margin-bottom:8pt}#printSheet .pbx{border:1.5pt solid #000;padding:5pt 8pt;min-height:44pt}#printSheet .pbx>span{display:block;font-size:8.5pt;font-weight:700;margin-bottom:2pt}#printSheet .pbx b{display:block;font-size:15pt;line-height:1.25}#printSheet .pbx b.sm{font-size:12pt;margin-top:3pt}#printSheet .pbx small b{display:inline;font-size:inherit}#printSheet .pbx p{margin:2pt 0 0;font-size:10.5pt}#printSheet .pbx p.pfill{font-size:11.5pt;margin:4pt 0 3pt}#printSheet .pbx p.pfill b{display:inline;font-size:15pt}
+  #printSheet .pdesc{font:700 9pt Arial,sans-serif;letter-spacing:.06em;margin:2pt 0 4pt}#printSheet .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6pt;margin-bottom:8pt}#printSheet .pbx{border:1.5pt solid #000;padding:5pt 8pt;min-height:44pt}#printSheet .pbx>span{display:block;font-size:8.5pt;font-weight:700;margin-bottom:2pt}#printSheet .pbx b{display:block;font-size:15pt;line-height:1.25}#printSheet .pbx b.sm{font-size:12pt;margin-top:3pt}#printSheet .pbx small b{display:inline;font-size:inherit}#printSheet .pbx p{margin:2pt 0 0;font-size:10.5pt}#printSheet .pfl{display:flex;align-items:flex-end;gap:6pt;margin-top:3pt;font-size:10.5pt}#printSheet .pfl span{white-space:nowrap}#printSheet .pbx .pfl b{flex:1;display:block;border-bottom:.5pt dotted #000;font-size:13pt;line-height:1.1;min-height:14pt;padding-left:4pt}#printSheet .pbx p.pfill{font-size:11.5pt;margin:4pt 0 3pt}#printSheet .pbx p.pfill b{display:inline;font-size:15pt}
   #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:10pt}#printSheet small{font-size:7.5pt;color:#444!important}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
@@ -700,7 +700,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 16:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 16:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2025,10 +2025,9 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
       ${pb(2,'HARP (MGRS)',`<b>${esc(fc(P[0].harp))}</b><small>${pods?'pod 1 · ':''}${ll(P[0].harp)}</small>`)}
       ${pb(3,'AC run in / speed in KIAS',`<b>${fb(magOf(J.heading))} M · ${j.kias} KIAS</b><small>${fb(J.heading)} T · about ${kts(Math.round(J.gsM/KT))} over the ground</small>`)}
       ${pb(4,'Timing calls on board / lights',`<p>10 min winds · 4 min flashing lights · 2 min red light and ramp · 1 min green light</p>`)}
-      ${pb(5,'Pass and stick breakdown',`<p class="pfill"><b>${tot||'.........'}</b> exiting aircraft &nbsp; ......... staying on board</p><small>One pass · ${pods?P.map((x,i)=>`pod ${i+1}: ${+jm[i]||0}`).join(' · ')+' · ':''}${j.interval} s exit separation · <b>${fsec(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot)}</b> first to last out</small>`)}
+      ${pb(5,'Pass and stick breakdown',`<div class="pfl"><span>Exiting aircraft</span><b></b></div><div class="pfl"><span>Staying on board</span><b></b></div><div class="pfl"><span>All up mass (lbs)</span><b></b></div>`)}
       ${pb(6,'Additional vital data (O2 / emergencies)','<div class="olines"><i></i><i></i></div>')}
     </div>
-    <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr></table>
     ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Aircraft altimeter setting',c&&!c.unk?(j.qnhUnit==='inhg'?`${(+j.qnh).toFixed(2)} inHg / ${Math.round(j.qnh*33.8639)} mb`:`${Math.round(+j.qnh)} mb / ${(j.qnh/33.8639).toFixed(2)} inHg`):'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
   $('#printSheet').innerHTML=p1+p2+p3;openPrintPreview()}
 /* preview: the three A4 pages on screen (same styles as the printout), scaled to the screen, with Print and Close */
