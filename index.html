@@ -692,7 +692,8 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:30</p>
+        <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 11:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2476,6 +2477,12 @@ function applyDock(){const up=phoneUpright();if(S.set.land==null)S.set.land=!up;
 window.addEventListener('resize',()=>{const was=document.body.className;applyDock();if(was!==document.body.className)drawerResize();else if(rotOn)drawerResize()});applyDock();
 /* update check: phones can keep an old copy for a while, so look for a newer published version and offer to load it */
 function checkUpdate(){const mine=($('#appVer')||{}).textContent||'';if(!mine||!navigator.onLine)return;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const m=t.match(/id="appVer"[^>]*>([^<]*)</);if(m&&m[1].trim()&&m[1].trim()!==mine.trim()&&!$('#updBar')){const b=document.createElement('button');b.id='updBar';b.textContent='New version available · tap to update';b.onclick=()=>location.replace(location.pathname+'?v='+Date.now());document.body.appendChild(b)}}).catch(()=>{})}
+/* Menu > Update app: compare with the live page, then reload past the offline copy */
+function loadNewest(){const go=()=>location.replace(location.pathname+'?v='+Date.now());if(navigator.serviceWorker)navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{}).finally(go);else go()}
+$('#updApp').onclick=()=>{const mine=($('#appVer').textContent||'').trim();if(!navigator.onLine){toast('No signal. Try again when online.');return}toast('Checking for updates…');
+  fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():Promise.reject()).then(t=>{const m=t.match(/id="appVer"[^>]*>([^<]*)</),live=m?m[1].trim():'';
+    if(live&&live!==mine)sheet({title:'New version available',sub:`You have: ${esc(mine)}\nNewest: ${esc(live)}`,buttons:[['Update now',loadNewest,'primary']]});
+    else sheet({title:'App is up to date',sub:`${esc(mine)} is the newest version.`,buttons:[['Reload anyway',loadNewest]]})}).catch(()=>toast('Could not check for updates. Try again shortly.'))};
 setTimeout(checkUpdate,3000);setInterval(checkUpdate,5*60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
 /* ---------- offline: the app is saved by sw.js; map tiles for the plan area are downloaded on request ---------- */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='127.0.0.1'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
