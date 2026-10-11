@@ -692,7 +692,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2024,7 +2024,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
     ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO<br><small style="font-weight:400;font-size:13px;color:var(--mute)">(${PP.length} pods)</small>`:j.mode)}
     ${vt('Aircraft course',`${fb(magOf(J.heading))} M`)}${vt('Run-in',run)}
-    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
+    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}${(()=>{const t=Math.round(pods?(PP[PP.length-1].along-PP[0].along)/Math.max(5,J.gsM)+PP[PP.length-1].pcot:J.pcot);return vt('HARP to last man out',`${t} s${t>=60?` <small style="font-weight:400;font-size:12px;color:var(--mute)">(${fsec(t)})</small>`:''}`)})()}
     ${pods?'':`${vt('HARP (first out)',esc(fc(J.harp)),1)}${vt('No. of jumpers',+jmN[0]||'–')}${vt('Stick spread',`${Math.round(J.stick)} m`)}`}
     ${pods?'':vt('HARP to DIP',`${fd(dist(J.harp,S.pi))} · ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM`)}</div>
   ${pods?`<h3 class="vsh">Pods</h3><div class="pcards">${PP.map((x,i)=>{const rw=(k,v)=>`<div><span>${k}</span><b>${v}</b></div>`;return `<div class="pcard${x.ok===false?' bad':''}"><div class="ph">POD ${i+1}${x.ok===false?' · OUTSIDE RING':''}</div>
