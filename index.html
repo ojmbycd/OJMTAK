@@ -691,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:40</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2025,7 +2025,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
     ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${PP.length} pods)`:j.mode)}
     ${vt('Aircraft course',`${fb(magOf(J.heading))} M · ${fb(J.heading)} T`)}${vt('Run-in',run)}
-    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('TAS',kts(Math.round(J.tas)))}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
+    ${vt('Aircraft',`${j.kias} KIAS`)}${vt('GS on run-in',kts(Math.round(J.gsM/KT)))}${vt('Separation',`${j.interval} s (${Math.round(j.interval*J.gsM)} m)`)}
     ${PP.map((x,i)=>`${vt(pods?`HARP pod ${i+1}${x.ok===false?' · OUTSIDE ring':''}`:'HARP (first out)',esc(fc(x.harp)),1)}${vt(pods?`Pod ${i+1} jumpers`:'No. of jumpers',+jmN[i]||'–')}${vt(pods?`Pod ${i+1} stick`:'Stick',`${Math.round(x.stick)} m`)}`).join('')}
     ${vt('HARP to DIP',`${fd(dist(J.harp,S.pi))} · ${(dist(J.harp,S.pi)/1852).toFixed(2)} NM`)}${pods?vt('Time between pods',hamo.waits.map(t=>Math.round(t)+' s').join(' / ')):''}</div>
   <h3 class="vsh">Parachutist data</h3><div class="vtiles">
