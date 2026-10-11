@@ -691,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:20</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2034,8 +2034,8 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   <h3 class="vsh">Parachutist data</h3><div class="vtiles">
     ${vt('Canopy',esc(j.canopy||'Custom'))}${vt('K',`${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}`)}
     ${vt('CSC',`${j.canopySpeed} kts`)}${vt('Average AUM',`${j.jumperKg} kg`)}
-    ${PP.map((x,i)=>`${vt(pods?`Pod ${i+1} jumper heading`:'Jumper heading',`${fb(x.jumperHdgM)} M`)}${vt(pods?`Pod ${i+1} canopy drift`:'Canopy drift',`${Math.round(x.cdM).toLocaleString('en-GB')} m`)}${vt(pods?`Pod ${i+1} PRP (canopy opens)`:'PRP (canopy opens)',esc(fc(x.op)),1)}`).join('')}
-    ${vt('Free fall',J.ffM>0.5?`${Math.round(J.ffM).toLocaleString('en-GB')} m`:'none')}${vt('DIP',esc(fc(S.pi)),1)}</div>${vitalAlt('chute')}
+    ${PP.map((x,i)=>`${vt(pods?`Pod ${i+1} jumper heading`:'Jumper heading',`${fb(x.jumperHdgM)} M`)}${vt(pods?`Pod ${i+1} canopy drift`:'Canopy drift',`${Math.round(x.cdM).toLocaleString('en-GB')} m`)}`).join('')}
+    ${vt('DIP',esc(fc(S.pi)),1)}</div>${vitalAlt('chute')}
   <div class="vbtns"><button class="btn primary" data-hound="c:harp">Navigate to HARP</button><button class="btn primary" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="exportJump">Export jump</button><button class="btn" id="printCalcs2">Print vital data</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
