@@ -1,7 +1,7 @@
 // Offline support for JumpMaster Pro.
 // The app page and its map library are kept on the phone so the app opens with no signal.
 // Map tiles saved with "Download map area" are served from the phone first.
-const APP = 'jmet-app-v1', TILES = 'jmet-tiles';
+const APP = 'jmet-app-v2', TILES = 'jmet-tiles';
 const LIBS = [
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js',
   'https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js',
@@ -28,7 +28,10 @@ self.addEventListener('fetch', e => {
       try {
         const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
         const r = await fetch(req, { cache: 'no-store', signal: ctl.signal }); clearTimeout(t);
-        if (r.ok) (await caches.open(APP)).put(PAGE, r.clone());
+        // only the app page itself is saved, and an error page (404, server down) never replaces it
+        const isApp = url.origin === location.origin && (url.href.split(/[?#]/)[0] === PAGE || url.pathname.endsWith('/index.html'));
+        if (r.ok && isApp) (await caches.open(APP)).put(PAGE, r.clone());
+        if (!r.ok && isApp) { const saved = await caches.match(PAGE); if (saved) return saved; }
         return r;
       } catch (_) { return (await caches.match(PAGE)) || Response.error(); }
     })());
