@@ -358,6 +358,12 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act .dipalt{color:var(--mute);font-weight:400}
 .fullbtns{display:flex;flex-wrap:nowrap}.fullbtns .btn{flex:1}.fullbtns .btn[hidden]{display:none}
 .stylelist{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.stylelist .btn{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.stylelist .btn span{width:64px;flex:none}.stylelist .btn svg{flex:1;height:16px}.stylelist .btn.on{outline:2px solid var(--ink)}
+.ladder{border:1px solid var(--line);border-radius:10px;overflow:hidden}.ladder .lhead,.ladder .lstep{display:grid;grid-template-columns:1fr 88px 80px;align-items:center;gap:6px;padding:8px 10px}
+.ladder .lhead{font:600 13px var(--body);color:var(--mute);border-bottom:1px solid var(--line)}.ladder .lhead div:not(:first-child),.ladder .lmsl,.ladder .lagl{text-align:right;font-variant-numeric:tabular-nums}
+.ladder .lstep{border-left:6px solid transparent;border-bottom:1px solid var(--line)}.ladder .lname{font:500 15px/1.2 var(--body)}.ladder .lname small{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.ladder .lmsl{font:400 15px var(--cond);color:var(--mute)}.ladder .lagl{font:700 17px var(--cond)}
+.ladder .go{border-left-color:var(--go)}.ladder .amb{border-left-color:var(--amber)}.ladder .red{border-left-color:var(--stop)}.ladder .dim{border-left-color:var(--line)}.ladder .dim .lname,.ladder .ref .lname{font-weight:400}
+.ladder .lsep{padding:4px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.ladder .ref{border-bottom:none;border-left-color:transparent;opacity:.85}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
@@ -641,7 +647,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:55</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 04:10</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1490,7 +1496,7 @@ async function startSensors(){
   try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')toast('Compass permission refused. Heading will come from GPS track when moving.')}}catch(e){}
   startMotion();
   if(!orientOn){orientOn=true;window.addEventListener('ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation',onOrient,true)}
-  try{if('wakeLock' in navigator){await navigator.wakeLock.request('screen');document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){try{await navigator.wakeLock.request('screen')}catch(e){}}})}}catch(e){}
+  try{if('wakeLock' in navigator){await navigator.wakeLock.request('screen');if(!window.__wlOn&&(window.__wlOn=1))document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){try{await navigator.wakeLock.request('screen')}catch(e){}}})}}catch(e){}
   $('#btnSensors').hidden=true;$('#sensStart').textContent='Restart sensors';$('#sensState').textContent='Waiting for GPS fix…';void 0}
 let cx=null,cy=null,raf=false;
 function onOrient(e){let h=null;if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading))h=e.webkitCompassHeading;else if((e.absolute||e.type==='deviceorientationabsolute')&&e.alpha!=null)h=norm(360-e.alpha);if(h==null)return;const so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;h=norm(h+so);const r=h*D2R;cx=cx==null?Math.sin(r):cx*0.8+Math.sin(r)*0.2;cy=cy==null?Math.cos(r):cy*0.8+Math.cos(r)*0.2;compass=norm(Math.atan2(cx,cy)*R2D);
@@ -1853,7 +1859,7 @@ function savedDipsSheet(){const n=S.savedDips.length;sheet({side:true,title:'Sav
 const dipRow=d=>`${toMGRS(d.lat,d.lon)} · DZ ${d.dzElev!=null?ff(d.dzElev)+' AMSL':'–'}`;
 function loadDipsSheet(){const L_=S.savedDips;sheet({side:true,back:savedDipsSheet,title:'Load DIP',sub:L_.length?'Tap one to use it.':'No saved DIPs. Save the current DIP or load them from Files.',buttons:L_.map(d=>[d.name,()=>sheet({side:true,back:loadDipsSheet,title:d.name,sub:dipRow(d),buttons:[['Use this DIP',()=>useSavedDip(d),'primary'],['Delete',()=>{S.savedDips=S.savedDips.filter(x=>x.id!==d.id);save('savedDips');loadDipsSheet()},'danger']]}),'',dipRow(d)])})}
 /* read DIPs from a file: this app's export (.json), KML, GPX, ATAK CoT, or CSV/text lines of "name, grid" or "name, lat, lon" */
-function parseDipFile(txt,fname){const out=[],add=(name,lat,lon,dz)=>{if(isFinite(lat)&&isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({id:Date.now()+out.length,name:(name||'DIP').trim().slice(0,40)||'DIP',lat:+lat,lon:+lon,dzElev:dz!=null&&isFinite(dz)?+dz:null})};
+function parseDipFile(txt,fname){const out=[],add=(name,lat,lon,dz)=>{const ok=v=>v!=null&&v!==''&&isFinite(v);if(ok(lat)&&ok(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)out.push({id:Date.now()+out.length,name:String(name??'DIP').trim().slice(0,40)||'DIP',lat:+lat,lon:+lon,dzElev:dz!=null&&isFinite(dz)?+dz:null})};
   const t=txt.trim();
   if(t.startsWith('{')||t.startsWith('[')){try{const j=JSON.parse(t),arr=Array.isArray(j)?j:(j.dips||j.savedDips||[]);arr.forEach(d=>add(d.name,d.lat,d.lon??d.lng,d.dzElev))}catch(_){}return out}
   if(/<(kml|gpx|event|Placemark|wpt)\b/i.test(t)){const x=new DOMParser().parseFromString(t,'application/xml');
@@ -1916,8 +1922,8 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <div><span>Aircraft</span><b>${j.kias} KIAS</b> <span>TAS</span><b>${kts(Math.round(J.tas))}</b> <span>GS on run-in</span><b>${kts(Math.round(J.gsM/KT))}</b></div>
   </div>${vitalAlt()}
   <dl class="res">
-    <dd data-l="Free Fall">${J.ffLegs.length?J.ffLegs.map(l=>`${Math.round(l.m)} m @ ${fb(l.d)} T`).join(", then "):"disregarded"}</dd>
-    <dd data-l="Canopy Drift">${J.cdLegs.map(l=>`${l.km} km @ ${fb(l.d)} T`).join(", then ")}</dd>
+    <dd data-l="Free Fall">${J.ffM>0.5?`${Math.round(J.ffM).toLocaleString("en-GB")} m @ ${fb(brg(J.prp,J.op))} T`:"none"}</dd>
+    <dd data-l="Canopy Drift">${Math.round(J.cdM).toLocaleString("en-GB")} m @ ${fb(brg(J.op,S.pi))} T</dd>
     <dd data-l="Jumper Heading">${fb(J.jumperHdgM)} M</dd>
     <dd data-l="PRP (canopy opens)">${fc(J.op)}</dd><dd data-l="HARP to PRP">${fd(dist(J.harp,J.op))}, freefall drift</dd>
     
@@ -1974,13 +1980,16 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
   ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude (DZ altitude ${ff(dz)}). It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude (DZ altitude ${ff(dz)}).`;
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
-  const ladder=t=>`<table class="winds mt"><thead><tr><th>${esc(t.T)}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
-    ${row(`Adjusted minimum deployment${unk?' (+1,000, setting unknown)':''}`,ff(t.amd),ff(t.amdAgl),'key')}
-    ${row(`Minimum deployment (+${t.dep.toLocaleString('en-GB')})`,ff(t.md),'')}
-    ${row(`Decision (+${t.sep.toLocaleString('en-GB')})`,ff(t.da),ff(t.daAgl),'key')}
-    ${row(`Reserve activation (+${t.act.toLocaleString('en-GB')})`,ff(t.raa),ff(t.raaAgl),'key')}
-    ${row(`CYPRES whiz wheel input${unk?' (+500)':' (not used, setting known)'}`,ff(c.cypFt),'')}
-    ${row(`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</tbody></table>`;
+  /* key altitude ladder: highest at the top, each step colour-coded, AGL in bold, reference heights set apart underneath */
+  const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`;
+  const ladder=t=>`<div class="ladder mt"><div class="lhead"><div>${esc(t.T)}</div><div>MSL</div><div>AGL</div></div>
+    ${step('go','Adjusted minimum deployment',ff(t.amd),ff(t.amdAgl),unk?'+1,000 ft, setting unknown':'')}
+    ${step('dim','Minimum deployment',ff(t.md),'',`+${t.dep.toLocaleString('en-GB')} ft`)}
+    ${step('amb','Decision',ff(t.da),ff(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
+    ${step('red','Reserve activation',ff(t.raa),ff(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
+    <div class="lsep">Reference</div>
+    ${step('ref','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
+    ${step('ref',`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</div>`;
   const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${esc(t.n)}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
     <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd>
