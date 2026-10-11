@@ -650,7 +650,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:50</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:55</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1990,13 +1990,13 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`;
   const hasV=c.v.src!=='DZ elevation',vft=hasV?(c.v.ft??c.base):c.dz;
   const ladder=t=>`<div class="ladder mt"><div class="lhead"><div>${esc(t.T)}</div><div>MSL</div><div>AGL</div></div>
-    ${step('dim','Standby alarm',ff(c.dz+c.lowOpen+1000),ff(c.lowOpen+1000),'planned deployment +1,000 ft')}
     ${step('dim','Planned deployment',ff(c.dz+c.lowOpen),ff(c.lowOpen),'')}
     ${step('go','Adjusted minimum deployment',ff(t.amd),ff(t.amdAgl),unk?'+1,000 ft, setting unknown':'')}
     ${step('dim','Minimum deployment',ff(t.md),'',`+${t.dep.toLocaleString('en-GB')} ft`)}
     ${step('amb','Decision',ff(t.da),ff(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
     ${step('red','Reserve activation',ff(t.raa),ff(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
     <div class="lsep">Reference</div>
+    ${step('ref','Standby alarm',ff(c.dz+c.lowOpen+1000),ff(c.lowOpen+1000),'planned deployment +1,000 ft')}
     ${step(unk?'ref':'ref strike','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
     ${step('ref','DZ elevation',ff(c.dz),'')}
     ${step(hasV?'ref':'ref strike','VDZ elevation',ff(vft),'',hasV?c.v.src:'no VDZ')}</div>`;
