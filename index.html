@@ -367,6 +367,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 .ladder .strike .lname,.ladder .strike .lmsl{text-decoration:line-through;opacity:.6}.ladder .strike .lname small{text-decoration:none}
 .ladder .lsep{padding:4px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.ladder .ref{border-bottom:none;border-left-color:transparent;opacity:.85}
 .sfx{display:flex;align-items:center;gap:8px}.sfx input{width:96px;flex:none}.sfx i{font-style:normal;font-size:16px;color:var(--mute)}
+.qnhrow{grid-column:1/-1;display:grid;grid-template-columns:1fr 92px auto;gap:8px;align-items:end}.qnhrow .btn{min-height:44px;white-space:nowrap}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
@@ -604,13 +605,13 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
           <section class="sec">
             <h3>Military CYPRES setting</h3>
             <div class="fields">
-              <label class="fld">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option><option value="mix1500">Mixed: Non Standard 1000 + MJ 1500</option><option value="mix1900">Mixed: Non Standard 1000 + MJ 1900</option></select></label>
+              <label class="fld" style="grid-column:1/-1">Model<select id="cypModel"><option value="mj1900">MJ, Military CYPRES 1900 35A</option><option value="mj1500">MJ with 1500 35A</option><option value="pns1000">Non Standard, Military CYPRES 1000 35A</option><option value="mix1500">Mixed: Non Standard 1000 + MJ 1500</option><option value="mix1900">Mixed: Non Standard 1000 + MJ 1900</option></select></label>
               <div class="row" id="cypCustomRow" hidden><button class="btn sm" id="cypEdit">Edit custom</button><button class="btn sm danger" id="cypDel">Delete custom</button></div>
-              <label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
-              <label class="fld">Unit<select id="qnhUnit"><option value="mb">millibars</option><option value="inhg">inches Hg</option></select></label>
+              <div class="qnhrow"><label class="fld">DZ altimeter setting<input type="number" inputmode="decimal" step="0.01" id="qnhVal"></label>
+              <label class="fld">Unit<select id="qnhUnit"><option value="mb">mb</option><option value="inhg">inHg</option></select></label>
+              <button class="btn primary" id="qnhNearest">Import pressure</button></div>
             </div>
             <label class="chk mt"><input type="checkbox" id="qnhUnknown"> Altimeter setting unknown (use combat 1013 mb / 29.92 inHg, +500 ft and +1,000 ft on the ladder)</label>
-            <div class="row mt"><button class="btn" id="qnhNearest">Nearest station QNH (within 100 nm)</button></div>
             <p class="note" id="qnhSrc"></p>
           </section>
           <section class="sec">
@@ -649,7 +650,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:35</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:50</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1987,37 +1988,41 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
   /* key altitude ladder: highest at the top, each step colour-coded, AGL in bold, reference heights set apart underneath */
   const step=(cls,l,msl,agl,sub)=>`<div class="lstep ${cls}"><div class="lname">${l}${sub?`<small>${sub}</small>`:''}</div><div class="lmsl">${msl}</div><div class="lagl">${agl}</div></div>`;
+  const hasV=c.v.src!=='DZ elevation',vft=hasV?(c.v.ft??c.base):c.dz;
   const ladder=t=>`<div class="ladder mt"><div class="lhead"><div>${esc(t.T)}</div><div>MSL</div><div>AGL</div></div>
+    ${step('dim','Standby alarm',ff(c.dz+c.lowOpen+1000),ff(c.lowOpen+1000),'planned deployment +1,000 ft')}
+    ${step('dim','Planned deployment',ff(c.dz+c.lowOpen),ff(c.lowOpen),'')}
     ${step('go','Adjusted minimum deployment',ff(t.amd),ff(t.amdAgl),unk?'+1,000 ft, setting unknown':'')}
     ${step('dim','Minimum deployment',ff(t.md),'',`+${t.dep.toLocaleString('en-GB')} ft`)}
     ${step('amb','Decision',ff(t.da),ff(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
     ${step('red','Reserve activation',ff(t.raa),ff(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
     <div class="lsep">Reference</div>
     ${step(unk?'ref':'ref strike','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
-    ${step('ref',`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</div>`;
+    ${step('ref','DZ elevation',ff(c.dz),'')}
+    ${step(hasV?'ref':'ref strike','VDZ elevation',ff(vft),'',hasV?c.v.src:'no VDZ')}</div>`;
   const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${esc(t.n)}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
     <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd></dl>
     <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
     <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+esc(t.T)+')':'')).join(' / ')} AGL</dd></dl>
-    <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
+    <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude to at least ${ff(Math.ceil(c.minDep/500)*500)} AGL.`}</div>
     <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
 /* nearest weather station QNH: latest METARs within 100 nm of the DIP via the Cloudflare relay (official aviationweather.gov data, as used by AeroWeather) */
 function qnhSrcText(){const q=S.jump.qnhSrc;if(!q||S.jump.qnhUnknown)return '';return `${q.icao} ${q.name||''} · ${q.nm.toFixed(0)} nm ${fb(q.b)} T of the DIP · METAR ${String(q.time||'').slice(11,16)}Z`}
-async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const b=$('#qnhNearest');b.disabled=true;b.textContent='Looking up stations…';
+async function nearestQnh(){if(!S.pi){toast('Place the DIP first');return}const b=$('#qnhNearest');b.disabled=true;b.textContent='Looking up…';
   try{const r=await fetch(`${ADSB_URL}metar?lat=${S.pi.lat.toFixed(3)}&lon=${S.pi.lon.toFixed(3)}`);const j=await r.json();if(!r.ok||j.error)throw new Error(j.error||r.status);
     const L=(j.stations||[]).map(m=>({...m,inhg:(/\sA(\d{4})\b/.exec(m.raw||'')||[])[1],nm:dist(S.pi,m)/1852,b:brg(S.pi,m),age:Math.max(0,Math.round((Date.now()-Date.parse(m.time))/60000))})).filter(m=>m.nm<=100).sort((a,b)=>a.nm-b.nm).slice(0,6);
     if(!L.length)sheet({title:'No station within 100 nm',sub:'There is no weather station reporting within 100 nm of the DIP, so treat the altimeter setting as unknown.',buttons:[['Use setting unknown',()=>{S.jump.qnhUnknown=true;S.jump.qnhSrc=null;save('jump');syncCypInputs();renderJump()},'primary']]});
     else sheet({title:'Nearest weather stations',sub:'Within 100 nm of the DIP, nearest first. Tap one to use its QNH.',buttons:L.map((m,i)=>[`${m.icao} · ${m.nm.toFixed(0)} nm ${fb(m.b)} · ${m.inhg?'A'+m.inhg:'Q'+Math.round(m.qnh)} · ${m.age<2?'just in':m.age<120?m.age+' min old':Math.round(m.age/60)+' h old'}`,()=>{/* US stations report inches (A2992): keep their units */if(m.inhg){S.jump.qnh=+(m.inhg/100).toFixed(2);S.jump.qnhUnit='inhg'}else{S.jump.qnh=Math.round(m.qnh);S.jump.qnhUnit='mb'}S.jump.qnhUnknown=false;S.jump.qnhSrc={icao:m.icao,name:m.name,nm:m.nm,b:m.b,time:m.time};save('jump');syncCypInputs();renderJump();toast(`QNH ${m.inhg?(m.inhg/100).toFixed(2)+' inHg':Math.round(m.qnh)+' mb'} from ${m.icao}, ${m.nm.toFixed(0)} nm from the DIP`)},i===0?'primary':''])})}
   catch(e){toast('Could not reach the weather stations. Update the Cloudflare relay, or enter the QNH by hand.',5000)}
-  finally{b.disabled=false;b.textContent='Nearest station QNH (within 100 nm)'}}
+  finally{b.disabled=false;b.textContent='Import pressure'}}
 $('#qnhNearest').onclick=nearestQnh;
 $('#cypModel').onchange=e=>{if(e.target.value==='__addcyp'){fillCypSel();cypCustomSheet(null);return}S.jump.cypModel=e.target.value;save('jump');$('#cypCustomRow').hidden=!e.target.value.startsWith('c:');renderMilCypres();renderJump()};
 $('#cypEdit').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(c)cypCustomSheet(c)};
 $('#cypDel').onclick=()=>{const c=S.cypCustom.find(x=>'c:'+x.id===S.jump.cypModel);if(!c)return;sheet({title:`Delete ${c.name}?`,buttons:[['Delete',()=>{S.cypCustom=S.cypCustom.filter(x=>x.id!==c.id);save('cypCustom');loadCypCustom();S.jump.cypModel='mj1900';save('jump');fillCypSel();renderMilCypres();renderJump()},'danger']]})};
 loadCypCustom();fillCypSel();
-$('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;S.jump.qnhSrc=null;save('jump');renderMilCypres()}};
+$('#qnhVal').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v)){S.jump.qnh=v;S.jump.qnhSrc=null;const u=v>=25&&v<=35?'inhg':v>=850&&v<=1100?'mb':null;if(u&&u!==S.jump.qnhUnit){S.jump.qnhUnit=u;$('#qnhUnit').value=u}save('jump');renderMilCypres()}};
 $('#qnhUnit').onchange=e=>{const u=e.target.value;if(u!==S.jump.qnhUnit){S.jump.qnh=u==='inhg'?+(S.jump.qnh/33.8639).toFixed(2):Math.round(S.jump.qnh*33.8639);S.jump.qnhUnit=u;$('#qnhVal').value=S.jump.qnh}save('jump');renderMilCypres()};
 $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');renderMilCypres()};
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
