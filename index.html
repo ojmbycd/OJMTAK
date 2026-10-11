@@ -364,8 +364,9 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 .ladder .lstep{border-left:6px solid transparent;border-bottom:1px solid var(--line)}.ladder .lname{font:500 15px/1.2 var(--body)}.ladder .lname small{display:block;font-size:12px;color:var(--mute);font-weight:400}
 .ladder .lmsl{font:400 15px var(--cond);color:var(--mute)}.ladder .lagl{font:700 17px var(--cond)}
 .ladder .go{border-left-color:var(--go)}.ladder .amb{border-left-color:var(--amber)}.ladder .red{border-left-color:var(--stop)}.ladder .dim{border-left-color:var(--line)}.ladder .dim .lname,.ladder .ref .lname{font-weight:400}
+.ladder .strike .lname,.ladder .strike .lmsl{text-decoration:line-through;opacity:.6}.ladder .strike .lname small{text-decoration:none}
 .ladder .lsep{padding:4px 10px;font:600 12px var(--body);color:var(--mute);text-transform:uppercase;letter-spacing:.05em;background:rgba(127,127,127,.1)}.ladder .ref{border-bottom:none;border-left-color:transparent;opacity:.85}
-.sfx{position:relative;display:block}.sfx input{width:100%;padding-right:30px}.sfx i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute);pointer-events:none}
+.sfx{display:flex;align-items:center;gap:8px}.sfx input{width:96px;flex:none}.sfx i{font-style:normal;font-size:16px;color:var(--mute)}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
@@ -587,7 +588,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
             <h3>Exit separation</h3>
             <div class="fields">
               <label class="fld" id="jumpersFld"><span id="jumpersLbl">Jumpers</span><input type="number" inputmode="numeric" min="1" data-j="jumpers"></label>
-              <label class="fld" style="grid-column:1/-1"><span>Exact distance between jumpers over the ground on exit. <span id="intervalHint"></span></span><span class="sfx"><input type="number" inputmode="decimal" data-j="interval"><i>s</i></span></label>
+              <label class="fld" style="grid-column:1/-1"><span style="white-space:normal;overflow:visible;text-overflow:clip">Exact distance between jumpers over the ground on exit. <span id="intervalHint"></span></span><span class="sfx"><input type="number" inputmode="decimal" data-j="interval"><i>s</i></span></label>
             </div>
           </section>
           <div id="jumpOut" class="mt"></div>
@@ -648,7 +649,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:20</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 05:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1992,7 +1993,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
     ${step('amb','Decision',ff(t.da),ff(t.daAgl),`+${t.sep.toLocaleString('en-GB')} ft`)}
     ${step('red','Reserve activation',ff(t.raa),ff(t.raaAgl),`+${t.act.toLocaleString('en-GB')} ft`)}
     <div class="lsep">Reference</div>
-    ${step('ref','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
+    ${step(unk?'ref':'ref strike','CYPRES whiz wheel input',ff(c.cypFt),'',unk?'+500 ft':'not used, setting known')}
     ${step('ref',`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</div>`;
   const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${esc(t.n)}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
