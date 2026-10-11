@@ -691,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 10:05</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1955,7 +1955,6 @@ function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['P
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
   if(part==='chute')return `<div class="vsum"><div class="sh">Altimeters</div>
-    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',esc(qnhSrcText())):''}
     ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
     ${r('STRATOS',c.offset!=null?`${sgnFt(-c.offset)} / ${c.qfeDz} mb`:'–')}
     ${r('CYPRES setting',`${c.cypMb} mb`)}</div>`;
