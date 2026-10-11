@@ -693,7 +693,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 13:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 13:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1954,7 +1954,7 @@ const up100=v=>Math.ceil(Math.round(v)/100)*100;/* briefed heights: rounded up t
 function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
-  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first), rounded up to the next 100 ft</div>
+  if(part==='alts')return `<div class="vsum">
     ${hts.map(([k,v])=>r(k,`${ff(up100(v))} AGL${k==='Exit (despatch)'?` <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`:''}`)).join('')}${r('DIP elevation',`0 ft AGL <small style="font-weight:400;color:var(--mute)">(${ff(c.dz)} AMSL)</small>`)}
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
