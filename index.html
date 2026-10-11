@@ -691,7 +691,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:25</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 09:35</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1949,8 +1949,8 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
   c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
-  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · rounded up to nearest 100 in brackets</div>
-    ${hts.map(([k,v])=>r(k,`${ff(v)} (${Math.ceil(v/100)*100})`)).join('')}
+  if(part==='alts')return `<div class="vsum"><div class="sh">Heights AGL (highest first) · AMSL in brackets</div>
+    ${hts.map(([k,v])=>r(k,`${ff(v)} <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`)).join('')}
     <div class="sh">Checks</div>
     <div class="sr ${c.depOk?'ok':'bad'}"><span>${c.depOk?'Planned/min deployment OK':'PLANNED/MIN DEPLOYMENT CHECK ERROR'}</span><b>${ff(c.lowOpen)} vs ${ff(c.minDep)} AGL</b></div>
     <div class="sr ${c.sepOk?'ok':'bad'}"><span>${c.sepOk?'1,000 ft despatch / deployment separation OK':'1,000 ft DESPATCH / DEPLOYMENT SEPARATION ERROR'}</span><b>${ff(c.despAgl)} vs ${ff(c.highOpen+1000)} AGL</b></div></div>`;
@@ -2022,8 +2022,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   /* grouped: key altitudes, JumpMaster data, parachutist data; each figure in its own labelled box */const vt=(l,v,w)=>`<div class="vt${w?' wide':''}"><span>${l}</span><b>${v}</b></div>`;
   const PP=hamo?hamo.order:[J],pods=PP.length>1,jmN=[j.jumpers,j.pod2Jumpers,j.pod3Jumpers],opA=[j.openAlt,j.pod2Open,j.pod3Open],run=({into:'into wind',down:'downwind',left:'left door 90°',right:'right door 90°',left45:'left door 45°',right45:'right door 45°',custom:'custom'})[j.runMode||'into'];
   o.innerHTML=`<h3 class="vsh">Key altitudes</h3><div class="vtiles">
-    ${vt('Exit',`${ff(j.exitAlt)} AMSL · ${ff(j.exitAlt-j.dzElev)} AGL`,1)}
-    ${vt(pods?'Planned deployment (pods)':'Planned deployment',PP.map((x,i)=>ff(opA[i])).join(' / ')+' AGL',pods)}${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}</div>${vitalAlt('alts')}
+    ${vt('DIP elevation',`${ff(j.dzElev)} AMSL`)}</div>${vitalAlt('alts')}
   <h3 class="vsh">JumpMaster data</h3><div class="vtiles">
     ${vt('Sortie',esc(j.sortie||'–'))}${vt('Jump type',j.mode==='HAMO'?`POD HAMO (${PP.length} pods)`:j.mode)}
     ${vt('Aircraft course',`${fb(magOf(J.heading))} M · ${fb(J.heading)} T`)}${vt('Run-in',run)}
