@@ -238,7 +238,7 @@ button,input,select{font:inherit;color:inherit}
   #printSheet table.grid{margin:4pt 0 6pt}#printSheet table.grid th{background:#eee!important;font-size:8.5pt}#printSheet table.grid td{font-size:8.5pt}#printSheet table.narrow{width:60%}
   #printSheet .ojm{border:1pt solid #000}#printSheet .otitle{text-align:center;padding:6pt;border-bottom:1pt solid #000}#printSheet .otitle b{display:block;font-size:12.5pt}#printSheet .otitle span{font-size:8pt}
   #printSheet .orow{display:grid;grid-template-columns:1fr 1fr;border-bottom:1pt solid #000}#printSheet .orow div{padding:5pt 6pt;font-size:10pt}#printSheet .orow div+div{border-left:1pt solid #000}
-  #printSheet .ojm table.man{margin:0}#printSheet .ojm table.man th{font-size:8pt;text-align:center;background:#fff!important}#printSheet .ojm table.man td{height:14.5pt;padding:0 4pt;border-color:#000}#printSheet .ojm table.man th{border-color:#000}
+  #printSheet .ojm table.man{margin:0}#printSheet .ojm table.man th{font-size:8pt;text-align:center;background:#fff!important}#printSheet .ojm table.man td{height:22pt;padding:0 4pt;border-color:#000}#printSheet .ojm table.man th{border-color:#000}
   #printSheet .ochk{font-weight:700;font-size:9pt}
   #printSheet table.owt{width:60%;margin:8pt 0}#printSheet table.owt th{width:50%;font-size:8pt;color:#3a6b22!important;text-align:left;border-color:#000}#printSheet table.owt td{border-color:#000;height:16pt}
   #printSheet .odesc{border:1pt solid #000;padding:6pt 8pt;font-size:9pt}#printSheet .odesc ol{margin:4pt 0 0 14pt;padding:0}#printSheet .odesc li{color:#555!important;margin-bottom:3pt}#printSheet .odesc li div{color:#000!important;font-size:10pt;margin-left:6pt}
@@ -249,6 +249,7 @@ button,input,select{font:inherit;color:inherit}
   #printSheet .pchk{font-size:8.5pt;margin-top:3pt}#printSheet .pchk.bad{font-weight:700}#printSheet table.pods td{white-space:nowrap}
   #printSheet .olines i{display:block;border-bottom:.5pt solid #999;height:13pt}
   #printSheet .phl3{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:6pt;margin-bottom:4pt}#printSheet .phl3 div{border:1.5pt solid #000;padding:5pt 7pt}#printSheet .phl3 span{display:block;font-size:8.5pt;font-weight:700}#printSheet .phl3 b{display:block;font-size:15pt;line-height:1.25;white-space:nowrap}#printSheet .phl3 small{font-size:8pt}
+  #printSheet .pdesc{font:700 9pt Arial,sans-serif;letter-spacing:.06em;margin:2pt 0 4pt}#printSheet .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6pt;margin-bottom:8pt}#printSheet .pbx{border:1.5pt solid #000;padding:5pt 8pt;min-height:44pt}#printSheet .pbx>span{display:block;font-size:8.5pt;font-weight:700;margin-bottom:2pt}#printSheet .pbx b{display:block;font-size:15pt;line-height:1.25}#printSheet .pbx b.sm{font-size:12pt;margin-top:3pt}#printSheet .pbx small b{display:inline;font-size:inherit}#printSheet .pbx p{margin:2pt 0 0;font-size:10.5pt}
   #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:10pt}#printSheet small{font-size:7.5pt;color:#444!important}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
@@ -699,7 +700,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 14:00</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 14:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1994,22 +1995,14 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
     <div class="otitle"><b>OPERATOR JUMP MASTER AIRCRAFT MANIFEST AND PILOT BRIEF</b><span>JumpMaster Pro · ${esc($('#appVer').textContent)}</span></div>
     <div class="orow"><div><b>DATE -</b> ${dstr}</div><div><b>SORTIE NUMBER -</b> ${esc(j.sortie||'')}</div></div>
     <table class="man"><colgroup><col style="width:7%"><col style="width:45%"><col style="width:18%"><col style="width:15%"><col style="width:15%"></colgroup><thead><tr><th class="num">SER</th><th>INITIAL AND SURNAME</th><th>PARACHUTE NUMBER</th><th>CHECK 1 (INITIALS)</th><th>CHECK 2 (INITIALS)</th></tr></thead><tbody>${rows}
-      <tr><td colspan="4" class="ochk">PRIMARY OJM ALL CHECKS COMPLETE &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</td><td></td></tr></tbody></table></div>
-    <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr><tr><th>NUMBER LEAVING A/C</th><td>${tot||''}</td></tr><tr><th>NUMBER STAYING ON</th><td></td></tr></table>
-    <div class="odesc"><b>DESCENT PROFILE TO BE BRIEFED FROM ATAK COVERING THE FOLLOWING;</b><ol>
-      <li>DESPATCH (AMSL) AND DEPLOYMENT (AGL) ALTITUDES</li>
-      <li>HARP (MGRS)</li>
-      <li>AC RUN IN / SPEED IN KIAS</li>
-      <li>TIMING CALLS ON BOARD / LIGHTS</li>
-      <li>PASS AND STICK BREAKDOWN</li>
-      <li>ADDITIONAL VITAL DATA (O2 / EMERGENCIES)<div class="olines"><i></i><i></i></div></li></ol></div></section>`;
+      <tr><td colspan="4" class="ochk">PRIMARY OJM ALL CHECKS COMPLETE &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</td><td></td></tr></tbody></table></div></section>`;
   /* page 2: vital data and calcs */
   let c=null;try{c=cypCalc()}catch(e){}
-  const ladder=c?c.sets.map(t=>`<table class="grid"><thead><tr><th>${esc(t.T)}</th><th>AGL</th><th>MSL</th></tr></thead><tbody><tr><td>Planned deployment</td><td><small style="display:block;color:#555">(${up100(c.lowOpen).toLocaleString('en-GB')})</small><b>${ff(c.lowOpen)}</b></td><td>${ff(dz+c.lowOpen)}</td></tr><tr><td>Adjusted minimum deployment</td><td><small style="display:block;color:#555">(${up100(t.amdAgl).toLocaleString('en-GB')})</small><b>${ff(t.amdAgl)}</b></td><td>${ff(t.amd)}</td></tr><tr><td>Decision</td><td><small style="display:block;color:#555">(${up100(t.daAgl).toLocaleString('en-GB')})</small><b>${ff(t.daAgl)}</b></td><td>${ff(t.da)}</td></tr><tr><td>Reserve activation</td><td><small style="display:block;color:#555">(${up100(t.raaAgl).toLocaleString('en-GB')})</small><b>${ff(t.raaAgl)}</b></td><td>${ff(t.raa)}</td></tr></tbody></table>`).join(''):'';
+  const ladder=c?c.sets.map(t=>`<table class="grid"><thead><tr><th>${esc(t.T)}</th><th>MSL</th><th>AGL</th></tr></thead><tbody><tr><td>Planned deployment</td><td>${ff(dz+c.lowOpen)}</td><td><small style="display:block;color:#555">(${up100(c.lowOpen).toLocaleString('en-GB')})</small><b>${ff(c.lowOpen)}</b></td></tr><tr><td>Adjusted minimum deployment</td><td>${ff(t.amd)}</td><td><small style="display:block;color:#555">(${up100(t.amdAgl).toLocaleString('en-GB')})</small><b>${ff(t.amdAgl)}</b></td></tr><tr><td>Decision</td><td>${ff(t.da)}</td><td><small style="display:block;color:#555">(${up100(t.daAgl).toLocaleString('en-GB')})</small><b>${ff(t.daAgl)}</b></td></tr><tr><td>Reserve activation</td><td>${ff(t.raa)}</td><td><small style="display:block;color:#555">(${up100(t.raaAgl).toLocaleString('en-GB')})</small><b>${ff(t.raaAgl)}</b></td></tr></tbody></table>`).join(''):'';
   const to=j.toElev==null||j.toElev===''?null:+j.toElev,sg=v=>`${v>0?'+':v<0?'−':''}${Math.round(Math.abs(v)).toLocaleString('en-GB')} ft`;
   const ban=t=>`<div class="pban">${t}</div>`,tl=(l,v,w)=>`<div class="ptile${w?' w2':''}"><span>${l}</span><b>${v}</b></div>`,run=({into:'Into wind',down:'Downwind',left:'Left door 90°',right:'Right door 90°',left45:'Left door 45°',right45:'Right door 45°',custom:'Custom'})[j.runMode||'into'];
   const tRun=Math.round(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot);
-  const alts=c?keyHts(c).map(([k,v])=>`<tr><td>${k}</td><td><b>${ff(up100(v))} AGL</b>${k==='Exit (despatch)'?` <small>(${ff(v+dz)} AMSL)</small>`:''}</td></tr>`).join('')+`<tr><td>DIP elevation</td><td><b>0 ft AGL</b> <small>(${ff(dz)} AMSL)</small></td></tr>`:'';
+  const alts=c?keyHts(c).map(([k,v])=>`<tr><td>${k}</td><td><b>${ff(up100(v))} AGL</b>${k==='Exit (despatch)'?` <small>(${ff(v+dz)} AMSL)</small>`:''}</td></tr>`).join('')+`<tr><td>DIP elevation</td><td><b>0 ft AGL</b> <small>(${ff(dz)} AMSL)</small></td></tr><tr><td>VDZ</td><td>${c.v.src!=='DIP elevation'?`<b>${ff(c.v.ft-dz)} AGL</b> <small>(${ff(c.v.ft)} AMSL)</small>`:'<b>Nil</b>'}</td></tr>`:'';
   const p2=`<section class="page">${head('Vital data and calcs')}
     <div class="phl3"><div><span>HARP${pods?' (pod 1)':''}</span><b>${esc(fc(P[0].harp))}</b><small>${ll(P[0].harp)}</small></div><div><span>Run-in course</span><b>${fb(magOf(J.heading))} M</b><small>${fb(J.heading)} T · ${run.toLowerCase()}</small></div><div><span>Exit</span><b>${ff(up100(+j.exitAlt-dz))} AGL</b><small>(${ff(+j.exitAlt)} AMSL)</small></div></div>
     <div class="cols">
@@ -2024,12 +2017,19 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
 </section>`;
   /* page 3: pilot brief */
   const tp=(hamo?hamo.timePts:J.timePts)||[],first=P[0],last=P[P.length-1];
+  const pb=(n,l,v,w)=>`<div class="pbx${w?' w2':''}"><span>${n}. ${l}</span>${v}</div>`;
   const p3=`<section class="page">${head('Pilot brief')}
-    <div class="phl"><div><span>HARP${pods?' (first pod)':''}</span><b>${esc(fc(P[0].harp))}</b><small>${ll(P[0].harp)}</small></div><div><span>Run-in course</span><b>${fb(magOf(J.heading))} M</b><small>${fb(J.heading)} T</small></div></div>
-    <div class="phl"><div><span>Exit</span><b>${ff(+j.exitAlt)} AMSL</b><small>${ff(+j.exitAlt-dz)} above the DIP</small></div><div><span>Planned deployment</span><b>${P.map((x,i)=>ff(op(i))).join(' / ')}</b><small>AGL${pods?', pod by pod':''}</small></div></div>
-    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Speed',`${j.kias} KIAS (about ${kts(Math.round(J.gsM/KT))} over the ground)`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Exit separation',`${j.interval} s between jumpers`],['Time on run-in',`<b>${fsec(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot)}</b> from first out to last out${pods?` (${P.length} pods, one pass)`:''}`],['Jumpers',`<b>${tot} in total</b>${pods?` (${P.map((x,i)=>`pod ${i+1}: ${+jm[i]||0}`).join(', ')})`:''}`]])}
-
-    ${kv([['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
+    <div class="pdesc">DESCENT PROFILE</div>
+    <div class="pgrid">
+      ${pb(1,'Despatch (AMSL) and deployment (AGL)',`<b>${ff(+j.exitAlt)} AMSL</b><small>${ff(+j.exitAlt-dz)} above the DIP</small><b class="sm">Deploy ${P.map((x,i)=>ff(op(i))).join(' / ')} AGL</b>${pods?'<small>pod by pod</small>':''}`)}
+      ${pb(2,'HARP (MGRS)',`<b>${esc(fc(P[0].harp))}</b><small>${pods?'pod 1 · ':''}${ll(P[0].harp)}</small>`)}
+      ${pb(3,'AC run in / speed in KIAS',`<b>${fb(magOf(J.heading))} M · ${j.kias} KIAS</b><small>${fb(J.heading)} T · about ${kts(Math.round(J.gsM/KT))} over the ground</small>`)}
+      ${pb(4,'Timing calls on board / lights',`<p>10 min winds · 4 min flashing lights · 2 min red light and ramp · 1 min green light</p>`)}
+      ${pb(5,'Pass and stick breakdown',`<b>${tot} jumpers, one pass</b><small>${pods?P.map((x,i)=>`pod ${i+1}: ${+jm[i]||0}`).join(' · ')+' · ':''}${j.interval} s exit separation · <b>${fsec(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot)}</b> first to last out</small>`)}
+      ${pb(6,'Additional vital data (O2 / emergencies)','<div class="olines"><i></i><i></i></div>')}
+    </div>
+    <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr><tr><th>NUMBER LEAVING A/C</th><td>${tot||''}</td></tr><tr><th>NUMBER STAYING ON</th><td></td></tr></table>
+    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
   $('#printSheet').innerHTML=p1+p2+p3;openPrintPreview()}
 /* preview: the three A4 pages on screen (same styles as the printout), scaled to the screen, with Print and Close */
 let ppCss=false;function openPrintPreview(){const ps=$('#printSheet');if(!ppCss){let css='';for(const sh of document.styleSheets){try{for(const r of sh.cssRules){if(r.media&&r.media.mediaText==='print'){for(const x of r.cssRules){const t=x.cssText;if(/^@page|^html|^body|^#printSheet\s*\{|preview|zoom/.test(t))continue;css+=t+'\n'}}}}catch(e){}}
