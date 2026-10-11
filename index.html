@@ -641,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:05</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 02:15</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2223,8 +2223,14 @@ function pkgCot(m){const d=m.data,ev=[];
   if(d.pi){// work the plan out from the package's own jump settings and winds
     const keep={pi:S.pi,jump:S.jump,winds:S.winds};S.pi=d.pi;S.jump=Object.assign({},DEF_JUMP,d.jump||{});{const xa=(+S.jump.exitAlt||0)-(+S.jump.dzElev||0);S.jump.openAlt=Math.min(+S.jump.openAlt||0,Math.max(1000,Math.floor((xa-1000)/500)*500))}d.jump=Object.assign({},d.jump,{openAlt:S.jump.openAlt});S.winds=d.winds||S.winds;let P=null;try{P=computeJump(d.pi)}catch(e){}Object.assign(S,keep);
     const alts=(d.altDips||[]).map(o=>({o,uid:uuid()}));let dipEv=null;
-    S.pi=d.pi;S.jump=Object.assign({},DEF_JUMP,d.jump||{});S.winds=d.winds||S.winds;try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}Object.assign(S,keep);
-    ev.push(dipEv||cotMark(d.pi,d.pi.name||'DIP','#FF2A2A',`DIP · DZ ${ff(+(d.jump||{}).dzElev||0)} AMSL`));
+    S.pi=d.pi;S.jump=Object.assign({},DEF_JUMP,d.jump||{});S.winds=d.winds||S.winds;
+    /* POD HAMO: the plugin has no pods, so each pod goes out as its own planned DIP (DZ name POD1, POD2...) on the same spot, with its own opening, jumpers, top SF and canopy heading,
+       all on the shared run-in course; plus a line joining the pods' HARPs */
+    let podEvs=null;if(S.jump.mode==='HAMO'){const gk={hamo,J2,J3,hamoHeading};try{computeHamo();if(hamo&&hamo.order&&hamo.order.length>1){const base=S.jump,jm=[base.jumpers,base.pod2Jumpers,base.pod3Jumpers],cs=[base.casSF,base.pod2Cas,base.pod3Cas];
+      podEvs=hamo.order.map((Pp,i)=>jmDipCot({name:`${d.pi.name||'DIP'} POD${i+1}`,lat:d.pi.lat,lon:d.pi.lon},Object.assign({},base,{mode:'HALO',openAlt:Pp.podOpen,jumpers:+jm[i]||4,casSF:Math.max(2000,+(cs[i]??2000)),lpSF:1000,harpBrg:norm(Pp.driveH+180)}),Pp,i===0?alts.map(a=>a.uid):[]));
+      podEvs.push(cotLine(hamo.order.map(Pp=>Pp.harp),`${d.pi.name||'DIP'} POD HARPs`,'#FFD400',3,false))}}catch(e){podEvs=null}hamo=gk.hamo;J2=gk.J2;J3=gk.J3;hamoHeading=gk.hamoHeading}
+    if(!podEvs)try{dipEv=jmDipCot(d.pi,S.jump,P,alts.map(a=>a.uid))}catch(e){}Object.assign(S,keep);
+    if(podEvs)ev.push(...podEvs);else ev.push(dipEv||cotMark(d.pi,d.pi.name||'DIP','#FF2A2A',`DIP · DZ ${ff(+(d.jump||{}).dzElev||0)} AMSL`));
     alts.forEach(a=>ev.push(jmAltCot(a.o,a.uid)))}
   (d.xs||[]).forEach((x,i)=>ev.push(cotMark(x,x.name||`X${i+1}`,'#FF3B3B',x.alt!=null?`${ff(x.alt)} AMSL`:'')));
   (d.markers||[]).forEach(o=>ev.push(cotMark(o,o.name||'Point','#4CC6DE','')));if(!d.pi)(d.altDips||[]).forEach(o=>ev.push(cotMark(o,o.name||'ALT DIP','#F25C93','Alternate DIP')));
