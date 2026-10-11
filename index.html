@@ -238,12 +238,18 @@ button,input,select{font:inherit;color:inherit}
   #printSheet table.grid{margin:4pt 0 6pt}#printSheet table.grid th{background:#eee!important;font-size:8.5pt}#printSheet table.grid td{font-size:8.5pt}#printSheet table.narrow{width:60%}
   #printSheet .ojm{border:1pt solid #000}#printSheet .otitle{text-align:center;padding:6pt;border-bottom:1pt solid #000}#printSheet .otitle b{display:block;font-size:12.5pt}#printSheet .otitle span{font-size:8pt}
   #printSheet .orow{display:grid;grid-template-columns:1fr 1fr;border-bottom:1pt solid #000}#printSheet .orow div{padding:5pt 6pt;font-size:10pt}#printSheet .orow div+div{border-left:1pt solid #000}
-  #printSheet .ojm table.man{margin:0}#printSheet .ojm table.man th{font-size:8pt;text-align:center;background:#fff!important}#printSheet .ojm table.man td{height:15pt;padding:0 4pt;border-color:#000}#printSheet .ojm table.man th{border-color:#000}
+  #printSheet .ojm table.man{margin:0}#printSheet .ojm table.man th{font-size:8pt;text-align:center;background:#fff!important}#printSheet .ojm table.man td{height:14.5pt;padding:0 4pt;border-color:#000}#printSheet .ojm table.man th{border-color:#000}
   #printSheet .ochk{font-weight:700;font-size:9pt}
   #printSheet table.owt{width:60%;margin:8pt 0}#printSheet table.owt th{width:50%;font-size:8pt;color:#3a6b22!important;text-align:left;border-color:#000}#printSheet table.owt td{border-color:#000;height:16pt}
   #printSheet .odesc{border:1pt solid #000;padding:6pt 8pt;font-size:9pt}#printSheet .odesc ol{margin:4pt 0 0 14pt;padding:0}#printSheet .odesc li{color:#555!important;margin-bottom:3pt}#printSheet .odesc li div{color:#000!important;font-size:10pt;margin-left:6pt}
   #printSheet .phl{display:grid;grid-template-columns:1.4fr 1fr;gap:8pt;margin-bottom:8pt}#printSheet .phl div{border:1.5pt solid #000;padding:6pt 8pt}#printSheet .phl span{display:block;font-size:9pt;font-weight:700}#printSheet .phl b{display:block;font-size:17pt;line-height:1.2}#printSheet .phl small{font-size:8.5pt}
-  #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:8pt}#printSheet small{font-size:7.5pt;color:#444!important}}
+  #printSheet .pban{background-color:#222!important;color:#fff!important;font:700 9pt Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:3pt 6pt;margin:10pt 0 4pt}#printSheet .cols .pban{margin-top:4pt}
+  #printSheet .ptiles{display:grid;grid-template-columns:repeat(4,1fr);border-top:.5pt solid #999;border-left:.5pt solid #999}#printSheet .ptile{border-right:.5pt solid #999;border-bottom:.5pt solid #999;padding:3pt 5pt;min-height:24pt}#printSheet .ptile.w2{grid-column:span 2}#printSheet .ptile span{display:block;font-size:7.5pt;color:#555!important}#printSheet .ptile b{font-size:10.5pt}
+  #printSheet table.palt td{padding:3pt 5pt}#printSheet table.palt td:first-child{font-size:8.5pt}#printSheet table.palt td:last-child{text-align:right;white-space:nowrap}#printSheet table.palt b{font-size:11pt}
+  #printSheet .pchk{font-size:8.5pt;margin-top:3pt}#printSheet .pchk.bad{font-weight:700}#printSheet table.pods td{white-space:nowrap}
+  #printSheet .olines i{display:block;border-bottom:.5pt solid #999;height:13pt}
+  #printSheet .phl3{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:6pt;margin-bottom:4pt}#printSheet .phl3 div{border:1.5pt solid #000;padding:5pt 7pt}#printSheet .phl3 span{display:block;font-size:8.5pt;font-weight:700}#printSheet .phl3 b{display:block;font-size:15pt;line-height:1.25;white-space:nowrap}#printSheet .phl3 small{font-size:8pt}
+  #printSheet .cols{display:grid;grid-template-columns:1fr 1fr;gap:10pt}#printSheet small{font-size:7.5pt;color:#444!important}}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
 #radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
@@ -693,7 +699,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 13:45</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 14:00</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -1951,8 +1957,9 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 
 /* Jump Vital Data: altimeters, heights AGL and checks, worked as on the manifest & pilot brief sheet */
 const up100=v=>Math.ceil(Math.round(v)/100)*100;/* briefed heights: rounded up to the next 100 ft */
-function vitalAlt(part){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
-  c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
+function keyHts(c){const hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
+  c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);return hts}
+function vitalAlt(part){const c=cypCalc(),hts=keyHts(c);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
   if(part==='alts')return `<div class="vsum">
     ${hts.map(([k,v])=>r(k,`${ff(up100(v))} AGL${k==='Exit (despatch)'?` <small style="font-weight:400;color:var(--mute)">(${ff(v+c.dz)} AMSL)</small>`:''}`)).join('')}${r('DIP elevation',`0 ft AGL <small style="font-weight:400;color:var(--mute)">(${ff(c.dz)} AMSL)</small>`)}
@@ -1990,22 +1997,30 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
       <tr><td colspan="4" class="ochk">PRIMARY OJM ALL CHECKS COMPLETE &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</td><td></td></tr></tbody></table></div>
     <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr><tr><th>NUMBER LEAVING A/C</th><td>${tot||''}</td></tr><tr><th>NUMBER STAYING ON</th><td></td></tr></table>
     <div class="odesc"><b>DESCENT PROFILE TO BE BRIEFED FROM ATAK COVERING THE FOLLOWING;</b><ol>
-      <li>DESPATCH (AMSL) AND DEPLOYMENT (AGL) ALTITUDES<div>Despatch ${ff(+j.exitAlt)} AMSL (${ff(+j.exitAlt-dz)} AGL) / Deployment ${P.map((x,i)=>ff(op(i))).join(' / ')} AGL</div></li>
-      <li>HARP (MGRS)<div>${esc(fc(P[0].harp))}${pods?' (pod 1)':''}</div></li>
-      <li>AC RUN IN / SPEED IN KIAS<div>${fb(magOf(J.heading))} M (${fb(J.heading)} T) / ${j.kias} KIAS</div></li>
-      <li>TIMING CALLS ON BOARD / LIGHTS<div>10 mins winds / 4 mins flashing lights / 2 mins red light and ramp / 1 min green light</div></li>
-      <li>PASS AND STICK BREAKDOWN<div>${pods?P.map((x,i)=>`Pod ${i+1}: ${+jm[i]||0}`).join(' / ')+' on one pass':`${tot} jumpers, one pass, ${j.interval} s exit separation`}</div></li>
-      <li>ADDITIONAL VITAL DATA (O2 / EMERGENCIES)<div>&nbsp;</div></li></ol></div></section>`;
+      <li>DESPATCH (AMSL) AND DEPLOYMENT (AGL) ALTITUDES</li>
+      <li>HARP (MGRS)</li>
+      <li>AC RUN IN / SPEED IN KIAS</li>
+      <li>TIMING CALLS ON BOARD / LIGHTS</li>
+      <li>PASS AND STICK BREAKDOWN</li>
+      <li>ADDITIONAL VITAL DATA (O2 / EMERGENCIES)<div class="olines"><i></i><i></i></div></li></ol></div></section>`;
   /* page 2: vital data and calcs */
   let c=null;try{c=cypCalc()}catch(e){}
-  const podRows=P.map((x,i)=>`<tr><td>${pods?'Pod '+(i+1):'Stick'}</td><td>${ff(op(i))}</td><td>${+jm[i]||'–'}</td><td>${ff(Math.max(2000,+cs[i]||2000))}</td><td>${esc(fc(x.harp))}</td><td>${esc(fc(x.prp))}</td><td>${esc(fc(x.rl))}</td><td>${fb(x.jumperHdgM)} M</td><td>${Math.round(x.ffM)} m</td><td>${Math.round(x.cdM).toLocaleString('en-GB')} m</td></tr>`).join('');
   const ladder=c?c.sets.map(t=>`<table class="grid"><thead><tr><th>${esc(t.T)}</th><th>AGL</th><th>MSL</th></tr></thead><tbody><tr><td>Planned deployment</td><td><small style="display:block;color:#555">(${up100(c.lowOpen).toLocaleString('en-GB')})</small><b>${ff(c.lowOpen)}</b></td><td>${ff(dz+c.lowOpen)}</td></tr><tr><td>Adjusted minimum deployment</td><td><small style="display:block;color:#555">(${up100(t.amdAgl).toLocaleString('en-GB')})</small><b>${ff(t.amdAgl)}</b></td><td>${ff(t.amd)}</td></tr><tr><td>Decision</td><td><small style="display:block;color:#555">(${up100(t.daAgl).toLocaleString('en-GB')})</small><b>${ff(t.daAgl)}</b></td><td>${ff(t.da)}</td></tr><tr><td>Reserve activation</td><td><small style="display:block;color:#555">(${up100(t.raaAgl).toLocaleString('en-GB')})</small><b>${ff(t.raaAgl)}</b></td><td>${ff(t.raa)}</td></tr></tbody></table>`).join(''):'';
   const to=j.toElev==null||j.toElev===''?null:+j.toElev,sg=v=>`${v>0?'+':v<0?'−':''}${Math.round(Math.abs(v)).toLocaleString('en-GB')} ft`;
-  const winds=S.winds.filter(wOk).map(w=>`<tr><td>${ff(w.alt-dz)}</td><td>${fb(w.dir)} T</td><td>${Math.round(w.spd)} kts</td></tr>`).join('');
+  const ban=t=>`<div class="pban">${t}</div>`,tl=(l,v,w)=>`<div class="ptile${w?' w2':''}"><span>${l}</span><b>${v}</b></div>`,run=({into:'Into wind',down:'Downwind',left:'Left door 90°',right:'Right door 90°',left45:'Left door 45°',right45:'Right door 45°',custom:'Custom'})[j.runMode||'into'];
+  const tRun=Math.round(pods?(P[P.length-1].along-P[0].along)/Math.max(5,J.gsM)+P[P.length-1].pcot:J.pcot);
+  const alts=c?keyHts(c).map(([k,v])=>`<tr><td>${k}</td><td><b>${ff(up100(v))} AGL</b>${k==='Exit (despatch)'?` <small>(${ff(v+dz)} AMSL)</small>`:''}</td></tr>`).join('')+`<tr><td>DIP elevation</td><td><b>0 ft AGL</b> <small>(${ff(dz)} AMSL)</small></td></tr>`:'';
   const p2=`<section class="page">${head('Vital data and calcs')}
-    <div class="cols"><div>${kv([['DIP',`${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['DIP elevation',ff(dz)+' AMSL'],['Exit',`${ff(+j.exitAlt-dz)} AGL · ${ff(+j.exitAlt)} AMSL`],['Canopy',`${esc(j.canopy||'Custom')} · K ${+(+j.k||0).toFixed(1)} · ${j.canopySpeed} kts`],['Aircraft',`${j.kias} KIAS · course ${fb(J.heading)} T / ${fb(magOf(J.heading))} M`],['Ground speed',kts(Math.round(J.gsM/KT))],['Exit separation',`${j.interval} s (${Math.round((+j.interval||0)*J.gsM)} m apart)`],['Pattern SF',ff(Math.max(1000,+j.lpSF||0))],['Magnetic variation',`${(+S.set.decl).toFixed(2)}° ${S.set.decl>=0?'E':'W'}`]])}</div>
-    <div>${c?kv([['CYPRES setting',c.cypMb+' mb'],['Altimeter setting',c.unk?'unknown (combat setting)':`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'}`],['Alti offset',to==null?'take-off height not set':`ALFA ${sg(to-dz)} · STRATOS ${sg(dz-to)}`],['Audible alarms',`standby ${ff(c.lowOpen+1000)} · deploy ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)).join(' / ')}`]]):''}${ladder}</div></div>
-    <table class="grid"><thead><tr><th></th><th>Open AGL</th><th>Jumpers</th><th>Top SF</th><th>HARP (first out)</th><th>PRP</th><th>Last out</th><th>Canopy hdg</th><th>Freefall</th><th>Canopy drift</th></tr></thead><tbody>${podRows}</tbody></table>
+    <div class="phl3"><div><span>HARP${pods?' (pod 1)':''}</span><b>${esc(fc(P[0].harp))}</b><small>${ll(P[0].harp)}</small></div><div><span>Run-in course</span><b>${fb(magOf(J.heading))} M</b><small>${fb(J.heading)} T · ${run.toLowerCase()}</small></div><div><span>Exit</span><b>${ff(up100(+j.exitAlt-dz))} AGL</b><small>(${ff(+j.exitAlt)} AMSL)</small></div></div>
+    <div class="cols">
+      <div>${ban('Key altitudes')}<table class="palt">${alts}</table>
+        ${c&&!c.depOk?`<div class="pchk bad">✗ Planned deployment ${ff(c.lowOpen)} is below minimum ${ff(c.minDep)} AGL</div>`:''}${c&&!c.sepOk?`<div class="pchk bad">✗ Less than 1,000 ft between despatch and deployment</div>`:''}</div>
+      <div>${ban('CYPRES')}${ladder}${c?`<table class="palt"><tr><td>CYPRES setting</td><td><b>${c.cypMb} mb</b></td></tr><tr><td>ALFA / STRATOS</td><td><b>${to==null?'–':`${sg(to-dz)} / ${sg(dz-to)}`}</b></td></tr></table>`:''}</div>
+    </div>
+    ${pods?`${ban('Pods')}<table class="grid pods"><thead><tr><th></th><th>Opens AGL</th><th>Jumpers</th><th>HARP</th><th>Jumper hdg</th><th>Canopy drift</th></tr></thead><tbody>${P.map((x,i)=>`<tr><td><b>Pod ${i+1}</b></td><td>${ff(op(i))}</td><td>${+jm[i]||'–'}</td><td>${esc(fc(x.harp))}</td><td>${fb(x.jumperHdgM)} M</td><td>${Math.round(x.cdM).toLocaleString('en-GB')} m</td></tr>`).join('')}</tbody></table>`:''}
+    ${ban('Jump details')}<div class="ptiles">
+      ${tl('Jumpers',pods?`${tot} <small>(${P.map((x,i)=>+jm[i]||0).join(' / ')})</small>`:tot)}${tl('Aircraft',`${j.kias} KIAS <small>(GS ${kts(Math.round(J.gsM/KT))})</small>`)}${tl('Separation',`${j.interval} s <small>(${Math.round((+j.interval||0)*J.gsM)} m)</small>`)}${tl('HARP to last man out',`${tRun} s${tRun>=60?` <small>(${fsec(tRun)})</small>`:''}`)}
+      ${tl('Canopy',esc(j.canopy||'Custom'))}${tl('Landing pattern SF',ff(Math.max(1000,+j.lpSF||0)))}${pods?tl('Top SF',P.map((x,i)=>Math.max(2000,+cs[i]||2000).toLocaleString('en-GB')).join(' / ')+' ft'):tl('Jumper heading',`${fb(J.jumperHdgM)} M`)}${pods?tl('DIP',esc(fc(S.pi))):tl('Canopy drift',`${Math.round(J.cdM).toLocaleString('en-GB')} m`)}</div>
 </section>`;
   /* page 3: pilot brief */
   const tp=(hamo?hamo.timePts:J.timePts)||[],first=P[0],last=P[P.length-1];
