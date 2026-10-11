@@ -357,7 +357,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act .dipalt{color:#9a9a9a;font-weight:400}
 .fullbtns{display:flex;flex-wrap:nowrap}.fullbtns .btn{flex:1}.fullbtns .btn[hidden]{display:none}
 .stylelist{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.stylelist .btn{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.stylelist .btn span{width:64px;flex:none}.stylelist .btn svg{flex:1;height:16px}.stylelist .btn.on{outline:2px solid var(--ink)}
-.altoff{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 26px/1.2 var(--cond);font-variant-numeric:tabular-nums}
+.altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
 #act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
 #act p{white-space:pre-line;margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -640,7 +640,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:15</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:30</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -965,7 +965,7 @@ function curPlace(){const ea=document.getElementById('eyeAlt'),b=document.getEle
 async function groundElevM(p){try{const v=(await terrElevs([p]))[0];return isFinite(v)?v:null}catch(e){return null}}
 async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
   if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Could not get the ground height (no signal?). Tap the Red X to enter its altitude.',6000)}save('xs');renderXs()}}
-function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="position:relative;width:26px;height:26px"><svg viewBox="-13 -13 26 26" width="26" height="26" style="overflow:visible"><path d="M-6-6 6 6M6-6-6 6" stroke="${bg}" stroke-width="4.5" stroke-linecap="round"/><path d="M-6-6 6 6M6-6-6 6" stroke="${col}" stroke-width="2.2" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:22px;top:-2px;font-size:12px;line-height:1.2">${esc(fc(x))}<br>${x.alt!=null?`${ff(x.alt)} AMSL`:'Alt …'}</span></div>`})}).on('click',()=>{S.xs=S.xs.filter(y=>y.id!==x.id);renderXs()}).addTo(LY.xs)});
+function renderXs(){LY.xs.clearLayers();const col=cssv('--x'),bg=cssv('--bg');S.xs.forEach((x,i)=>{const lab=esc(x.name||`X${i+1}`);L.marker([x.lat,x.lon],{icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="position:relative;width:26px;height:26px"><svg viewBox="-13 -13 26 26" width="26" height="26" style="overflow:visible"><path d="M-6-6 6 6M6-6-6 6" stroke="${bg}" stroke-width="4.5" stroke-linecap="round"/><path d="M-6-6 6 6M6-6-6 6" stroke="${col}" stroke-width="2.2" stroke-linecap="round"/></svg><span class="xlbl" style="position:absolute;left:22px;top:-2px;font-size:12px;line-height:1.2">${esc(fc(x))}<br>${x.alt!=null?`${ff(x.alt)} AMSL`:'Alt …'}</span></div>`})}).on('click',()=>xActions(x.id)).addTo(LY.xs)});
   $('#xList').innerHTML=S.xs.length?S.xs.map((x,i)=>`<button class="item" data-x="${x.id}"><span class="sw" style="background:var(--x)"></span><span><b>${esc(x.name||`X${i+1}`)} · ${x.alt!=null?ff(x.alt):'Alt –'}</b><small>${esc(fc(x))}${me?` · ${fd(dist(me,x))} ${fb(brg(me,x))}`:''}</small></span></button>`).join(''):'<p class="note">Nothing plotted yet.</p>'}
 function xActions(id){const i=S.xs.findIndex(x=>x.id===id);const x=S.xs[i];if(!x)return;const nm=x.name||`X${i+1}`;sheet({title:nm,sub:relSub(x)+(x.alt!=null?` · ${ff(x.alt)}${x.src?` (${x.src})`:''}`:' · Alt –'),input:{label:'Name',value:nm,save:v=>{x.name=v.trim()||nm;save('xs');renderXs()}},
   buttons:[['Navigate to',()=>setTarget('x:'+id),'primary'],['Set altitude',()=>sheet({title:`${nm} altitude`,sub:x.alt!=null?ff(x.alt):'Not set',input:{label:'Altitude, ft AMSL',type:'number',value:x.alt!=null?Math.round(x.alt):'',save:v=>{const n=parseFloat(v);x.alt=isFinite(n)?n:null;x.src=isFinite(n)?'entered':null;save('xs');renderXs()}},buttons:[]})],['Centre map',()=>map.setView(LL(x),Math.max(map.getZoom(),14))],['Copy grid',()=>copy(fc(x)+(x.alt!=null?` ${ff(x.alt)}`:''))],['Set as DIP',()=>{S.pi={lat:x.lat,lon:x.lon};if(x.alt!=null)S.jump.dzElev=Math.round(x.alt);save('pi');save('jump');syncJumpInputs();renderJump();toast('DIP set'+(x.alt!=null?' and DZ elevation updated':''))}],['Delete',()=>{S.xs=S.xs.filter(y=>y.id!==id);save('xs');if(S.target==='x:'+id)setTarget(null);renderXs()},'danger']]})}
@@ -988,7 +988,7 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
       /* long press the line, then drag: the whole line moves as it is */
       const el=hit.getElement&&hit.getElement();if(el)el.addEventListener('pointerdown',e=>{let t=null,drag=false,st=null,orig=null;const sx=e.clientX,sy=e.clientY;
         const mv=ev=>{if(t&&!drag&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8){clearTimeout(t);t=null}if(!drag)return;const ll=map.mouseEventToLatLng(ev),dla=ll.lat-st.lat,dlo=ll.lng-st.lng;d.pts=orig.map(p=>({lat:p.lat+dla,lon:p.lon+dlo}));pl.setLatLngs(d.pts.map(LL));hit.setLatLngs(d.pts.map(LL))};
-        const up=()=>{clearTimeout(t);document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!drag)return;drag=false;map.dragging.enable();lineMovedAt=Date.now();save('draws');renderDraws()};
+        const up=()=>{clearTimeout(t);document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);if(!drag)return;drag=false;dragForMode();lineMovedAt=Date.now();save('draws');renderDraws()};
         document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
         t=setTimeout(()=>{t=null;drag=true;map.dragging.disable();st=map.mouseEventToLatLng(e);orig=d.pts.map(p=>({lat:p.lat,lon:p.lon}));if(navigator.vibrate)navigator.vibrate(30);toast('Drag to move the line')},500)})}
     if(d.label&&pts.length>1){let k=0,best=-1;for(let i=0;i<pts.length-1;i++){const l=dist(pts[i],pts[i+1]);if(l>best){best=l;k=i}}const a_=pts[k],b_=pts[k+1];
@@ -998,7 +998,7 @@ function renderDraws(){LY.draw.clearLayers();S.draws.forEach(d=>{const col=colOf
       const a=pts[pts.length-2],b=pts[pts.length-1],mid={lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2};
 
       [0,pts.length-1].forEach(i=>L.marker(LL(pts[i]),{draggable:true,zIndexOffset:600,pickId:'d:'+d.id,icon:L.divIcon({className:'pin',iconSize:[26,26],iconAnchor:[13,13],html:`<div style="width:8px;height:8px;margin:9px;border-radius:50%;background:${col};border:1.5px solid #fff;box-shadow:0 0 0 1px #141414"></div>`})})
-        .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{map.dragging.enable();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
+        .on('dragstart',()=>map.dragging.disable()).on('drag',e=>{pts[i]={lat:e.latlng.lat,lon:e.latlng.lng};pl.setLatLngs(pts.map(LL))}).on('dragend',()=>{dragForMode();save('draws');renderDraws()}).on('click',()=>drawActions(d.id)).addTo(LY.draw))}})}
 /* turn a text label to any angle: slide to preview on the map, Save to keep */
 function textAngle(id){const d=S.draws.find(x=>x.id===id);if(!d)return;const was=+d.rot||0;
   sheet({side:true,title:'Text angle',sub:d.text,input:{label:`Angle ${was}°`,type:'range',value:was,save:v=>{d.rot=Math.round(+v)%360;save('draws');renderDraws()},clear:true,onClear:i=>{i.value=0;d.rot=0;const lb=$('#act').hidden?$('#dSubLbl'):$('#actInLabel');lb.textContent='Angle 0°';renderDraws()}},buttons:[]});
@@ -1423,8 +1423,7 @@ function renderCypres(){renderMilCypres();if(!$('#cypOut'))return;const to=+S.ju
 function renderAlti(){const to=S.jump.toElev==null||S.jump.toElev===''?NaN:+S.jump.toElev,dz=+S.jump.dzElev;const ref=dz;if(!isFinite(to)||!isFinite(ref)){$('#altOut').innerHTML='';return}const setTo=to-ref;const exitR=(+S.jump.exitAlt)-ref,openR=(+S.jump.openAlt)+dz-ref;
   /* offsets to set on the ground at take-off so the altimeter reads 0 on the DZ: ALFA counts take-off minus DZ, Stratos the other way round; DZ pressure from the QNH */
   const sg=v=>`${v>0?'+':v<0?'−':''}${Math.round(Math.abs(v)).toLocaleString('en-GB')} ft`,j_=S.jump,qUnk=!!j_.qnhUnknown||!(+j_.qnh>0),qmb=qUnk?1013.25:(j_.qnhUnit==='inhg'?(+j_.qnh)*33.8639:+j_.qnh),pdz=qmb*Math.pow(1-6.8756e-6*dz,5.2559);
-  $('#altOut').innerHTML=`<h3 style="margin-top:14px">Alti offset setting</h3><div class="altoff"><div><span>ALFA</span><b>${sg(setTo)}</b></div><div><span>STRATOS</span><b>${sg(-setTo)}</b></div></div>
-    <p class="note">(Pressure ${Math.round(pdz)} mb at the DZ${qUnk?', standard pressure: no QNH entered':''})</p>
+  $('#altOut').innerHTML=`<h3 style="margin-top:14px">Alti offset setting</h3><div class="altoff"><div><span>ALFA</span><b>${sg(setTo)}</b></div><div><span>STRATOS</span><b>${sg(-setTo)}</b></div><div><span>PRESSURE${qUnk?' (std)':''}</span><b>${Math.round(pdz)} mb</b></div></div>
     <dl class="res"><dd data-l="Reads at exit">${ff(exitR)}</dd><dd data-l="Reads at opening">${ff(openR)}</dd><dd data-l="Reads on the DZ">${ff(dz-ref)}</dd></dl>
     <div class="warn">Exit and opening readings use the jump plan values. Check the altimeter on the ground after setting.</div>`}
 
@@ -1652,7 +1651,7 @@ function itemsAt(pt){const out=[],seen=new Set();map.eachLayer(l=>{if(!l.listens
 map.getContainer().addEventListener('click',e=>{if(e.__picked||(mode&&!['none','draw-line','draw-free','draw-text','draw-shape','redx','range'].includes(mode)))return;if(e.target.closest&&e.target.closest('#radial,.leaflet-control-container,#quick,#status,#zoom,#hud,#tool,#tip'))return;
   const items=itemsAt(map.mouseEventToContainerPoint(e));if(items.length<2)return;e.stopPropagation();e.preventDefault();closeRadial();
   const at=map.mouseEventToLatLng(e);openRadial({lat:at.lat,lon:at.lng},items.slice(0,8).map(it=>({l:it.name.length>14?it.name.slice(0,13)+'…':it.name,icon:it.l instanceof L.Polyline?'thick':'alt',f:()=>setTimeout(()=>{radialCtx=null;it.l.fire('click',{latlng:it.l.getLatLng?it.l.getLatLng():at})},60)})),'Which one?')},true);
-function openRadial(latlon,items,title,line,ringR){if(navLock())return;selKeep=false;closeRadial();showSel(latlon,line);const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=ringR||92,n=items.length;r.style.setProperty('--rr',-R+'px');r.style.setProperty('--rd',2*R+'px');r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${it.l}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();selKeep=true;closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f();setTimeout(()=>{if($('#act').hidden&&$('#radial').hidden)clearSel()},1600)}}
+function openRadial(latlon,items,title,line,ringR){if(navLock())return;selKeep=false;closeRadial();showSel(latlon,line);const pt=map.latLngToContainerPoint(LL(latlon));const r=$('#radial');r.hidden=false;r.style.left=pt.x+'px';r.style.top=pt.y+'px';const R=ringR||92,n=items.length;r.style.setProperty('--rr',-R+'px');r.style.setProperty('--rd',2*R+'px');r.innerHTML='<div class="ring"></div>'+(title?`<div class="rtitle">${esc(title)}</div>`:'')+items.map((it,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return `<button class="rb ${it.cls||''}" data-i="${i}" style="left:${R*Math.cos(a)}px;top:${R*Math.sin(a)}px"><svg viewBox="0 0 24 24">${RI[it.icon]||''}</svg><span>${esc(it.l)}</span></button>`}).join('');r.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;e.stopPropagation();selKeep=true;closeRadial();radialCtx={p:latlon,t:Date.now()};items[+b.dataset.i].f();setTimeout(()=>{if($('#act').hidden&&$('#radial').hidden)clearSel()},1600)}}
 function closeRadial(){$('#radial').hidden=true;if(!selKeep)clearSel()}
 map.on('movestart zoomstart click',closeRadial);
 function dipRadial(){openRadial(S.pi,[
@@ -1754,7 +1753,7 @@ function drawPattern(){const P=S.pattern,PJ=patJ();if(!P.on||!S.pi||!PJ||PJ.err)
 /* ================= map view: north up / heading up / 3D ================= */
 let viewMode='north';
 function applyView(){const w=$('#mapwrap');const want3d=viewMode==='3d',tilt=want3d&&g3Failed;w.classList.toggle('tilt',tilt);const was=view3d;view3d=tilt;if(was!==view3d){renderJump();map.eachLayer(l=>{if(l instanceof L.GridLayer)l._update()});map.fire('moveend')}show3d(want3d&&!g3Failed);if(viewMode==='heading'){const ht=headingTrue();map.setBearing(ht?-ht.h:0)}else map.setBearing(0);$('#northLbl').textContent=viewMode==='north'?'N':viewMode==='heading'?'HDG':'3D';$('#northSvg').style.transform=`rotate(${map.getBearing?map.getBearing():0}deg)`;setTimeout(()=>map.invalidateSize(),60)}
-$('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='3d'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
+$('#northBtn').onclick=()=>{viewMode=viewMode==='north'?'heading':viewMode==='heading'?'3d':'north';if(viewMode==='heading'&&!headingTrue()){toast('No heading yet. Heading-up needs the compass or GPS track; staying north up.');viewMode='north'}if(viewMode==='3d')toast(g3Failed?'3D view is for looking only; taps on the map are not accurate until you return to north up.':'3D: drag to move, pinch to zoom, two fingers up or down to tilt, twist to turn. Tap the north pointer to go back.',5000);applyView()};
 map.on('rotate',()=>{clearTimeout(window.__rd);window.__rd=setTimeout(()=>{renderRng();renderDraws();if(J&&!J.err)renderJump()},120);$('#northSvg').style.transform=`rotate(${map.getBearing()}deg)`});
 /* ================= true 3D view: Cesium globe with terrain, loaded the first time 3D is opened ================= */
 const CES='https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/';
@@ -1826,6 +1825,7 @@ function show3d(on){const el=$('#globe');$('#mapwrap').classList.toggle('g3',!!o
 
 /* ================= modes / quick menu ================= */
 /* while drawing, the tap instructions show in the Draw panel instead of over the map */
+function dragForMode(){const off=mode==='draw-free'||mode==='draw-shape'||(mode==='range'&&S.set.rngMode==='ring');if(off){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}}
 function setMode(m,tip){mode=m;const inPanel=m.startsWith('draw-')&&tool==='draw',inRng=m==='range'&&tool==='range';$('#tip').hidden=m==='none'||inPanel||inRng||(m==='redx'&&tool==='redx');if(tip)$('#tipText').textContent=tip;if($('#drawTip'))$('#drawTip').textContent=inPanel?$('#tipText').textContent:'';if($('#rngTip'))$('#rngTip').textContent=inRng?$('#tipText').textContent:'';$('#tipBtn').textContent=m==='draw-line'?'Finish':'Done';
   const freeOn=m==='draw-free'||m==='draw-shape'||(m==='range'&&S.set.rngMode==='ring');if(freeOn){map.dragging.disable();map.touchZoom.disable()}else{map.dragging.enable();map.touchZoom.enable()}
   if(m==='none')map.doubleClickZoom.enable();else map.doubleClickZoom.disable();document.body.classList.toggle('drawing',m!=='none')}
@@ -1889,10 +1889,10 @@ setInterval(()=>{if(!S.set.sim||!S.set.simMove||!me||!S.target)return;const r=re
 
 /* Jump Vital Data: altimeters, heights AGL and checks, worked as on the manifest & pilot brief sheet */
 function vitalAlt(){const c=cypCalc(),hts=[['Exit (despatch)',c.despAgl],['Planned deployment'+(S.jump.mode==='HAMO'?' pod 1':''),+S.jump.openAlt],...(S.jump.mode==='HAMO'?[['Planned deployment pod 2',+S.jump.pod2Open]]:[]),...(pods3()?[['Planned deployment pod 3',+S.jump.pod3Open]]:[])];
-  c.sets.forEach(t=>{const x=c.mixed?' ('+t.T+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
+  c.sets.forEach(t=>{const x=c.mixed?' ('+esc(t.T)+')':'';hts.push(['Minimum deployment'+x,t.amdAgl],['Decision altitude'+x,t.daAgl],['Reserve activation (RAA)'+x,t.raaAgl])});hts.sort((a,b)=>b[1]-a[1]);
   const r=(k,v)=>`<div class="sr"><span>${k}</span><b>${v}</b></div>`;
   return `<div class="vsum"><div class="sh">Altimeters</div>
-    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',qnhSrcText()):''}
+    ${r('A/C alti setting',c.unk?'Unknown (29.92 inHg / 1013.2 mb used)':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`)}${qnhSrcText()?r('Weather station',esc(qnhSrcText())):''}
     ${r('ALFA',c.offset!=null?`${sgnFt(c.offset)} / ${c.qfeDz} mb`:'– (set take-off airfield in Alti)')}
     ${r('STRATOS',c.offset!=null?`${sgnFt(-c.offset)} / ${c.qfeDz} mb`:'–')}
     ${r('CYPRES setting',`${c.cypMb} mb`)}
@@ -1905,7 +1905,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
   o.innerHTML=`<div class="sum">
     <div><span>Sortie</span><b>${esc(j.sortie||'–')}</b></div>
     <div><span>Jump Type</span><b>${j.mode==='HAMO'?`POD HAMO (${pods3()?3:2} pods)`:j.mode}</b></div>
-    <div><span>Canopy</span><b>${j.canopy||'Custom'}</b> <span>K</span><b>${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
+    <div><span>Canopy</span><b>${esc(j.canopy||'Custom')}</b> <span>K</span><b>${+J.K.toFixed(1)}${(+j.jumperKg||110)!==110?` (${j.k} at 110 kg)`:''}</b> <span>CSC</span><b>${j.canopySpeed} kts</b></div>
     <div><span>Jumpers in stick</span><b>${j.jumpers}</b> <span>Interval</span><b>${j.interval} s (${Math.round(j.interval*J.gsM)} m)</b></div>
     <div><span>Average AUM</span><b>${j.jumperKg} kg</b></div>
     <div><span>Canopy assembly SF</span><b>${ff(+j.casSF)}</b> <span>Landing pattern SF</span><b>${ff(+j.lpSF)}</b></div>
@@ -1968,18 +1968,18 @@ async function checkHrpo(auto){if(!J||J.err){if(!auto)toast('Plan the jump first
   catch(e){hrpoBusy=null;hrpoFailKey=key;$('#hrpoOut').className='hrpo';$('#hrpoOut').textContent='Terrain check needs the page hosted outside claude.ai with internet access. Check the areas on Google Earth instead and enter a VDZ override if needed.'}}
 function vdzElev(){const dz=+S.jump.dzElev||0;if(S.jump.vdzManual!=null&&S.jump.vdzManual!=='')return {ft:+S.jump.vdzManual,src:'entered VDZ'};const h=S.jump.hrpo;if(h&&h.isHrpo)return {ft:h.ft,src:`HRPO near ${h.near}`};return {ft:dz,src:'DZ elevation'}}
 function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSrc');if(qs)qs.textContent=qnhSrcText()}if(planMissing(S.jump).length){o.innerHTML='<p class="note">Fill in the planner first.</p>';return}const j=S.jump,c=cypCalc(),dz=c.dz,unk=c.unk;
-  const R=hrpoRadius();$('#hrpoRule').textContent=`Checked automatically: highest ground within ${R} m of the HARP, PRP, first out and last out (${R===1000?'1,000 m, exit above':'500 m, exit below'} 13,000 ft AGL). Ground 200 ft or more above the DZ is an HRPO and becomes the VDZ.`;
+  const R=hrpoRadius();{const hr=$('#hrpoRule');if(hr){hr.textContent='';hr.hidden=true}}
   const h=j.hrpo,cur=h&&h.key===hrpoKey(),ho=$('#hrpoOut');ho.className='hrpo'+(cur?(h.isHrpo?' bad':' ok'):'');
-  ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ. It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(h.ft-dz)} above the DZ.`;
+  ho.innerHTML=!J||J.err?'Plan the jump to check for an HRPO.':!cur?(hrpoFailKey===hrpoKey()?ho.innerHTML:'Checking terrain around the HARP, PRP, first out and last out…'):h.isHrpo?`<b>HRPO</b> ${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude. It becomes the VDZ; raise pull and key altitudes with it.`:`<b>NO HRPO</b> Highest point within ${h.r} m is ${ff(h.ft)} AMSL, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude.`;
   const row=(l,msl,agl,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${msl}</td><td>${agl}</td></tr>`,pa=c.cypFt+(29.92-c.altUsed)*1000,split=c.mixed&&new Set(c.sets.map(()=>c.cypMb)).size>1;
-  const ladder=t=>`<table class="winds mt"><thead><tr><th>${t.T}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
+  const ladder=t=>`<table class="winds mt"><thead><tr><th>${esc(t.T)}</th><th>MSL</th><th>AGL</th></tr></thead><tbody>
     ${row(`Adjusted minimum deployment${unk?' (+1,000, setting unknown)':''}`,ff(t.amd),ff(t.amdAgl),'key')}
     ${row(`Minimum deployment (+${t.dep.toLocaleString('en-GB')})`,ff(t.md),'')}
     ${row(`Decision (+${t.sep.toLocaleString('en-GB')})`,ff(t.da),ff(t.daAgl),'key')}
     ${row(`Reserve activation (+${t.act.toLocaleString('en-GB')})`,ff(t.raa),ff(t.raaAgl),'key')}
     ${row(`CYPRES whiz wheel input${unk?' (+500)':' (not used, setting known)'}`,ff(c.cypFt),'')}
     ${row(`${c.v.src==='DZ elevation'?'DZ':'VDZ'} elevation`,ff(c.base),'')}</tbody></table>`;
-  const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${t.n}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
+  const decAll=Object.entries(CYP).map(([k,t])=>{const d=c.cypFt+t.act+t.sep;return `<tr${c.sets.some(x=>x.k===k)?' style="font-weight:600"':''}><td>${esc(t.n)}</td><td>${ff(d)}</td><td>${ff(d-dz)}</td></tr>`}).join('');
   o.innerHTML=`<section class="sec"><h3>Setting</h3><dl class="res">
     <dd class="big" data-l="CYPRES setting">${c.cypMb} mb</dd>
     <dd data-l="Working">${unk?'Setting unknown: 29.92 inHg / 1013.2 mb used':`${c.altUsed.toFixed(2)} inHg / ${(c.altUsed*33.8639).toFixed(1)} mb`} at ${c.v.src==='DZ elevation'?'DZ':'VDZ'} ${ff(c.base)}${unk?' + 500':''} = ${ff(c.cypFt)} MSL (pressure altitude ${ff(pa)}) gives ${(1013.25*Math.pow(1-6.8756e-6*pa,5.2559)).toFixed(1)} mb, rounded down to ${c.cypMb} mb</dd>
@@ -1987,7 +1987,7 @@ function renderMilCypres(){const o=$('#milOut');if(!o)return;{const qs=$('#qnhSr
     <h3>Key altitude ladder</h3>${c.sets.map(ladder).join('')}
     <h3 class="mt">Decision altitude by CYPRES model</h3>
     <table class="winds"><thead><tr><th>CYPRES</th><th>MSL</th><th>AGL</th></tr></thead><tbody>${decAll}</tbody></table>
-    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+t.T+')':'')).join(' / ')} AGL</dd></dl>
+    <dl class="res mt"><dd data-l="Audible alarms">standby ${ff(c.lowOpen+1000)} · deployment ${ff(c.lowOpen)} · decision ${c.sets.map(t=>ff(t.daAgl)+(c.mixed?' ('+esc(t.T)+')':'')).join(' / ')} AGL</dd></dl>
     <div class="warn" style="border-left-color:${c.depOk?'var(--go)':'var(--stop)'}">${c.depOk?`Planned deployment ${ff(c.lowOpen)} AGL is at or above the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}).`:`Planned deployment ${ff(c.lowOpen)} AGL is ${ff(c.minDep-c.lowOpen)} BELOW the minimum deployment of ${ff(c.minDep)} AGL (${c.minWhy}). Raise the pull altitude.`}</div>
     <div class="warn" style="border-left-color:${c.sepOk?'var(--go)':'var(--stop)'}">${c.sepOk?`Despatch ${ff(c.despAgl)} AGL is ${ff(c.despAgl-c.highOpen)} above planned deployment (${ff(c.highOpen)} AGL).`:`Despatch ${ff(c.despAgl)} AGL is ${ff(c.highOpen+1000-c.despAgl)} short: it must be at least 1,000 ft above planned deployment (${ff(c.highOpen)} AGL).`}</div>
     <p class="note">Cross-check with the whiz wheel, the ATAK CYPRES feature or the SSK CYPRES app before briefing.</p></section>`}
@@ -2011,7 +2011,7 @@ $('#qnhUnknown').onchange=e=>{S.jump.qnhUnknown=e.target.checked;save('jump');re
 $('#vdzManual').oninput=e=>{const v=e.target.value.trim();S.jump.vdzManual=v===''?null:parseFloat(v);save('jump');renderMilCypres()};
 // terrain heatmap: ground height relative to the DZ around the HARP, PRP, first and last out, from AWS Terrarium tiles (z14, about 10 m)
 let heatOn=false;const heatLayer=L.layerGroup().addTo(map);
-function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(h.ft-dz)} above the DZ\n${fc(h)}\n(DZ altitude ${ff(dz)})`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
+function hrpoSheet(){const h=S.jump.hrpo;if(!h)return;const dz=+S.jump.dzElev||0;sheet({title:h.isHrpo?'HRPO':'Highest ground',sub:`${ff(h.ft)} AMSL near the ${h.near}, ${ff(Math.abs(h.ft-dz))} ${h.ft>=dz?'higher':'lower'} than DZ altitude\n${fc(h)}\n(DZ altitude ${ff(dz)})`,buttons:[[heatOn?'Hide terrain heatmap':'View terrain heatmap',()=>heatOn?hideHeat():showHeat(),'primary'],['Copy grid',()=>copy(fc(h))]]})}
 function hideHeat(){heatOn=false;heatLayer.clearLayers();$('#heatKey').hidden=true}
 async function showHeat(){if(!J||J.err){toast('Plan the jump first');return}const R=hrpoRadius()*1.6,c=[J.harp,J.op,J.gl,J.rl,...[J2,J3].filter(Boolean).flatMap(P=>[P.harp,P.op,P.gl,P.rl])].flatMap(p=>[0,90,180,270].map(b=>dest(p,b,R)));
   const Z=14,N=2**Z,px=p=>({x:(p.lon+180)/360*N*256,y:(1-Math.log(Math.tan(p.lat*D2R)+1/Math.cos(p.lat*D2R))/Math.PI)/2*N*256});
@@ -2184,7 +2184,7 @@ function pkgItemsSheet(id){const m=S.missions.find(x=>x.id===id);if(!m)return;co
   // item rows with a small red remove button each; tapping the name does nothing
   const box=document.createElement('div');box.className='pkglist';box.innerHTML=it.map(x=>`<div class="pkgrow"><span>${esc(x.l)}</span><button class="pkgx" data-k="${esc(x.key)}" aria-label="Remove ${esc(x.l)}">✕</button></div>`).join('');
   box.onclick=e=>{const b=e.target.closest('.pkgx');if(!b)return;const [k,i]=b.dataset.k.split(':');if(k==='pi')m.data.pi=null;else m.data[k]=(m.data[k]||[]).filter(o=>o.id!==i);m.saved=Date.now();save('missions');renderMissions();pkgItemsSheet(id)};
-  $('#actBtns').prepend(box)}
+  ($('#drawer').hidden?$('#actBtns'):$('#dSubBtns')).prepend(box)}
 // put the package's items on the map (alongside what is there) and reopen the selection bar with them ticked
 function pkgEditOnMap(id){const m=S.missions.find(x=>x.id===id);if(!m)return;const d=JSON.parse(JSON.stringify(m.data));PICK_TYPES.forEach(([k])=>{(d[k]||[]).forEach(o=>{if(!(S[k]||[]).some(x=>x.id===o.id))S[k].push(o)});save(k)});if(d.pi){S.pi=d.pi;save('pi')}
   redrawAll();renderJump();closeDrawer();startPick(m.name,id,pkgItems(m.data).map(x=>x.key));if(d.pi)map.setView(LL(d.pi),Math.max(map.getZoom(),12));toast('Package items are ticked. Tap or lasso to change, then Save changes.',4500)}
@@ -2418,7 +2418,7 @@ $('#sNight').onchange=e=>setS('night',e.target.checked,applyTheme);
 $('#sSim').onchange=e=>setS('sim',e.target.checked,()=>toast(e.target.checked?'Simulation on. Close the menu and tap the map to place yourself.':'Simulation off. Phone GPS will be used.'));
 $('#sSimSpd').oninput=e=>{const v=parseFloat(e.target.value);if(isFinite(v))setS('simSpd',v)};
 $('#sSimMove').onchange=e=>setS('simMove',e.target.checked);
-let resetArm=0;$('#sReset').onclick=e=>{if(Date.now()-resetArm<3000){['jump','winds','markers','xs','draws','rng','pi','pi2','altDips','pattern','canopies','set','ov','target','missions','mission'].forEach(k=>{try{localStorage.removeItem('jmtak:'+k)}catch(x){}});location.reload();return}resetArm=Date.now();e.target.textContent='Tap again to erase';setTimeout(()=>e.target.textContent='Erase all data',3000)};
+let resetArm=0;$('#sReset').onclick=e=>{if(Date.now()-resetArm<3000){Object.keys(localStorage).filter(k=>k.startsWith('jmtak:')).forEach(k=>{try{localStorage.removeItem(k)}catch(x){}});try{caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)))}catch(x){}location.reload();return}resetArm=Date.now();e.target.textContent='Tap again to erase';setTimeout(()=>e.target.textContent='Erase all data',3000)};
 
 /* ================= boot ================= */
 setTimeout(updateEyeAlt,0);
