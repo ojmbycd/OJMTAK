@@ -700,7 +700,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
         <button id="updApp"><b>Update app</b><small>Check for a newer version and load it</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 15:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 15:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -2029,7 +2029,7 @@ function printCalcs(){try{renderJump()}catch(e){}try{renderMilCypres()}catch(e){
       ${pb(6,'Additional vital data (O2 / emergencies)','<div class="olines"><i></i><i></i></div>')}
     </div>
     <table class="owt"><tr><th>WEIGHT AUM (Lbs.)</th><td></td></tr><tr><th>NUMBER LEAVING A/C</th><td>${tot||''}</td></tr><tr><th>NUMBER STAYING ON</th><td></td></tr></table>
-    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Altimeter',c&&!c.unk?`${j.qnh} ${j.qnhUnit==='inhg'?'inHg':'mb'} QNH`:'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
+    ${kv([['DIP',`${nm}: ${esc(fc(S.pi))}<br><small>${ll(S.pi)}</small>`],['Aircraft altimeter setting',c&&!c.unk?(j.qnhUnit==='inhg'?`${(+j.qnh).toFixed(2)} inHg / ${Math.round(j.qnh*33.8639)} mb`:`${Math.round(+j.qnh)} mb / ${(j.qnh/33.8639).toFixed(2)} inHg`):'&nbsp;'],['Wind at exit',`${fb(norm(Math.atan2(-J.exitWind.u,-J.exitWind.v)*R2D))} T ${kts(Math.round(Math.hypot(J.exitWind.u,J.exitWind.v)/KT))}`],['Frequency / call signs','&nbsp;'],['Pilot notes','&nbsp;<br>&nbsp;<br>&nbsp;']])}</section>`;
   $('#printSheet').innerHTML=p1+p2+p3;openPrintPreview()}
 /* preview: the three A4 pages on screen (same styles as the printout), scaled to the screen, with Print and Close */
 let ppCss=false;function openPrintPreview(){const ps=$('#printSheet');if(!ppCss){let css='';for(const sh of document.styleSheets){try{for(const r of sh.cssRules){if(r.media&&r.media.mediaText==='print'){for(const x of r.cssRules){const t=x.cssText;if(/^@page|^html|^body|^#printSheet\s*\{|preview|zoom/.test(t))continue;css+=t+'\n'}}}}catch(e){}}
