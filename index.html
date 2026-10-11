@@ -154,7 +154,7 @@ button,input,select{font:inherit;color:inherit}
 .docks button[aria-pressed="true"]{background:#F2F2F2;color:#141414}
 .iconbtn{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:400 15px/1 var(--body);cursor:pointer}
 #hud .hname{flex:1;min-width:0}#hud .hname b{display:block;font:700 12px/1.15 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}#hud .hname small{display:block;font-size:10px;opacity:.75}
-#hud .stopjump{flex:none;background:#D62828;color:#fff;border:none;border-radius:7px;padding:4px 9px;font:700 11px/1 var(--body);letter-spacing:.03em;cursor:pointer}
+#hud .stopjump{flex:none;background:#D62828;color:#fff;border:none;border-radius:8px;padding:6px 14px;min-height:44px;min-width:96px;font:700 14px/1 var(--body);letter-spacing:.03em;cursor:pointer}
 #hud .iconbtn{background:none;color:#eee;border-color:rgba(255,255,255,.18)}
 .hbody{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;align-items:center}
 #hud[data-dock="left"] .hbody,#hud[data-dock="right"] .hbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
@@ -197,17 +197,18 @@ button,input,select{font:inherit;color:inherit}
 .leaflet-container,.leaflet-grab,.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:crosshair}
 /* DIP name: small, fixed size, centred directly below the DIP (6 o'clock); stays when zoomed out */
 /* HRPO: small, centred directly below its mountain marker */
-.hrpolbl{position:absolute;left:11px;top:19px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 10px/1.15 var(--cond);text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.hrpolbl small{display:block;font-size:9px;font-weight:400;opacity:.9}.leaflet-container.lowz .hrpolbl{display:none}
-.altname{position:absolute;left:50%;top:21px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 10px/1.15 var(--cond);color:#FFD400;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.altname small{display:block;font-size:9px;font-weight:400}.leaflet-container.lowz .altname{display:none}
-.dipname{position:absolute;left:50%;top:27px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.dipname small{display:block;font-size:9px;font-weight:400;opacity:.85}
+.hrpolbl{position:absolute;left:11px;top:19px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.hrpolbl small{display:block;font-size:10px;font-weight:400;opacity:.9}.leaflet-container.lowz .hrpolbl{display:none}
+.altname{position:absolute;left:50%;top:21px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);color:#FFD400;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.altname small{display:block;font-size:10px;font-weight:400}.leaflet-container.lowz .altname{display:none}
+.dipname{position:absolute;left:50%;top:27px;transform:translateX(-50%);text-align:center;white-space:nowrap;font:600 11px/1.15 var(--cond);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,1px 1px 1px #000;pointer-events:none}.dipname small{display:block;font-size:10px;font-weight:400;opacity:.85}
 /* wind speeds only from 30,000 ft eye altitude down */
 .leaflet-container.hi30k .wlbl,.leaflet-container.hi30k .warr,.leaflet-container.hi30k .holdlbl{display:none}
 /* DZ items (DIP name, DZ height, compass ring numbers) only from 15,000 ft eye altitude down */
 .leaflet-container.hi5k .clbl,.leaflet-container.hi5k .dipname,.leaflet-container.hi5k .altname{display:none}
 /* landing pattern turn heights: small but crisp (thin outline, no soft glow) */
-.plbl{font:700 11px/1 Arial,sans-serif;color:#5B8CFF;-webkit-font-smoothing:antialiased;text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000}.leaflet-container.lowz .plbl,.leaflet-container.hi10k .plbl,.leaflet-container.hi10k .landlbl{display:none}/* only from 10,000 ft eye altitude down */
+.plbl{font:700 11px/1 var(--cond);color:#5B8CFF;-webkit-font-smoothing:antialiased;text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000}.leaflet-container.lowz .plbl,.leaflet-container.hi10k .plbl,.leaflet-container.hi10k .landlbl{display:none}/* only from 10,000 ft eye altitude down */
 .leaflet-container :is(.lbl,.linelbl,.tag,.clbl,.klbl,.tlbl,.wlbl,.glbl,.xlbl,.plbl,.dipname,.altname,.hrpolbl){zoom:var(--ls,1)}
 .leaflet-tile-pane .leaflet-layer{filter:brightness(var(--mapb,1))}
+:root[data-night="1"] :is(.leaflet-overlay-pane,.leaflet-marker-pane,#status,#hud,#quick,#zoom,#radial,#eyeAlt,#curPos,#tip,#jmPop,#updBar){filter:grayscale(1) sepia(1) hue-rotate(-45deg) saturate(6) brightness(.85)}
 #eyeAlt{position:absolute;left:118px;bottom:8px;z-index:900;font:400 10px/1.3 var(--cond);color:var(--ink);background:color-mix(in srgb,var(--panel) 70%,transparent);padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap}
 #radial{position:absolute;z-index:1150;width:0;height:0}
 #radial .rb{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(16,16,16,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.45);color:#FFF;text-shadow:0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0}
@@ -241,7 +242,7 @@ button,input,select{font:inherit;color:inherit}
 /* ---------- tool sheet ---------- */
 #tool{position:absolute;left:0;right:0;bottom:0;z-index:1150;background:color-mix(in srgb,var(--panel) 62%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);border-radius:12px 12px 0 0;display:flex;flex-direction:column;min-height:0}
 .thead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);cursor:pointer;background:color-mix(in srgb,var(--panel2) 55%,transparent);border-radius:12px 12px 0 0}
-.thead b{flex:1;font:500 19px/1.1 var(--cond)}
+.thead b{flex:1;font:500 20px/1.1 var(--cond)}
 .tbody{max-height:42vh;overflow:auto;overscroll-behavior:contain}
 #tool .tbody,#tool.tall .tbody{flex:1;min-height:0;height:auto;max-height:none}#tool.side{right:0!important;width:auto!important;border-radius:10px 0 0 0!important}#tool{right:8px!important;border-radius:10px!important;overflow:hidden}#tool .thead{padding:4px 8px 4px 10px;border-radius:0}#tool .thead b{font-size:16px}
 #tool.min .tbody{display:none}
@@ -273,13 +274,13 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);flex:none}
 #hamoNote{min-height:3.9em}
 .podh{margin:12px 0 4px;padding:4px 8px;border-left:4px solid var(--amber);font:500 16px var(--cond);color:var(--ink)}
 .plandip{margin:10px 2px 4px;font:400 17px/1.2 var(--cond);color:var(--ink)}.plandip b{font-weight:500}
-.hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--muted,#BDBDBD)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
+.hrpo{margin:6px 0 8px;font:400 15px/1.35 var(--cond);color:var(--mute)}.hrpo b{display:block;font:600 22px/1.2 var(--cond);letter-spacing:.03em}.hrpo.ok b{color:var(--go)}.hrpo.bad b{color:var(--stop)}.hrpo.bad{color:var(--ink)}
 #jmSeg button{padding:6px 3px;font-size:14px;line-height:1.1;white-space:normal}#jmSeg button[data-jm="summary"]{flex:1.3}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .stepper button{width:46px;height:42px;border:none;background:var(--panel2);font:500 22px var(--cond);cursor:pointer}
 .stepper output{min-width:110px;text-align:center;font:500 18px var(--cond);font-variant-numeric:tabular-nums;padding:0 8px}
 .fldnote{display:block;font-size:11px;color:var(--mute);margin-top:2px;min-height:13px}
-.btn.sm{padding:3px 10px;font-size:12px;margin-left:6px}
+.btn.sm{padding:6px 12px;font-size:14px;margin-left:6px;min-height:36px}
 #hamoBox .fields{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* navigating: the navigation box takes the jumper box's place */body.navlock #status{display:none}
 body.navlock #quick .qb:not(#layoutBtn){opacity:.3;filter:grayscale(1);pointer-events:none}
@@ -338,13 +339,13 @@ body.dopen.dbot #status,body.topen.dbot #status,body.aopen.dbot #status{display:
 /* quick tools dock in the same place as the menu */
 #tool.dock{position:fixed;top:0!important;bottom:0!important;right:0!important;left:auto!important;width:var(--dw)!important;height:auto!important;z-index:2400;border-radius:0!important;background:var(--panel);backdrop-filter:none;-webkit-backdrop-filter:none;border-top:none;border-left:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body.dbot #tool.dock{top:50%!important;left:0!important;width:auto!important;border-left:none;border-top:1px solid var(--line);padding-top:0}
-#tool.dock #toolMin{display:none}#tool.dock .thead{padding:10px 10px 10px 14px!important;border-bottom:1px solid var(--line)}#tool.dock .thead b{font:500 21px/1.1 var(--cond)!important}#toolFlip{font-size:18px}#layoutBtn svg rect{fill:none;stroke:currentColor;stroke-width:1.8}#layoutBtn svg path{stroke:currentColor;stroke-width:1.6}#layoutBtn svg{transition:transform .2s}#layoutBtn.land svg{transform:rotate(-90deg)}
+#tool.dock #toolMin{display:none}#tool.dock .thead{padding:10px 10px 10px 14px!important;border-bottom:1px solid var(--line)}#tool.dock .thead b{font:500 20px/1.1 var(--cond)!important}#toolFlip{font-size:18px}#layoutBtn svg rect{fill:none;stroke:currentColor;stroke-width:1.8}#layoutBtn svg path{stroke:currentColor;stroke-width:1.6}#layoutBtn svg{transition:transform .2s}#layoutBtn.land svg{transform:rotate(-90deg)}
 body.rot{position:fixed;top:0;left:0;transform-origin:0 0;overflow:hidden}body.rot{--dw:min(400px,46vh)}
 body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);padding-top:0}
 #dFlip{font-size:18px}
 #drawer .dbox{background:var(--panel);width:100%;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
 .dhead{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}
-.dhead b{flex:1;font:500 21px/1.1 var(--cond)}
+.dhead b{flex:1;font:500 20px/1.1 var(--cond)}
 .dbody{overflow:auto;flex:1}
 .mlist button{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:14px 16px;cursor:pointer}
 .mlist b{display:block;font:500 18px/1.2 var(--cond)}
@@ -354,12 +355,12 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 #act{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center}
 #act .box{background:var(--panel);width:100%;max-width:520px;max-height:50vh;max-height:50dvh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 #act.side{left:auto;width:var(--dw);background:none;align-items:stretch;justify-content:flex-end}body.dbot #act.side{left:0;width:auto;top:50%}body.dbot #act.side .box{border-left:none;border-top:1px solid var(--line);padding-top:14px}#act.side .box{width:100%;max-width:none;max-height:none;height:100%;border-radius:0;border-top:none;border-left:1px solid var(--line);padding-top:calc(14px + env(safe-area-inset-top,0px))}
-#act .dipalt{color:#9a9a9a;font-weight:400}
+#act .dipalt{color:var(--mute);font-weight:400}
 .fullbtns{display:flex;flex-wrap:nowrap}.fullbtns .btn{flex:1}.fullbtns .btn[hidden]{display:none}
 .stylelist{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}.stylelist .btn{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.stylelist .btn span{width:64px;flex:none}.stylelist .btn svg{flex:1;height:16px}.stylelist .btn.on{outline:2px solid var(--ink)}
 .altoff{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6px 0}.altoff div{background:var(--panel2,rgba(127,127,127,.12));border-radius:10px;padding:10px 12px}.altoff span{display:block;font:600 13px var(--body);color:var(--mute)}.altoff b{font:600 21px/1.2 var(--cond);white-space:nowrap;font-variant-numeric:tabular-nums}
 #act .box{position:relative}#act .inbtns{display:flex;gap:8px;margin:8px 0 10px}#act .inbtns .btn{flex:1}#actBtns .btn svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#actX{position:absolute;top:10px;right:10px;width:30px;height:30px;font-size:14px}
-#act h4{padding-right:36px;margin:0;font:500 22px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+#act h4{padding-right:36px;margin:0;font:500 20px/1.2 var(--cond)}#actBack{display:block;margin:0 0 8px;padding:6px 12px;font-size:14px}#actBack[hidden]{display:none}#actBtns .btn.li{grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px}#actBtns .btn.li small{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
 #act p{white-space:pre-line;margin:2px 0 12px;color:var(--mute);font-variant-numeric:tabular-nums}
 #act .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:55vh;overflow:auto}
 #actInput{margin-bottom:10px}
@@ -482,10 +483,10 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
 
       <!-- JUMPMASTER -->
       <div class="panel" data-tool-panel="jump">
-        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan Jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump Vital Data</button></div>
+        <div class="seg full" id="jmSeg"><button data-jm="plan" aria-pressed="true">Plan jump</button><button data-jm="cypres" aria-pressed="false">CYPRES</button><button data-jm="alti" aria-pressed="false">Alti</button><button data-jm="summary" aria-pressed="false">Jump vital data</button></div>
 
         <div data-jm-panel="plan">
-          <button class="mhead mt" id="mHead"><span>Plan Jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
+          <button class="mhead mt" id="mHead"><span>Plan jump:</span><b id="mName">Unsaved</b><span class="chev">›</span></button>
           <div data-pp="1">
           <p class="plandip" id="planDip"></p>
           <section class="sec" hidden>
@@ -587,7 +588,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         </div>
 
         <div data-jm-panel="summary" hidden>
-          <button class="mhead mt" id="mHead2"><span>Plan Jump:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
+          <button class="mhead mt" id="mHead2"><span>Plan jump:</span><b id="mName2">Unsaved</b><span class="chev">›</span></button>
           <div id="sumOut"></div>
         </div>
 
@@ -640,7 +641,7 @@ body.dbot #drawer .dbox{border-left:none;border-top:1px solid var(--line);paddin
         <button data-go="display"><b>Display</b><small>Theme, night mode, projected location</small></button>
         <button data-go="settings"><b>Settings</b><small>Coordinates, units, magnetic variation, navigation rings</small></button>
         <button data-go="data"><b>Data</b><small>Offline maps, what is stored and erase</small></button>
-        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:30</p>
+        <p class="note" id="appVer" style="padding:10px 16px">Version 12 Oct 2026 · 03:45</p>
       </div>
 
       <div class="panel" data-dpage="sub" hidden><p class="note" id="dSubSub"></p><div id="dSubIn" hidden><label class="fld"><span id="dSubLbl"></span><input type="text" id="dSubInput"></label><button class="btn mt" id="dSubSave" style="width:100%">Save name</button></div><div class="stackbtns mt" id="dSubBtns"></div></div>
@@ -961,7 +962,8 @@ async function terrElevs(pts){const n=2**TZ;return Promise.all(pts.map(async p=>
 const curHover=matchMedia('(hover:hover) and (pointer:fine)').matches;let curT=0,curSeq=0;
 function curShow(p){const box=$('#curPos');if(!box)return;box.hidden=false;const g=fc(p);box.innerHTML=`${g} · <span id="curAlt">…</span>`;curPlace();clearTimeout(curT);const n=++curSeq;
   curT=setTimeout(async()=>{const m=await groundElevM(p);if(n!==curSeq)return;const e=document.getElementById('curAlt');if(e)e.textContent=m==null?'–':`${Math.round(m/FT).toLocaleString('en-GB')} ft AMSL`},120)}
-function curPlace(){const ea=document.getElementById('eyeAlt'),b=document.getElementById('curPos');if(!ea||!b)return;b.style.left=(ea.offsetLeft+ea.offsetWidth+4)+'px';b.style.bottom=ea.style.bottom||'8px'}
+function curPlace(){const ea=document.getElementById('eyeAlt'),b=document.getElementById('curPos');if(!ea||!b)return;const W=(b.offsetParent||document.body).clientWidth,at=document.querySelector('.leaflet-control-attribution'),aw=at?at.offsetWidth+10:0,x=ea.offsetLeft+ea.offsetWidth+4,eb=parseFloat(ea.style.bottom)||8;
+  if(x+b.offsetWidth>W-aw){b.style.left=ea.offsetLeft+'px';b.style.bottom=(eb+ea.offsetHeight+3)+'px'}else{b.style.left=x+'px';b.style.bottom=eb+'px'}}
 async function groundElevM(p){try{const v=(await terrElevs([p]))[0];return isFinite(v)?v:null}catch(e){return null}}
 async function plotX(p,gpsAltM){const x={id:uid(),name:`X${S.xs.length+1}`,lat:p.lat,lon:p.lon,alt:null,src:null};if(gpsAltM!=null){x.alt=gpsAltM/FT;x.src='GPS'}S.xs.push(x);save('xs');renderXs();
   if(x.alt==null){const m=await groundElevM(p);if(m!=null){x.alt=m/FT;x.src='terrain'}else if(!elevWarned){elevWarned=true;toast('Could not get the ground height (no signal?). Tap the Red X to enter its altitude.',6000)}save('xs');renderXs()}}
@@ -1449,7 +1451,7 @@ function renderDipList(){const el=$('#dipList');if(!el)return;const rel=p=>me?` 
   const rows=[...(S.pi?[{k:'cur',name:S.pi.name||'DIP',p:S.pi,tag:'current DIP',col:'--pi'}]:[]),...S.altDips.map(d=>({k:'a:'+d.id,name:d.name,p:d,tag:'alternate DIP',col:'--amber'})),...S.savedDips.map(d=>({k:'sd:'+d.id,name:d.name,p:d,tag:'saved DIP',col:'--mute'}))];
   el.innerHTML=rows.length?rows.map(r=>`<button class="item" data-dip="${esc(r.k)}"><span class="sw" style="background:var(${r.col})"></span><span><b>${esc(r.name)}</b><small>${r.tag} · ${esc(fc(r.p))}${rel(r.p)}</small></span><span class="chev">›</span></button>`).join(''):'<p class="note">No DIPs yet. Use JM TOOL → Place DIP.</p>'}
 function dipMenu(k){const go=(key,l)=>[l,()=>{closeDrawer();setTarget(key)},'primary'],ctr=p=>['Centre map',()=>{closeDrawer();map.setView(LL(p),Math.max(map.getZoom(),13))}];
-  if(k==='cur'){if(!S.pi)return;const b=[go('c:pi','Navigate to DIP')];if(J&&!J.err){b.push(go('c:harp',hamo?'Navigate to HARP 1':'Navigate to HARP'),go('c:gl',hamo?'Navigate to First out 1':'Navigate to First out'),go('c:rl',hamo?'Navigate to Last out 1':'Navigate to Last out'),go('c:open','Navigate to PRP'));if(hamo&&J2)b.push(go('c:harp2','Navigate to HARP 2'),go('c:gl2','Navigate to First out 2'),go('c:rl2','Navigate to Last out 2'));if(hamo&&J3)b.push(go('c:harp3','Navigate to HARP 3'),go('c:gl3','Navigate to First out 3'),go('c:rl3','Navigate to Last out 3'))}b.push(ctr(S.pi));sheet({title:S.pi.name||'DIP',sub:`Current DIP · ${fc(S.pi)}`,buttons:b});return}
+  if(k==='cur'){if(!S.pi)return;const b=[go('c:pi','Navigate to DIP')];if(J&&!J.err){b.push(go('c:harp',hamo?'Navigate to HARP 1':'Navigate to HARP'),go('c:gl',hamo?'Navigate to first out 1':'Navigate to first out'),go('c:rl',hamo?'Navigate to Last out 1':'Navigate to Last out'),go('c:open','Navigate to PRP'));if(hamo&&J2)b.push(go('c:harp2','Navigate to HARP 2'),go('c:gl2','Navigate to first out 2'),go('c:rl2','Navigate to Last out 2'));if(hamo&&J3)b.push(go('c:harp3','Navigate to HARP 3'),go('c:gl3','Navigate to first out 3'),go('c:rl3','Navigate to Last out 3'))}b.push(ctr(S.pi));sheet({title:S.pi.name||'DIP',sub:`Current DIP · ${fc(S.pi)}`,buttons:b});return}
   const r=resolve(k);if(!r)return;if(k.startsWith('a:'))sheet({title:r.name,sub:`Alternate DIP · ${fc(r.p)}`,buttons:[go(k,`Navigate to ${r.name}`),['Make primary',()=>{useAltAsDip(k.slice(2),false);renderDipList()}],ctr(r.p)]});
   else{const d=S.savedDips.find(x=>String(x.id)===k.slice(3));sheet({title:r.name,sub:`Saved DIP · ${fc(r.p)}`,buttons:[go(k,`Navigate to ${r.name}`),['Use this DIP',()=>{S.pi={name:d.name,lat:d.lat,lon:d.lon};save('pi');if(d.dzElev!=null){S.jump.dzElev=d.dzElev;S.jump.dzSrc='saved DIP';save('jump');syncJumpInputs();renderWinds()}else autoDzElev();renderJump();renderDipList();toast(`DIP: ${d.name}`)}],ctr(r.p)]})}}
 $('#dipList').onclick=e=>{const b=e.target.closest('[data-dip]');if(b)dipMenu(b.dataset.dip)};
@@ -1530,7 +1532,7 @@ $('#forceJump').onclick=()=>{phase='freefall';renderPhase();renderJump();startJu
 /* while navigating to the DIP the HARP rings are hidden; they stay on when navigating to a HARP and come back when navigation stops */
 var jumpActive=false;
 function startJumpAs(k){jumpActive=true;if(k==='ac'){ajArmed=false}if(k==='ac'&&S.hound.autoJump!==false){phaseAuto=true;startMotion();if(phase==='ground'||phase==='landed'){phase='aircraft';renderPhase()}}const P=PRESETS[k];S.hound.tiles=P.tiles.slice();save('hound');renderTiles();if(resolve(P.target))setTarget(P.target);else{jumpActive=false;toast(`${P.note}: set the DIP first`)}renderJump();updateHound()}
-function startJumpChoice(){sheet({title:'Start Jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
+function startJumpChoice(){sheet({title:'Start jump',sub:'JM: aircraft to the HARP · Parachutist: canopy back to the DIP',buttons:[['Start as JM',()=>startJumpAs('ac'),'primary'],['Start as Parachutist',()=>startJumpAs('canopy'),'primary']]})}
 /* while navigating, the app is locked into navigation: menus and tools wait until STOP JUMP */
 function navLock(){if(!S.target)return false;toast('Navigating: press STOP JUMP to use the menus');return true}
 document.body.classList.toggle('navlock',!!S.target);
@@ -1660,13 +1662,13 @@ function dipRadial(){openRadial(S.pi,[
   {l:'Alt DIPs',icon:'alt',f:altDipSheet},
   {l:'Landing',icon:'pattern',f:()=>{if(!hamo){S.pattern.pod=1;patternSheet();return}setTimeout(()=>openRadial(S.pi,[1,2,...(J3?[3]:[])].map(n=>({l:`Pod ${n}`,icon:'pattern',f:()=>{S.pattern.pod=n;S.pattern.mv=null;save('pattern');renderJump();patternSheet()}})),'Landing pattern for which pod?',null,150),30)}},
   {l:S.jump.calcOff?'Calculate':'Uncalculate',icon:S.jump.calcOff?'params':'uncalc',f:()=>{S.jump.calcOff=!S.jump.calcOff;save('jump');renderJump()}},
-  {l:'Save pkg',icon:'save',f:()=>openDrawer('missions')},
-  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('canopy')},
+  {l:'Save package',icon:'save',f:()=>openDrawer('missions')},
+  {l:'Start jump',icon:'hound',f:()=>startJumpAs('canopy')},
   {l:'Delete',icon:'trash',cls:'danger',f:()=>sheet({title:`Delete ${S.pi.name||'DIP'}?`,sub:'Removes the DIP and its plan from the map. Saved missions and saved DIPs are not affected.',buttons:[['Delete DIP',()=>{if(S.target&&/^c:/.test(S.target))setTarget(null);S.pi=null;save('pi');S.pattern.mv=null;save('pattern');renderJump();renderPoints()},'danger']]})}])}
 
 function harpRadial(){if(!J||J.err)return;const t=`${hamo?'HARP 1':'HARP'} · ${fc(J.harp)}`;openRadial(J.harp,[
   {l:S.jump.harpRings?'Hide rings':'Timing rings',icon:'alt',f:()=>{S.jump.harpRings=!S.jump.harpRings;save('jump');renderJump()}},
-  {l:'Start Jump',icon:'hound',f:()=>startJumpAs('ac')},
+  {l:'Start jump',icon:'hound',f:()=>startJumpAs('ac')},
   {l:'Plan Jump',icon:'params',f:()=>{openTool('jump');showJm('plan')}},
   {l:'Copy grid',icon:'save',f:()=>copy(fc(J.harp))}],t)}
 /* alternate DIPs */
@@ -1846,8 +1848,8 @@ function useSavedDip(d){S.pi={name:d.name,lat:d.lat,lon:d.lon};save('pi');if(d.d
 function savedDipsSheet(){const n=S.savedDips.length;sheet({side:true,title:'Saved DIPs',sub:n?`${n} saved on this phone.`:'None saved yet.',buttons:[
   ['Save current DIP',()=>{if(!S.pi){toast('Place a DIP first.');return}sheet({side:true,back:savedDipsSheet,title:'Save DIP',sub:fc(S.pi),input:{label:'Name',value:S.pi.name||'DIP',save:v=>{S.savedDips.push({id:Date.now(),name:v.trim()||'DIP',lat:S.pi.lat,lon:S.pi.lon,dzElev:+S.jump.dzElev||null});save('savedDips');toast('DIP saved');savedDipsSheet()}},buttons:[]})},'primary'],
   ['Load DIPs',loadDipsSheet],
-  ['Load from Files',()=>$('#dipFile').click()],
-  ['Save to Files',()=>{if(!n){toast('No saved DIPs to export.');return}shareFile(new Blob([JSON.stringify({app:'JumpMaster Pro',dips:S.savedDips.map(d=>({name:d.name,lat:+d.lat.toFixed(6),lon:+d.lon.toFixed(6),dzElev:d.dzElev??null,grid:fc(d)}))},null,1)],{type:'application/json'}),'saved-dips.json','Saved DIPs')}]]})}
+  ['Load from files',()=>$('#dipFile').click()],
+  ['Save to files',()=>{if(!n){toast('No saved DIPs to export.');return}shareFile(new Blob([JSON.stringify({app:'JumpMaster Pro',dips:S.savedDips.map(d=>({name:d.name,lat:+d.lat.toFixed(6),lon:+d.lon.toFixed(6),dzElev:d.dzElev??null,grid:fc(d)}))},null,1)],{type:'application/json'}),'saved-dips.json','Saved DIPs')}]]})}
 const dipRow=d=>`${toMGRS(d.lat,d.lon)} · DZ ${d.dzElev!=null?ff(d.dzElev)+' AMSL':'–'}`;
 function loadDipsSheet(){const L_=S.savedDips;sheet({side:true,back:savedDipsSheet,title:'Load DIP',sub:L_.length?'Tap one to use it.':'No saved DIPs. Save the current DIP or load them from Files.',buttons:L_.map(d=>[d.name,()=>sheet({side:true,back:loadDipsSheet,title:d.name,sub:dipRow(d),buttons:[['Use this DIP',()=>useSavedDip(d),'primary'],['Delete',()=>{S.savedDips=S.savedDips.filter(x=>x.id!==d.id);save('savedDips');loadDipsSheet()},'danger']]}),'',dipRow(d)])})}
 /* read DIPs from a file: this app's export (.json), KML, GPX, ATAK CoT, or CSV/text lines of "name, grid" or "name, lat, lon" */
@@ -1925,7 +1927,7 @@ function renderSummary(){const o=$('#sumOut');$('#mName2').textContent=missionNa
     <dd data-l="HARP">${fc(J.harp)}</dd>${hamo?`<dd data-l="Pod 2">opens ${ff(S.jump.pod2Open)} AGL · ${S.jump.pod2Jumpers} jumpers</dd><dd data-l="HARP 2">${fc(J2.harp)} · ${J2.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP to HARP">${fd(hamo.second.along-hamo.first.along)} · ${fsec(hamo.gap)} at run-in speed · pod 1 first</dd>${hamo.C?`<dd data-l="Pod 3">opens ${ff(S.jump.pod3Open)} AGL · ${S.jump.pod3Jumpers} jumpers</dd><dd data-l="HARP 3">${fc(J3.harp)} · ${J3.ok?'inside ring':'OUTSIDE ring'}</dd><dd data-l="HARP 2 to 3">${fd(J3.along-J2.along)} · ${fsec(hamo.gaps[1])} at run-in speed</dd>`:''}`:''}
     <dd data-l="Stick">${Math.round(J.stick)} m, first out to last out</dd>
   </dl>
-  <div class="row"><button class="btn primary" data-start="ac">Start Jump</button><button class="btn" data-hound="c:gl">Navigate to First out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
+  <div class="row"><button class="btn primary" data-start="ac">Start jump</button><button class="btn" data-hound="c:gl">Navigate to first out</button><button class="btn" data-hound="c:pi">Navigate to DIP</button><button class="btn" id="editPlan">Edit plan</button></div>`}
 function showPage(n){$$('[data-pp]').forEach(d=>d.hidden=d.dataset.pp!==String(n));$('.tbody').scrollTop=0}
 function showJm(k){const pn=k==='winds'?'plan':k;$$('#jmSeg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.jm===k));$$('[data-jm-panel]').forEach(p=>p.hidden=p.dataset.jmPanel!==pn);if(k==='plan'||k==='winds')showPage(1);if(k==='winds')setTimeout(()=>{const w=$('#windSec');if(w)w.scrollIntoView({block:'start'})},30);if(k==='summary')renderSummary()}
 document.addEventListener('click',e=>{if(e.target.id==='toWinds'){showJm('winds')}if(e.target.id==='toPlan'){showJm('plan')}if(e.target.id==='finishPlan'){showJm('summary');$('.tbody').scrollTop=0}if(e.target.id==='editPlan')showJm('plan');if(e.target.id==='mHead2')openDrawer('missions')});
